@@ -1,0 +1,134 @@
+require './helper'
+
+grammar L
+  rule main
+    import* (fun / class / statement / line_break)*
+  end
+
+
+  rule import
+    'import' white+ quote identifier quote space+
+    <PackageNode>
+  end
+
+
+  rule fun
+    space* 'def' white+ identifier space+
+    statement*
+    block_end <FunNode>
+  end
+
+  rule fun_args
+    '(' space* type? identifier space*
+    (',' space* type? identifier space*)* ')'
+  end
+
+  rule type
+    'int' space+
+  end
+
+  rule fun_call
+    identifier call_args
+  end
+
+  rule call_args
+    '(' space* expression (space* ',' space* expression)* ')'
+  end
+
+
+  rule class
+    space* 'class' white+ identifier space+
+    (space / fun / ('var' white+ identifier))*
+    block_end <ClassNode>
+  end
+
+  rule statement
+    (variant / if / while / return / fun_call)? space+
+  end
+
+  rule variant
+    'var' space+ identifier space+ '=' space+ expression
+    <VariantNode>
+  end
+
+  rule if
+    'if' white+ expression space+
+    statement*
+    ('elsif' white+ expression space+
+    statement*)*
+    ('else' space+
+    statement*)?
+    block_end <IfNode>
+  end
+
+  rule while
+    'while' white+ expression space+
+    statement*
+    block_end
+  end
+
+  rule return
+    'return'
+  end
+
+  rule block_end
+    'end'
+  end
+
+  rule expression
+    term (space* op space* term)* <ExprNode>
+  end
+
+  rule op
+    '+' / '-' / '*' / '/'
+  end
+
+  rule term
+    bool_constant / num_constant / string /
+    (&(identifier '(') fun_call) / identifier
+  end
+
+  rule bool_constant
+    'true' / 'false'
+  end
+
+  rule num_constant
+    integer / float
+  end
+
+  rule integer
+    ('+' / '-')? [0-9]+
+  end
+
+  rule float
+    ('+' / '-')? [0-9]+ (('.' [0-9]+) / ('e' [0-9]+)) <FloatLiteral>
+  end
+
+  rule string
+    ('"' ([^"\\] / "\\" . )* '"') / ("'" ([^'\\] / '\\' . )* "'")
+  end
+
+  rule identifier
+    [a-zA-Z] [a-zA-Z0-9_]*
+  end
+
+  rule quote
+    ['"]
+  end
+
+  rule space
+    white / comment_to_eol / line_break
+  end
+
+  rule white
+    [ \t]
+  end
+
+  rule line_break
+    [\r\n/(\r\n)]
+  end
+
+  rule comment_to_eol
+    '#' (!"\n" .)*
+  end
+end
