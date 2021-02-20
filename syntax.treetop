@@ -2,7 +2,7 @@ require './helper'
 
 grammar L
   rule main
-    import* (fun / class / statement / line_break)*
+    import* (fun / class / statement)* <RootNode>
   end
 
 
@@ -13,14 +13,16 @@ grammar L
 
 
   rule fun
-    space* 'def' white+ identifier space+
+    space* 'def' white+ identifier white* fun_args? space+
     statement*
     block_end <FunNode>
   end
 
   rule fun_args
-    '(' space* type? identifier space*
-    (',' space* type? identifier space*)* ')'
+    '('
+           space* type? identifier space*
+      (','  space* type? identifier space*)*
+    ')'
   end
 
   rule type
@@ -28,7 +30,7 @@ grammar L
   end
 
   rule fun_call
-    identifier call_args
+    identifier call_args <FunCallNode>
   end
 
   rule call_args
@@ -43,7 +45,7 @@ grammar L
   end
 
   rule statement
-    (variant / if / while / return / fun_call)? space+
+    (variant / if / while / return / expression)? space+
   end
 
   rule variant
@@ -68,7 +70,7 @@ grammar L
   end
 
   rule return
-    'return'
+    'return' expression
   end
 
   rule block_end
@@ -80,12 +82,13 @@ grammar L
   end
 
   rule op
-    '+' / '-' / '*' / '/'
+    ('+' / '-' / '*' / '/') &{|s| true} <OpNode>
   end
 
   rule term
-    bool_constant / num_constant / string /
-    (&(identifier '(') fun_call) / identifier
+    (bool_constant / num_constant / string /
+    (&(identifier '(') fun_call) / identifier)
+    &{|s| true} <TermNode>
   end
 
   rule bool_constant
@@ -101,7 +104,7 @@ grammar L
   end
 
   rule float
-    ('+' / '-')? [0-9]+ (('.' [0-9]+) / ('e' [0-9]+)) <FloatLiteral>
+    ('+' / '-')? [0-9]+ (('.' [0-9]+) / ('e' [0-9]+))
   end
 
   rule string
@@ -109,7 +112,11 @@ grammar L
   end
 
   rule identifier
-    [a-zA-Z] [a-zA-Z0-9_]*
+    !keyword name:([a-zA-Z] [a-zA-Z0-9_]*) {
+      def inspect
+        input[interval]
+      end
+    }
   end
 
   rule quote
@@ -125,10 +132,17 @@ grammar L
   end
 
   rule line_break
-    [\r\n/(\r\n)]
+    [\r\n]
   end
 
   rule comment_to_eol
     '#' (!"\n" .)*
+  end
+
+  rule keyword
+    'class' / 'def' / 'end' / 'var' /
+    'true' / 'false' /
+    'if' / 'else' / 'elsif' / 'while' /
+    'int'
   end
 end

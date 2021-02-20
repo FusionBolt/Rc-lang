@@ -1,15 +1,15 @@
 import 'parser'
 import "set"
 
-var a = 1
+var a = 1 + 2 + 3 + 4 +5
 var b = a
 
-def f(int m, n)
+def f(int m, n, int q, m)
   var a = 1
 end
 
 def main
-  var m = 1 + 1 + 2
+  var m = 1 + 2 + 3 + 4
   var n = m
   var s = "str"
   var q = true
