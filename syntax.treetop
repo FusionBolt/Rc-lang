@@ -5,7 +5,6 @@ grammar L
     import* (fun / class / statement)* <RootNode>
   end
 
-
   rule import
     'import' white+ quote identifier quote space+
     <PackageNode>
@@ -14,15 +13,15 @@ grammar L
 
   rule fun
     space* 'def' white+ identifier white* fun_args? space+
-    statement*
+    statements
     block_end <FunNode>
   end
 
   rule fun_args
     '('
-           space* type? identifier space*
-      (','  space* type? identifier space*)*
-    ')'
+           (space* identifier space*
+      (','  space* identifier space*)*)?
+    ')' <FunArgsNode>
   end
 
   rule type
@@ -34,7 +33,7 @@ grammar L
   end
 
   rule call_args
-    '(' space* expression (space* ',' space* expression)* ')'
+    '(' (space* expression (space* ',' space* expression)*)? ')' <CallArgsNode>
   end
 
 
@@ -44,8 +43,12 @@ grammar L
     block_end <ClassNode>
   end
 
+  rule statements
+    statement* <StatementsNode>
+  end
+
   rule statement
-    (variant / if / while / return / expression)? space+
+    (variant / if / while / return / expression)? space+ <StatementNode>
   end
 
   rule variant
@@ -55,17 +58,17 @@ grammar L
 
   rule if
     'if' white+ expression space+
-    statement*
+    statements
     ('elsif' white+ expression space+
-    statement*)*
-    ('else' space+
-    statement*)?
+    statements)*
+    else_s:('else' space+
+    statements)?
     block_end <IfNode>
   end
 
   rule while
     'while' white+ expression space+
-    statement*
+    statements
     block_end
   end
 
@@ -82,21 +85,21 @@ grammar L
   end
 
   rule op
-    ('+' / '-' / '*' / '/') &{|s| true} <OpNode>
+    op_char:('+' / '-' / '*' / '/') <OpNode>
   end
 
   rule term
-    (bool_constant / num_constant / string /
+    term_val:(bool_constant / num_constant / string_constant /
     (&(identifier '(') fun_call) / identifier)
-    &{|s| true} <TermNode>
+    <TermNode>
   end
 
   rule bool_constant
-    'true' / 'false'
+    constant_val:('true' / 'false') <BoolConstant>
   end
 
   rule num_constant
-    integer / float
+    constant_val:(integer / float) <NumberConstant>
   end
 
   rule integer
@@ -107,14 +110,23 @@ grammar L
     ('+' / '-')? [0-9]+ (('.' [0-9]+) / ('e' [0-9]+))
   end
 
-  rule string
-    ('"' ([^"\\] / "\\" . )* '"') / ("'" ([^'\\] / '\\' . )* "'")
+  rule string_constant
+    constant_val:(('"' ([^"\\] / "\\" . )* '"') / ("'" ([^'\\] / '\\' . )* "'"))
+    <StringConstant>
   end
 
   rule identifier
     !keyword name:([a-zA-Z] [a-zA-Z0-9_]*) {
       def inspect
         input[interval]
+      end
+
+      def eval(env = {})
+        env[inspect]
+      end
+
+      def meta()
+        'id'
       end
     }
   end

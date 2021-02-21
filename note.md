@@ -26,3 +26,6 @@ end
 "foo" &"bar" is ok, but "foo" & "bar" is err 
 "foo" &"bar" only scan foo, if read "foobar", will not to reach end
 "foo" &"bar" "bar" is ok, !is like &
+
+
+如果?，不存在则elements为nil

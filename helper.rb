@@ -6,3 +6,7 @@ end
 def debug(data)
   data[0]
 end
+
+def f(data)
+
+end
