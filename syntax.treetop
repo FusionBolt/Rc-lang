@@ -2,26 +2,59 @@ require './helper'
 
 grammar L
   rule main
-    import* (fun / class / statement)* <RootNode>
+    packages:import* other:(fun / class / statement)* {
+      def to_ast
+        RootNode.new(multi_to_ast(packages), multi_to_ast(other))
+      end
+    }
   end
 
   rule import
-    'import' white+ quote identifier quote space+
-    <PackageNode>
+    'import' white+ quote name:identifier quote space+ {
+      def to_ast
+        PackageNode.new(name.to_ast)
+      end
+    }
   end
 
 
   rule fun
-    space* 'def' white+ identifier white* fun_args? space+
-    statements
-    block_end <FunNode>
+    space* 'def' white+ name:identifier white* args:fun_args? space+
+    stmts:statements
+    block_end {
+      def to_ast
+        FunNode.new(name.to_ast, optional_to_ast(args), stmts.to_ast)
+      end
+    }
   end
 
   rule fun_args
     '('
-           (space* identifier space*
-      (','  space* identifier space*)*)?
-    ')' <FunArgsNode>
+           all_args:(
+           (space* identifier space*)
+            (','  space* identifier space*)*
+            )?
+    ')' {
+      def to_ast
+        if optional_node_exist? all_args
+          []
+        else
+          args.map(&:to_ast)
+        end
+      end
+
+      def args
+        [first_args] + after_args
+      end
+
+      def first_args
+        all_args.elements[0].elements[1]
+      end
+
+      def after_args
+        all_args.elements[1].elements.map{|e| e.elements[2]}
+      end
+    }
   end
 
   rule type
@@ -29,41 +62,116 @@ grammar L
   end
 
   rule fun_call
-    identifier call_args <FunCallNode>
+    &(identifier '(')
+    name:identifier args:call_args {
+      def to_ast
+      begin
+        FunCallNode.new(name.to_ast, args.to_ast)
+      rescue => e
+        p e
+        debug args
+      end
+      end
+    }
   end
 
   rule call_args
-    '(' (space* expression (space* ',' space* expression)*)? ')' <CallArgsNode>
+    '(' args:(space* expression (space* ',' space* expression)*)? ')' {
+      def to_ast
+        args_list = args.elements
+        if args_list.nil?
+          []
+        else
+          all_args.map(&:to_ast)
+        end
+      end
+
+      def all_args
+        args_list = args.elements
+        ([args_list[1]] + args_list[2].elements.map {|e| e.elements[3]})
+      end
+    }
   end
 
 
   rule class
-    space* 'class' white+ identifier space+
-    (space / fun / ('var' white+ identifier))*
-    block_end <ClassNode>
+    space* 'class' white+ name:identifier space+
+    define:(space / fun / ('var' white+ identifier))*
+    block_end {
+      def to_ast
+        ClassNode.new(name.to_ast, define_ast)
+      end
+
+      def define_ast
+        define.elements.map do |e|
+          # TODO:error, only process fun
+          begin
+            e.to_ast
+          rescue
+            nil
+          end
+        end
+      end
+    }
   end
 
   rule statements
-    statement* <StatementsNode>
+    stmts:(statement*) {
+      def to_ast
+        StatementsNode.new(multi_to_ast(stmts))
+      end
+    }
   end
 
   rule statement
-    (variant / if / while / return / expression)? space+ <StatementNode>
+    stmt_node:(variant / if / while / return / expression)? space+ {
+      def to_ast
+        StatementNode.new(optional_to_ast(stmt_node))
+      end
+    }
   end
 
   rule variant
-    'var' space+ identifier space+ '=' space+ expression
-    <VariantNode>
+    'var' space+ name:identifier space+ '=' space+ expr:expression {
+      def to_ast
+        VariantNode.new(name.to_ast, expr.to_ast)
+      end
+    }
   end
 
   rule if
-    'if' white+ expression space+
-    statements
-    ('elsif' white+ expression space+
+    'if' white+ if_cond:expression space+
+    if_stmts:statements
+    elsif_node:('elsif' white+ expression space+
     statements)*
-    else_s:('else' space+
+    else_node:('else' space+
     statements)?
-    block_end <IfNode>
+    block_end {
+      def to_ast
+        IfNode.new(if_cond.to_ast, if_stmts.to_ast,
+          elsif_ast, else_ast)
+      end
+
+      def elsif_ast
+        if elsif_node.elements.empty?
+          []
+        else
+          elsif_node.elements.map{|e| destruct_elsif(e)}
+        end
+      end
+
+      def destruct_elsif(elsif_node)
+        [elsif_node.elements[2], elsif_node.elements[4]]
+      end
+
+      def else_ast
+        if optional_node_exist?(else_node)
+          else_node.elements[0].elements[2].to_ast
+        else
+          []
+        end
+      end
+    }
   end
 
   rule while
@@ -81,25 +189,56 @@ grammar L
   end
 
   rule expression
-    term (space* op space* term)* <ExprNode>
+    first:term after:(space* op space* term)* {
+      def to_ast
+        ExprNode.new(([first] + multi_term_ast).map(&:to_ast))
+      end
+
+      def multi_term_ast
+        after.elements.map{|e| [e.elements[1], e.elements[3]]}.flatten
+      end
+    }
   end
 
   rule op
-    op_char:('+' / '-' / '*' / '/') <OpNode>
+    op_char:('+' / '-' / '*' / '/') {
+      def to_ast
+        OpNode.new(text_value)
+      end
+    }
   end
 
   rule term
     term_val:(bool_constant / num_constant / string_constant /
-    (&(identifier '(') fun_call) / identifier)
-    <TermNode>
+    fun_call / identifier_node) {
+      def to_ast
+        term_val.to_ast
+      end
+    }
+  end
+
+  rule identifier_node
+    !keyword name:([a-zA-Z] [a-zA-Z0-9_]*) {
+      def to_ast
+        IdentifierNode.new(text_value)
+      end
+    }
   end
 
   rule bool_constant
-    constant_val:('true' / 'false') <BoolConstant>
+    constant_val:('true' / 'false') {
+      def to_ast
+        BoolConstant.new(text_value)
+      end
+    }
   end
 
   rule num_constant
-    constant_val:(integer / float) <NumberConstant>
+    constant_val:(integer / float) {
+      def to_ast
+        NumberConstant.new(text_value)
+      end
+    }
   end
 
   rule integer
@@ -111,22 +250,17 @@ grammar L
   end
 
   rule string_constant
-    constant_val:(('"' ([^"\\] / "\\" . )* '"') / ("'" ([^'\\] / '\\' . )* "'"))
-    <StringConstant>
+    constant_val:(('"' ([^"\\] / "\\" . )* '"') / ("'" ([^'\\] / '\\' . )* "'")) {
+      def to_ast
+        StringConstant.new(text_value)
+      end
+    }
   end
 
   rule identifier
     !keyword name:([a-zA-Z] [a-zA-Z0-9_]*) {
-      def inspect
-        input[interval]
-      end
-
-      def eval(env = {})
-        env[inspect]
-      end
-
-      def meta()
-        'id'
+      def to_ast
+        text_value
       end
     }
   end

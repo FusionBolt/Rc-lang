@@ -1,18 +1,18 @@
 import 'parser'
 import "set"
 
-var a = 1 + 2 + 3 + 4 +5
-var b = a
-
-def f(m, n, q, m)
-  var a = 1
-end
-
 def main
-  var m = 1 + 2 + 3 + 4
-  var n = m
-  var s = "str"
-  var q = true
+  var b1 = true
+  var b2 = false
+
+  var num = 1
+
+  var s1 = 'str'
+  var s2 = "str"
+
+  f1(1, 2, num)
+
+  var id = num
 
   if true
     var m = 1
@@ -28,26 +28,22 @@ def main
     var n = 2
   end
 
-  f()
-  f(1, 2, 3)
-  f(m, n)
-  f(1+1, 2*2)
-#  f(1, 2)
-#  f(m, n)
 end
 
-def f()
+def f1(a, b, c)
+  1 + 1 + 1
+end
+
+def f2()
+
+end
+
+def f3(a, b, c, argc, argv)
 
 end
 
 class Set
-
-  var a
-
   def f1
     var b = 1
-
-    return
   end
-
 end

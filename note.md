@@ -29,3 +29,4 @@ end
 
 
 如果?，不存在则elements为nil
+如果*，不存在则为empty

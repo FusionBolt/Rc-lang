@@ -2,14 +2,16 @@ require './log'
 
 # TODO:valid check
 # TODO:Err Check
-# TODO:按照现有形式构造ast呢还是统一to_ast
-class RootNode < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @packages = elements[0].elements
-    @other = elements[1].elements
+# TODO:call args check
+class RootNode
+  def initialize(packages, other)
+    $logger.info '----------------Construct Ast----------------'
+    @packages, @other = packages, other
+    $logger.debug 'root node'
   end
 
   def eval(env = {})
+    $logger.info '---------------- start eval ----------------'
     # import packages
     @packages.each { |p| p.eval(env) }
     # read statement
@@ -28,8 +30,11 @@ class RootNode < Treetop::Runtime::SyntaxNode
       end
     end
 
-    FunCallNode.new("", "", ["main"], false)
-    env["main"].eval(env.dup)
+    if env.has_key? 'main'
+      FunCallNode.new('main').eval(env)
+    else
+      raise 'NoMainException'
+    end
   end
 
   def inspect(indent = nil)
@@ -38,10 +43,10 @@ class RootNode < Treetop::Runtime::SyntaxNode
   end
 end
 
-class PackageNode < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @package_name = elements[3].inspect
-    $logger.debug "import package:#{@package_name}"
+class PackageNode
+  def initialize(name)
+    @name = name
+    $logger.debug "import package:#{@name}"
   end
 
   def import
@@ -60,43 +65,31 @@ class PackageNode < Treetop::Runtime::SyntaxNode
   end
 end
 
-class FunNode < Treetop::Runtime::SyntaxNode
+class FunNode
   attr_reader :args
-  def initialize(input, interval, elements = nil)
-    @name = elements[3].inspect
-    if has_args?(elements)
-      @args = []
-    else
-      @args = elements[5].args
-    end
-    @statements = elements[7]
-    $logger.debug "implement fun:#{@name}"
-  end
-
-  # if no args, then will not construct FunArgsNode
-  # so should judge by this way
-  def has_args?(elements)
-    elements[5].elements.nil?
+  def initialize(name, args, stmts)
+    @name, @args, @stmts = name, args, stmts
+    $logger.debug "implement #{inspect}"
   end
 
   def inspect(indent = nil)
-    "fun:#{@name} args:(#{args.map(&:inspect).join(',')})"
+    "fun:#{@name} args:(#{@args.map(&:inspect).join(',')})"
   end
 
   def deconstruct
-    [@name, @args, @statements]
+    [@name, @args, @stmts]
   end
 
   def eval(env = {}, args = [])
+    # TODO:merge args
     args.zip(@args)
-    @statements.eval(env)
+    @stmts.eval(env)
   end
 end
 
-class ClassNode < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @name = elements[3].inspect
-    @define = elements[-2].elements
+class ClassNode
+  def initialize(name, define)
+    @name, @define = name, define
     $logger.debug "implement class:#{@name}"
   end
 
@@ -109,12 +102,13 @@ class ClassNode < Treetop::Runtime::SyntaxNode
   end
 end
 
-class StatementNode < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @statement = elements[0]
+class StatementNode
+  def initialize(stmt)
+    @statement = stmt
   end
 
   def eval(env = {})
+    return if @statement == []
     eval_log "#{@statement.inspect}"
     @statement.eval(env)
   end
@@ -124,36 +118,26 @@ class StatementNode < Treetop::Runtime::SyntaxNode
   end
 end
 
-class VariantNode < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @id = elements[2].inspect
-    @val_expr = elements[-1]
-    $logger.debug "var:#{@id} val:#{@val_expr.inspect}"
+class VariantNode
+  def initialize(name, expr)
+    @name, @expr = name, expr
+    $logger.debug "var:#{@name} val:#{@expr.inspect}"
   end
 
   def inspect(indent = nil)
-    "var #{@id} = #{@val_expr.inspect}"
+    "var #{@name} = #{@expr.inspect}"
   end
 
   def eval(env = {})
-    env[@id] = @val_expr.eval(env)
+    env[@name] = @expr.eval(env)
   end
 end
 
-class IfNode < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @if_condition = elements[2]
-    @if_statements = elements[4]
-    # TODO:5 6 maybe nil or empty
-    all_elsif = elements[5].elements
-    # [cond, statements]
-    @elsif_list = all_elsif.map{|e| destruct_elsif(e)}
-    @else_statements = elements[6].elements[2]
+class IfNode
+  def initialize(if_cond, if_stmts, elsif_node, else_node)
+    @if_condition, @if_statements, @elsif_list, @else_statements =
+      if_cond, if_stmts, elsif_node, elsif_node
     $logger.debug "if node"
-  end
-
-  def destruct_elsif(elsif_node)
-    [elsif_node.elements[2], elsif_node.elements[4]]
   end
 
   def inspect(indent = nil)
@@ -161,27 +145,33 @@ class IfNode < Treetop::Runtime::SyntaxNode
   end
 
   def eval(env = {})
+    # TODO:elsif else test
     if @if_condition.eval(env)
+      eval_log 'if stmts'
       @if_statements.eval(env)
     else
       # else if
       @elsif_list.each do |e|
+        eval_log 'elsif stmts'
         if e[0].eval(env)
           return e[1].eval(env)
         end
       end
       # TODO:return error
       # else
-      @else_statements.eval(env)
+      unless @else_statements == []
+        eval_log 'else stmts'
+        @else_statements.eval(env)
+      end
     end
   end
 end
 
-class OpNode < Treetop::Runtime::SyntaxNode
+class OpNode
   attr_accessor :op
 
-  def initialize(input, interval, elements = nil)
-    @op = input[interval]
+  def initialize(op)
+    @op = op
   end
 
   def inspect(indent = nil)
@@ -193,34 +183,11 @@ class OpNode < Treetop::Runtime::SyntaxNode
   end
 end
 
-class TermNode < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    # because of treetop's question
-    # that can't set class before identifier
-    begin
-      @term = elements[0].elements[1]
-      if @term.meta == 'id'
-        @term = elements[0]
-      end
-    rescue
-      @term = elements[0]
-    end
-  end
-
-  def inspect(indent = nil)
-    @term.inspect
-  end
-
-  def eval(env = {})
-    @term.eval(env)
-  end
-end
-
-class ExprNode < Treetop::Runtime::SyntaxNode
+class ExprNode
   attr_accessor :term_list
 
-  def initialize(input, interval, elements = nil)
-    @term_list = [elements[0]] + elements[-1].elements.map { |e| [e.elements[1], e.elements[3]] }.flatten
+  def initialize(list)
+    @term_list = list
   end
 
   def inspect
@@ -236,47 +203,35 @@ class ExprNode < Treetop::Runtime::SyntaxNode
   end
 end
 
-class FunCallNode < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil, by_treetop = true)
-    if by_treetop
-      @fun_name = elements[0].inspect
-      @args = elements[1].args
-      # @args = elements[1].elements
-      $logger.debug "call:#{@fun_name}"
-    else
-      @fun_name, @args = elements
-    end
+class FunCallNode
+  def initialize(name, args = [])
+    @name, @args = name, args
+    $logger.debug "call:#{@name} args:(#{inspect})"
   end
 
   def inspect(indent = nil)
-    "#{@fun_name}(#{@args.map(&:inspect).join(',')})"
+    "#{@name}(#{@args.map(&:inspect).join(',')})"
   end
 
   # TODO:env merge
-  def eval(env = {}, args = nil)
-    fun = env[@fun_name]
+  def eval(env = {})
+    fun = env[@name]
     if fun.class == FunNode
       # fun_args => call_args
       # merge env and args
-      eval"call:#{@fun_name}"
+      # TODO:env merge args
+      eval_log "call:#{@name}"
       fun.eval(env.dup, @args)
     else
       # TODO:exception class
-      $logger.error "error env::#{env}"
-      raise 'Exception'
+      raise "call #{@name} failed, error env:: #{env}"
     end
-  end
-
-  # used by distinguish between call and identifier
-  def meta
-    'call'
   end
 end
 
-class IdentifierNode < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @name = input[interval]
-    # $logger.debug "id:#{@name}"
+class IdentifierNode
+  def initialize(name)
+    @name = name
   end
 
   def inspect(indent = nil)
@@ -289,9 +244,9 @@ class IdentifierNode < Treetop::Runtime::SyntaxNode
   end
 end
 
-class BoolConstant < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @val = input[interval]
+class BoolConstant
+  def initialize(constant_val)
+    @val = constant_val
   end
 
   def inspect(indent = nil)
@@ -303,9 +258,9 @@ class BoolConstant < Treetop::Runtime::SyntaxNode
   end
 end
 
-class NumberConstant < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @val = input[interval]
+class NumberConstant
+  def initialize(constant_val)
+    @val = constant_val
   end
 
   def inspect(indent = nil)
@@ -317,9 +272,9 @@ class NumberConstant < Treetop::Runtime::SyntaxNode
   end
 end
 
-class StringConstant < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @val = input[interval]
+class StringConstant
+  def initialize(constant_val)
+    @val = constant_val
   end
 
   def inspect(indent = nil)
@@ -331,9 +286,9 @@ class StringConstant < Treetop::Runtime::SyntaxNode
   end
 end
 
-class BoolConstant < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @val = input[interval]
+class BoolConstant
+  def initialize(constant_val)
+    @val = constant_val
   end
 
   def inspect(indent = nil)
@@ -345,44 +300,18 @@ class BoolConstant < Treetop::Runtime::SyntaxNode
   end
 end
 
-class StatementsNode < Treetop::Runtime::SyntaxNode
-  def initialize(input, interval, elements = nil)
-    @elements = elements
+class StatementsNode
+  attr_reader :stmts
+  def initialize(stmts)
+    @stmts = stmts
   end
 
   # TODO:if elements nil
   def inspect(indent = nil)
-    @elements.map(&:inspect)
+    @stmts.map(&:inspect)
   end
 
   def eval(env = {})
-    @elements.each {|s| s.eval(env)}
-  end
-end
-
-class FunArgsNode < Treetop::Runtime::SyntaxNode
-  attr_reader :args
-  # TODO:repeat var name check
-  def initialize(input, interval, elements = nil)
-    args = elements[1].elements
-    if args.nil?
-      @args = []
-    else
-      @args = [args[1].inspect] + args[3].elements.map{|e| e.elements[2].inspect}
-    end
-  end
-end
-
-class CallArgsNode < Treetop::Runtime::SyntaxNode
-  attr_reader :args
-  def initialize(input, interval, elements = nil)
-    if elements[1].elements.nil?
-      @args = []
-    else
-      # args = elements[1].elements
-      # @args = [args[2]] + args[3].elements.map { |e| e.elements[3] }
-      args = elements[1].elements
-      @args = [args[1]] + args[2].elements.map {|e| e.elements[3]}
-    end
+    @stmts.each {|s| s.eval(env)}
   end
 end

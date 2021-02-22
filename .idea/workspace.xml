@@ -2,13 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c899b8f7-8669-426d-ae80-9186616cc3c7" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/env.rb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/log.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Language.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Language.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ast_node.rb" beforeDir="false" afterPath="$PROJECT_DIR$/ast_node.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/helper.rb" beforeDir="false" afterPath="$PROJECT_DIR$/helper.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.rb" beforeDir="false" afterPath="$PROJECT_DIR$/main.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/note.md" beforeDir="false" afterPath="$PROJECT_DIR$/note.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parser.rb" beforeDir="false" afterPath="$PROJECT_DIR$/parser.rb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/source.sp" beforeDir="false" afterPath="$PROJECT_DIR$/source.sp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/syntax.treetop" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.treetop" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test.sp" beforeDir="false" afterPath="$PROJECT_DIR$/test.sp" afterDir="false" />
@@ -22,11 +22,21 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Ruby File" />
+        <option value="Minitest" />
+        <option value="Minitest Spec" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="ProjectId" id="1oQ9XtGtv7S7bbcEkczzZsJuiV8" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -35,6 +45,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="DefaultRubyCreateTestTemplate" value="Minitest Spec" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
@@ -126,7 +137,8 @@
       <workItem from="1613717152680" duration="18799000" />
       <workItem from="1613813697492" duration="1265000" />
       <workItem from="1613814991622" duration="18390000" />
-      <workItem from="1613892282633" duration="4491000" />
+      <workItem from="1613892282633" duration="4740000" />
+      <workItem from="1613955677855" duration="21120000" />
     </task>
     <servers />
   </component>
@@ -145,44 +157,22 @@
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="ruby-line">
-          <url>file://$PROJECT_DIR$/main.rb</url>
-          <line>10</line>
-          <properties myBlockOrdinal="-1">
-            <option name="block-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="42" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="ruby-line">
           <url>file://$PROJECT_DIR$/ast_node.rb</url>
-          <line>165</line>
+          <line>218</line>
           <properties myBlockOrdinal="-1">
             <option name="block-ordinal" value="-1" />
           </properties>
-          <option name="timeStamp" value="72" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="ruby-line">
-          <url>file://$PROJECT_DIR$/ast_node.rb</url>
-          <line>222</line>
-          <properties myBlockOrdinal="-1">
-            <option name="block-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="73" />
+          <option name="timeStamp" value="95" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
-    <pin-to-top-manager>
-      <pinned-members>
-        <PinnedItemInfo parentTag="Treetop::Runtime::SyntaxNode" memberName="@elements" />
-      </pinned-members>
-    </pin-to-top-manager>
     <watches-manager>
       <configuration name="RubyRunConfigurationType">
-        <watch expression="@args" language="ruby" />
-        <watch expression="elements" language="ruby" />
+        <watch expression="@term_list" language="ruby" />
       </configuration>
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Language@Unnamed.rcov" NAME="Unnamed Coverage Results" MODIFIED="1613895171986" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" MODULE_NAME="Language" />
+    <SUITE FILE_PATH="coverage/Language@Unnamed.rcov" NAME="Unnamed Coverage Results" MODIFIED="1613981536663" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" MODULE_NAME="Language" />
   </component>
 </project>
