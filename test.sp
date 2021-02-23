@@ -40,14 +40,16 @@ def f()
 
 end
 
-class Set
+class Foo
+
+end
+
+class Set < Foo
 
   var a
 
   def f1
     var b = 1
-
-    return
   end
 
 end

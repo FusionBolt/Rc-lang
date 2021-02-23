@@ -6,7 +6,10 @@ def main
   var b2 = false
 
   var num = 1
-
+  Set.new(1, 2, num)
+  var set = Foo.new()
+  # set.v
+  # set.uniq()
   var s1 = 'str'
   var s2 = "str"
 
@@ -27,7 +30,8 @@ def main
     var t = 22
     var n = 2
   end
-
+  return 1
+  return num
 end
 
 def f1(a, b, c)
@@ -42,7 +46,18 @@ def f3(a, b, c, argc, argv)
 
 end
 
-class Set
+
+class Foo
+
+end
+
+class Set < Foo
+  def init(a, b, c)
+
+  end
+
+  var a
+
   def f1
     var b = 1
   end

@@ -2,6 +2,7 @@ require './log'
 
 # TODO:valid check
 # TODO:Err Check
+# TODO:将eval和检查分开，检查合法后再eval
 # TODO:call args check
 class RootNode
   def initialize(packages, other)
@@ -16,18 +17,7 @@ class RootNode
     @packages.each { |p| p.eval(env) }
     # read statement
     @other.each do |s|
-      case s
-      in FunNode[fun_name, _, _]
-        # TODO:first check valid, then add to env
-        eval_log "fun:#{fun_name} has be added to env"
-        env[fun_name] = s
-      in ClassNode[class_name, _]
-        eval_log "class:#{class_name} has be added to env"
-        env[class_name] = s
-      else
-        # statement
-        s.eval(env)
-      end
+      s.eval(env)
     end
 
     if env.has_key? 'main'
@@ -38,8 +28,8 @@ class RootNode
   end
 
   def inspect(indent = nil)
-    (@packages.map{|p| p.inspect} +
-      @other.map{|s| s.inspect}).join("\n")
+    (@packages.map { |p| p.inspect } +
+      @other.map { |s| s.inspect }).join("\n")
   end
 end
 
@@ -66,7 +56,8 @@ class PackageNode
 end
 
 class FunNode
-  attr_reader :args
+  attr_reader :name, :args, :stmts
+
   def initialize(name, args, stmts)
     @name, @args, @stmts = name, args, stmts
     $logger.debug "implement #{inspect}"
@@ -80,16 +71,32 @@ class FunNode
     [@name, @args, @stmts]
   end
 
-  def eval(env = {}, args = [])
-    # TODO:merge args
-    args.zip(@args)
-    @stmts.eval(env)
+  def eval(env = {})
+    # TODO:first check valid, then add to env
+    eval_log "fun:#{@name} has be added to env"
+    env[@name] = self
+  end
+
+  def call(env = {}, args = [])
+    if args.length != @args.length
+      raise 'ArgsLengthNotMatch'
+    end
+    # TODO:extract to the Env
+    @stmts.eval(env.dup.merge(@args.zip(args).to_h))
+  end
+
+  def valid?
+    @args.length == @args.uniq.length
+    # TODO:and call stmts valid
   end
 end
 
 class ClassNode
-  def initialize(name, define)
-    @name, @define = name, define
+  def initialize(name, define, parent = nil)
+    @name, @define, @parent = name, define, parent
+    # TODO:should be changed
+    @fun_list = @define.select { |d| d.class == FunNode }
+    @var_list = @define.select { |d| d.class != FunNode }
     $logger.debug "implement class:#{@name}"
   end
 
@@ -97,8 +104,110 @@ class ClassNode
     "class:#{@name}"
   end
 
+  def eval(env = {})
+    init_fun = @fun_list.detect { |f| f.name == 'init' }
+    if init_fun.nil?
+      # no init
+      @fun_list << generate_init_fun
+    else
+      # some var may not be initialized state
+      # look up which var not be initialized
+      # TODO:not implement
+      # init_fun.stmts.append()
+    end
+    eval_log "class:#{@name} has be added to env"
+    env[@name] = self
+  end
+
+  def generate_init_fun
+    eval_log "class:#{@name} generate init fun"
+    # TODO:finish
+    # user defined var need init
+    FunNode.new('init', [],
+                DebugStatement.new('generate empty init'))
+  end
+
+  # TODO:如果不存在init，则生成
+  # TODO:未初始化的成员调用自己的init
   def deconstruct
     [@name, @define]
+  end
+
+  # TODO:找到父类的信息
+  # 多态
+  # 继承如何覆盖
+  def fun_env
+    @fun_list.map { |f| [f.name, f] }.to_h
+  end
+
+  def var_env
+    {}
+  end
+
+  def full_env
+    fun_env + var_env
+  end
+end
+
+class DebugStatement
+  def initialize(info = '')
+    @info = info
+  end
+
+  def eval(env = {})
+    eval_log "debug statment#{@info}"
+  end
+end
+
+class InstanceNode
+  # TODO:调用成员函数传入自身去执行
+  attr_reader :class_define, :member_env
+
+  def initialize(class_define, member_env, is_obj = false)
+    @class_define, @member_env = class_define, member_env
+    @is_obj = is_obj
+  end
+
+  def eval(env = {})
+    if @is_obj
+      raise 'UnfinishedException'
+    else
+      member_env[:_val].eval(env)
+    end
+  end
+
+  def inspect
+    if @is_obj
+    else
+      member_env[:_val].inspect
+    end
+  end
+
+  def call_fun(name)
+    @class_define.fun_env[name].eval
+  end
+
+  def mem_var(name)
+    @member_env[name]
+  end
+end
+
+class NewExprNode
+  def initialize(class_name, args = [])
+    @class_name, @args = class_name, args
+  end
+
+  def eval(env = {})
+    # TODO:生成默认的init，最后都会产生InstanceNode
+    class_node = env[@class_name]
+    class_node.fun_env['init'].call(env, @args)
+    InstanceNode.new(class_node, class_node.var_env, true)
+  end
+
+  def find_member(env, symbol)
+    # var
+    # fun
+    env[@class_name].find(symbol)
   end
 end
 
@@ -115,6 +224,18 @@ class StatementNode
 
   def inspect(indent = nil)
     @s.inspect
+  end
+end
+
+class AssignNode
+  def initialize(var_obj, expr)
+    @var_obj, @expr = var_obj, expr
+  end
+
+  # TODO:成员变量赋值怎么办
+  # TODO:检查var是否存在
+  def eval(env = {})
+    @var_obj = @expr
   end
 end
 
@@ -221,7 +342,7 @@ class FunCallNode
       # merge env and args
       # TODO:env merge args
       eval_log "call:#{@name}"
-      fun.eval(env.dup, @args)
+      fun.call(env.dup, @args)
     else
       # TODO:exception class
       raise "call #{@name} failed, error env:: #{env}"
@@ -302,6 +423,7 @@ end
 
 class StatementsNode
   attr_reader :stmts
+
   def initialize(stmts)
     @stmts = stmts
   end
@@ -312,6 +434,24 @@ class StatementsNode
   end
 
   def eval(env = {})
-    @stmts.each {|s| s.eval(env)}
+    @stmts.each { |s| s.eval(env) }
+  end
+
+  def append(stmt)
+    @stmts << stmt
+  end
+end
+
+class ReturnNode
+  def initialize(expr)
+    @expr = expr
+  end
+
+  def inspect
+    "return #{@expr.inspect}"
+  end
+
+  def eval(env = {})
+    @expr.eval(env)
   end
 end

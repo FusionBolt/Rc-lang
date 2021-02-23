@@ -95,22 +95,25 @@ grammar L
 
 
   rule class
-    space* 'class' white+ name:identifier space+
+    space* 'class' white+ name:capitalized_name (white+ '<' white+ parent:identifier)? space+
     define:(space / fun / ('var' white+ identifier))*
     block_end {
       def to_ast
-        ClassNode.new(name.to_ast, define_ast)
+        ClassNode.new(name.to_ast, define_ast, parent.inspect)
       end
 
       def define_ast
+        debug define
         define.elements.map do |e|
           # TODO:error, only process fun
-          begin
-            e.to_ast
-          rescue
+          if e.elements.nil? or e.elements.empty?
             nil
+          elsif e.elements.length == 3
+            e.elements[2].to_ast
+          else
+            e.to_ast
           end
-        end
+        end.compact
       end
     }
   end
@@ -124,9 +127,17 @@ grammar L
   end
 
   rule statement
-    stmt_node:(variant / if / while / return / expression)? space+ {
+    stmt_node:(variant / if / while / return / expression / assign)? space+ {
       def to_ast
         StatementNode.new(optional_to_ast(stmt_node))
+      end
+    }
+  end
+
+  rule assign
+    name:identifier white* '=' space* val:expression {
+      def to_ast
+        AssignNode.new()
       end
     }
   end
@@ -181,7 +192,11 @@ grammar L
   end
 
   rule return
-    'return' expression
+    'return' expr:expression {
+      def to_ast
+        ReturnNode.new(expr.to_ast)
+      end
+    }
   end
 
   rule block_end
@@ -210,17 +225,28 @@ grammar L
 
   rule term
     term_val:(bool_constant / num_constant / string_constant /
-    fun_call / identifier_node) {
+    new_expr / fun_call / identifier_node) {
       def to_ast
         term_val.to_ast
       end
     }
   end
 
-  rule identifier_node
-    !keyword name:([a-zA-Z] [a-zA-Z0-9_]*) {
+  rule new_expr
+    # TODO: how to set '(' is optional
+    # and still can distinguish between id and call
+    class_name:capitalized_name space? '.' space? 'new' space?
+    args:call_args {
       def to_ast
-        IdentifierNode.new(text_value)
+        NewExprNode.new(class_name.to_ast, args.to_ast)
+      end
+    }
+  end
+
+  rule identifier_node
+    name:identifier {
+      def to_ast
+        IdentifierNode.new(name.to_ast)
       end
     }
   end
@@ -228,7 +254,7 @@ grammar L
   rule bool_constant
     constant_val:('true' / 'false') {
       def to_ast
-        BoolConstant.new(text_value)
+        to_instance_node BoolConstant.new(text_value)
       end
     }
   end
@@ -236,7 +262,7 @@ grammar L
   rule num_constant
     constant_val:(integer / float) {
       def to_ast
-        NumberConstant.new(text_value)
+        to_instance_node NumberConstant.new(text_value)
       end
     }
   end
@@ -252,13 +278,22 @@ grammar L
   rule string_constant
     constant_val:(('"' ([^"\\] / "\\" . )* '"') / ("'" ([^'\\] / '\\' . )* "'")) {
       def to_ast
-        StringConstant.new(text_value)
+        to_instance_node StringConstant.new(text_value)
       end
     }
   end
 
   rule identifier
     !keyword name:([a-zA-Z] [a-zA-Z0-9_]*) {
+      def to_ast
+        text_value
+      end
+    }
+  end
+
+  # TODO:how to show error info
+  rule capitalized_name
+    !keyword &[A-Z] [a-zA-Z0-9_]* {
       def to_ast
         text_value
       end
@@ -289,6 +324,6 @@ grammar L
     'class' / 'def' / 'end' / 'var' /
     'true' / 'false' /
     'if' / 'else' / 'elsif' / 'while' /
-    'int'
+    'int' / 'new'
   end
 end

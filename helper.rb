@@ -1,10 +1,12 @@
+require './ast_node'
+
 def import_source_file(name)
   package = name[3].input[name[3].interval]
   p "import package:#{package}"
 end
 
-def debug(data, info)
-  p 'debug'
+def debug(data, info = '')
+  1 + 1
 end
 
 def optional_node_exist?(node)
@@ -43,4 +45,8 @@ def multi_to_ast(list)
   else
     plus_to_ast list
   end
+end
+
+def to_instance_node(ast)
+  InstanceNode.new(ast.class,{:_val => ast})
 end
