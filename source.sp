@@ -2,14 +2,16 @@ import 'parser'
 import "set"
 
 def main
+  var set = Set.new(1, 2, num)
+  var foo = Foo.new()
+  # set.v
+  set.uniq()
+
   var b1 = true
   var b2 = false
 
   var num = 1
-  Set.new(1, 2, num)
-  var set = Foo.new()
-  # set.v
-  # set.uniq()
+  num = 2
   var s1 = 'str'
   var s2 = "str"
 
@@ -19,7 +21,7 @@ def main
 
   if true
     var m = 1
-    var m = 2
+    var s = 2
   elsif false
     var q = 2
     var a = 1
@@ -32,6 +34,7 @@ def main
   end
   return 1
   return num
+  break
 end
 
 def f1(a, b, c)
@@ -58,7 +61,7 @@ class Set < Foo
 
   var a
 
-  def f1
+  def uniq
     var b = 1
   end
 end

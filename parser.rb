@@ -2,7 +2,6 @@ require 'treetop'
 require './ast_node'
 
 class Parser
-  # TODO:file path
   Treetop.load('./syntax.treetop')
   @@parser = LParser.new
 
