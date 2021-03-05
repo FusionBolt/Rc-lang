@@ -1,6 +1,6 @@
 require './helper'
 
-grammar L
+grammar Rc
   rule main
     packages:import* other:(fun / class / statement)* {
       def to_ast

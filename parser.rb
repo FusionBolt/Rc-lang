@@ -3,7 +3,7 @@ require './ast_node'
 
 class Parser
   Treetop.load('./syntax.treetop')
-  @@parser = LParser.new
+  @@parser = RcParser.new
 
   def self.parse(data)
     begin
