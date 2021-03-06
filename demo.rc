@@ -2,11 +2,14 @@ import 'parser'
 import "set"
 
 def main
+  f0(1, 2, 3)
+  var pass_param_ret_val = pass_param(1, 2, 3)
+  var return_expr_ret_val = return_expr(1, 2, 3)
+
   var set = Set.new(1, 2, num)
   var foo = Foo.new()
-  # set.v
   set.uniq()
-
+  var set_v = set.v
   var b1 = true
   var b2 = false
 
@@ -32,16 +35,23 @@ def main
     var t = 22
     var n = 2
   end
+
   return 1
+  var after_return = 0
   return num
-  break
+
 end
 
-def f1(a, b, c)
+def pass_val(a, b, c)
+  break
+  a + b + c
+end
+
+def return_expr(a, b, c)
   1 + 1 + 1
 end
 
-def f2()
+def empty_fun()
 
 end
 
@@ -59,7 +69,8 @@ class Set < Foo
 
   end
 
-  var a
+  var s
+  var v = 1
 
   def uniq
     var b = 1

@@ -37,9 +37,9 @@ grammar Rc
     ')' {
       def to_ast
         if optional_node_exist? all_args
-          []
-        else
           args.map(&:to_ast)
+        else
+          []
         end
       end
 
@@ -103,15 +103,11 @@ grammar Rc
       end
 
       def define_ast
-        debug define
         define.elements.map do |e|
-          # TODO:error, only process fun
-          if e.elements.nil? or e.elements.empty?
-            nil
-          elsif e.elements.length == 3
-            e.elements[2].to_ast
-          else
+          begin
             e.to_ast
+          rescue => e
+            nil
           end
         end.compact
       end
@@ -119,9 +115,10 @@ grammar Rc
   end
 
   rule class_member_var
-     'var' white+ name:identifier ('=' default_val:expression)? {
+     'var' white+ name:identifier val:(white* '=' white* expression)? {
         def to_ast
-
+          expr = optional_node_exist?(val)? val.elements[-1] : nil
+          ClassMemberVarNode.new(name.to_ast, expr.to_ast)
         end
      }
   end
@@ -135,15 +132,16 @@ grammar Rc
   end
 
   rule statement
-    stmt_node:(break_point / variant / if / while / return / assign / expression)? space+ {
+    stmt_node:(break_point / variant / if / while / return_stmt / assign / expression)? space+ {
       def to_ast
         StatementNode.new(optional_to_ast(stmt_node))
       end
     }
   end
 
+  # if no &, will not recognized
   rule break_point
-    'break' {
+    &'break' 'break' {
       def to_ast
         BreakPoint.new
       end
@@ -193,7 +191,7 @@ grammar Rc
 
       def else_ast
         if optional_node_exist?(else_node)
-          else_node.elements[0].elements[2].to_ast
+          else_node.elements[2].to_ast
         else
           []
         end
@@ -207,8 +205,8 @@ grammar Rc
     block_end
   end
 
-  rule return
-    'return' expr:expression {
+  rule return_stmt
+    'return' white+ expr:expression {
       def to_ast
         ReturnNode.new(expr.to_ast)
       end
@@ -251,9 +249,10 @@ grammar Rc
   # TODO:set args optional
   rule class_member_access
     instance_name:identifier white* '.' member_name:identifier white*
-    args:call_args {
+    args:call_args? {
       def to_ast
-        ClassMemberAccessNode.new(instance_name.to_ast, member_name.to_ast, args.to_ast)
+        args_val = optional_node_exist?(args)? args.to_ast : []
+        ClassMemberAccessNode.new(instance_name.to_ast, member_name.to_ast, args_val)
       end
     }
   end
@@ -350,6 +349,6 @@ grammar Rc
     'class' / 'def' / 'end' / 'var' /
     'true' / 'false' /
     'if' / 'else' / 'elsif' / 'while' /
-    'int' / 'new'
+    'int' / 'new' / 'break' / 'return'
   end
 end

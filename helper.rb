@@ -5,7 +5,7 @@ def debug(data, info = '')
 end
 
 def optional_node_exist?(node)
-  node.elements.nil?
+  not node.elements.nil?
 end
 
 # TODO:monad
@@ -13,15 +13,15 @@ end
 # if ?, then element will be nil
 def optional_to_ast(node)
   if optional_node_exist? node
-    # TODO: 'NotImplement'
-    # for example, args may be exist or not exist
-    []
-  else
     begin
       node.to_ast
     rescue
-      p 'error'
+      node
     end
+  else
+    # TODO: 'NotImplement'
+    # for example, args may be exist or not exist
+    []
   end                  
 end
 

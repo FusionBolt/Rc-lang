@@ -29,4 +29,11 @@ end
 
 
 如果?，不存在则elements为nil
-如果*，不存在则为empty
+单个字符匹配则是true，多个字符匹配则.elements.nil
+
+fix bug in optional_node_exist?
+add break_point
+fix bug when assign a class member var to a var
+fix bug that return will be recognized a expr(add keyword)
+add return val when no keyword 'return'
+fix bug args are not be eval when pass args 

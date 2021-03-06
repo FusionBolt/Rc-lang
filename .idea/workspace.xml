@@ -2,14 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c899b8f7-8669-426d-ae80-9186616cc3c7" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Language.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Language.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Gemfile" beforeDir="false" afterPath="$PROJECT_DIR$/Gemfile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.rb" beforeDir="false" afterPath="$PROJECT_DIR$/main.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/parser.rb" beforeDir="false" afterPath="$PROJECT_DIR$/parser.rb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/source.sp" beforeDir="false" afterPath="$PROJECT_DIR$/demo.rc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ast_node.rb" beforeDir="false" afterPath="$PROJECT_DIR$/ast_node.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo.rc" beforeDir="false" afterPath="$PROJECT_DIR$/demo.rc" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/helper.rb" beforeDir="false" afterPath="$PROJECT_DIR$/helper.rb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/note.md" beforeDir="false" afterPath="$PROJECT_DIR$/note.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/syntax.treetop" beforeDir="false" afterPath="$PROJECT_DIR$/syntax.treetop" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.sp" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -237,7 +236,8 @@
       <workItem from="1614483925271" duration="12134000" />
       <workItem from="1614607780138" duration="1580000" />
       <workItem from="1614646326420" duration="529000" />
-      <workItem from="1614911606472" duration="317000" />
+      <workItem from="1614911606472" duration="384000" />
+      <workItem from="1614912023248" duration="21521000" />
     </task>
     <servers />
   </component>
@@ -261,23 +261,7 @@
       <breakpoints>
         <line-breakpoint type="ruby-line">
           <url>file://$PROJECT_DIR$/ast_node.rb</url>
-          <line>375</line>
-          <properties myBlockOrdinal="-1">
-            <option name="block-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="95" />
-        </line-breakpoint>
-        <line-breakpoint type="ruby-line">
-          <url>file://$PROJECT_DIR$/ast_node.rb</url>
-          <line>284</line>
-          <properties myBlockOrdinal="-1">
-            <option name="block-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="101" />
-        </line-breakpoint>
-        <line-breakpoint type="ruby-line">
-          <url>file://$PROJECT_DIR$/ast_node.rb</url>
-          <line>238</line>
+          <line>247</line>
           <properties myBlockOrdinal="-1">
             <option name="block-ordinal" value="-1" />
           </properties>
@@ -285,7 +269,7 @@
         </line-breakpoint>
         <line-breakpoint type="ruby-line">
           <url>file://$PROJECT_DIR$/ast_node.rb</url>
-          <line>222</line>
+          <line>231</line>
           <properties myBlockOrdinal="-1">
             <option name="block-ordinal" value="-1" />
           </properties>
@@ -300,14 +284,6 @@
           <option name="timeStamp" value="104" />
         </line-breakpoint>
         <line-breakpoint type="ruby-line">
-          <url>file://$PROJECT_DIR$/main.rb</url>
-          <line>7</line>
-          <properties myBlockOrdinal="-1">
-            <option name="block-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="105" />
-        </line-breakpoint>
-        <line-breakpoint type="ruby-line">
           <url>file://$PROJECT_DIR$/ast_node.rb</url>
           <line>31</line>
           <properties myBlockOrdinal="-1">
@@ -315,18 +291,77 @@
           </properties>
           <option name="timeStamp" value="109" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="ruby-line">
+          <url>file://$PROJECT_DIR$/main.rb</url>
+          <line>8</line>
+          <properties myBlockOrdinal="-1">
+            <option name="block-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="111" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="ruby-line">
+          <url>file://$PROJECT_DIR$/helper.rb</url>
+          <line>3</line>
+          <properties myBlockOrdinal="-1">
+            <option name="block-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="112" />
+        </line-breakpoint>
+        <line-breakpoint type="ruby-line">
+          <url>file://$PROJECT_DIR$/ast_node.rb</url>
+          <line>82</line>
+          <properties myBlockOrdinal="-1">
+            <option name="block-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="113" />
+        </line-breakpoint>
+        <line-breakpoint type="ruby-line">
+          <url>file://$PROJECT_DIR$/ast_node.rb</url>
+          <line>261</line>
+          <properties myBlockOrdinal="-1">
+            <option name="block-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="115" />
+        </line-breakpoint>
+        <line-breakpoint type="ruby-line">
+          <url>file://$PROJECT_DIR$/ast_node.rb</url>
+          <line>81</line>
+          <properties myBlockOrdinal="-1">
+            <option name="block-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="131" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="ruby-line">
+          <url>file://$PROJECT_DIR$/ast_node.rb</url>
+          <line>534</line>
+          <properties myBlockOrdinal="-1">
+            <option name="block-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="140" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="ruby-line">
+          <url>file://$PROJECT_DIR$/ast_node.rb</url>
+          <line>496</line>
+          <properties myBlockOrdinal="-1">
+            <option name="block-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="149" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="InstanceNode" memberName="@instance_env" />
+      </pinned-members>
+    </pin-to-top-manager>
     <watches-manager>
       <configuration name="RubyRunConfigurationType">
-        <watch expression="@term_list" language="ruby" />
-        <watch expression="data.input[536..541]" language="ruby" />
-        <watch expression="class_node" language="ruby" />
-        <watch expression="class_node" language="ruby" />
-        <watch expression="env" language="ruby" />
-        <watch expression="@expr.eval(env)" language="ruby" />
-        <watch expression="self.eval(env)" language="ruby" />
-        <watch expression="env.has_key? 'main'" language="ruby" />
+        <watch expression="env['f0'].stmts[1]" language="ruby" />
+        <watch expression="env['f0'].stmts[1].statement.eval(env)" language="ruby" />
+        <watch expression="@name" language="ruby" />
+        <watch expression="s = env['f0'].stmts[1].statement.term_list.map{|x| x.eval(env.merge({&quot;a&quot;=&gt;1,&quot;b&quot;=&gt;2,&quot;c&quot;=&gt;3}))}.join(' ')" language="ruby" />
+        <watch expression="Kernel.eval(s)" language="ruby" />
+        <watch expression="env.merge({&quot;a&quot;=&gt;1,&quot;b&quot;=&gt;2,&quot;c&quot;=&gt;3})" language="ruby" />
       </configuration>
     </watches-manager>
   </component>
@@ -335,6 +370,7 @@
     <SUITE FILE_PATH="coverage/RcLang@Unnamed.rcov" NAME="Unnamed Coverage Results" MODIFIED="1614911627728" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" MODULE_NAME="Language" />
     <SUITE FILE_PATH="coverage/Language@test_add_repeat_symbol.rcov" NAME="test_add_repeat_symbol Coverage Results" MODIFIED="1614495556453" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="Language" />
     <SUITE FILE_PATH="coverage/Language@Unnamed.rcov" NAME="Unnamed Coverage Results" MODIFIED="1614513018676" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" MODULE_NAME="Language" />
+    <SUITE FILE_PATH="coverage/Rc_Lang@Unnamed.rcov" NAME="Unnamed Coverage Results" MODIFIED="1614999894047" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" MODULE_NAME="Language" />
     <SUITE FILE_PATH="coverage/Language@env_test.rcov" NAME="env_test Coverage Results" MODIFIED="1614495560158" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="rcov" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" MODULE_NAME="Language" />
   </component>
 </project>

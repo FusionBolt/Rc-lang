@@ -16,7 +16,6 @@ class RootNode
     @other.each do |s|
       s.eval(env)
     end
-    $logger.info '---------------- end eval ----------------'
     self
   end
 
@@ -27,6 +26,7 @@ class RootNode
 
   def main(env = {}, argv = [])
     if env.has_key? 'main'
+      $logger.info '---------------- start main ----------------'
       FunCallNode.new('main').eval(env)
     else
       raise 'MainNotFound'
@@ -82,16 +82,17 @@ class FunNode
     if args.length != @args.length
       raise 'ArgsLengthNotMatch'
     end
-    if env['!!SaveMainEnv']
-      @stmts.eval(env.update(args_env(args)))
+    # TODO:refactor
+    if env['!!SaveMainEnv'] && @name == 'main'
+      @stmts.eval(env.update(args_env(args, env)))
     else
       # not save env in main
-      @stmts.eval(env.merge(args_env(args)))
+      @stmts.eval(env.merge(args_env(args, env)))
     end
   end
 
-  def args_env(actual_args)
-    @args.zip(actual_args).to_h
+  def args_env(actual_args, env)
+    @args.zip(actual_args.map{|arg| arg.eval(env)}).to_h
   end
 
   def args_valid_check
@@ -102,7 +103,6 @@ end
 class ClassNode
   def initialize(name, define, parent = nil)
     @name, @define, @parent = name, define, parent
-    # TODO:should be changed
     @fun_list = @define.select { |d| d.class == FunNode }
     @var_list = @define.select { |d| d.class != FunNode }
     $logger.debug "implement class:#{@name}"
@@ -144,7 +144,7 @@ class ClassNode
   end
 
   def var_env
-
+    @var_list.map { |v| [v.name, v.val] }.to_h
   end
 
   def full_env
@@ -158,7 +158,7 @@ class DebugStatement
   end
 
   def eval(env = {})
-    eval_log "debug statement#{@info}"
+    eval_log "debug statement:#{@info}"
   end
 end
 
@@ -213,6 +213,15 @@ class InstanceNode
   end
 end
 
+class ClassMemberVarNode
+  attr_reader :name, :val
+
+  def initialize(name, val = nil)
+    eval_log "class member var #{@name}:#{@val}"
+    @name, @val = name, val
+  end
+end
+
 class ClassMemberAccessNode
   def initialize(instance_name, member_name, args = [])
     @instance_name, @member_name, @args = instance_name, member_name, args
@@ -241,6 +250,8 @@ class NewExprNode
 end
 
 class StatementNode
+  attr_reader :statement
+
   def initialize(stmt)
     @statement = stmt
   end
@@ -252,7 +263,12 @@ class StatementNode
   end
 
   def inspect(indent = nil)
-    @s.inspect
+    @statement.inspect
+  end
+
+  # be used for direct access to statement type
+  def class
+    @statement.class
   end
 end
 
@@ -272,6 +288,8 @@ class AssignNode
 end
 
 class VariantNode
+  attr_reader :name, :expr
+
   def initialize(name, expr)
     @name, @expr = name, expr
     $logger.debug "var:#{@name} val:#{@expr.inspect}"
@@ -353,11 +371,15 @@ class ExprNode
     if @term_list.length == 1
       @term_list[0].eval(env)
     else
-      expr = @term_list.map do |term|
-        term.eval(env)
-      end.join(' ')
-      Kernel.eval(expr)
+      Kernel.eval(term_eval(env))
     end
+  end
+
+  def term_eval(env)
+    s = @term_list.map do |term|
+      term.eval(env)
+    end
+    s.join(' ')
   end
 end
 
@@ -375,7 +397,9 @@ class FunCallNode
     fun = env[@name]
     if fun.class == FunNode
       eval_log "call:#{@name}"
-      fun.call(env, @args)
+      ret_val = fun.call(env, @args)
+      eval_log "call:#{@name} end"
+      ret_val
     else
       raise "call #{@name} failed, error env:: #{env}"
     end
@@ -469,7 +493,10 @@ class StatementsNode
   end
 
   def eval(env = {})
-    @stmts.each { |s| s.eval(env) }
+    @stmts.each do |s|
+      eval_val = s.eval(env)
+      return eval_val if s.class == ReturnNode or s == @stmts[-1]
+    end
   end
 
   def append(stmt)
@@ -478,6 +505,10 @@ class StatementsNode
 
   def valid?
     true
+  end
+
+  def [](index)
+    @stmts[index]
   end
 end
 
