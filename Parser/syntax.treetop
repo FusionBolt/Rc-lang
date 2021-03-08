@@ -1,10 +1,10 @@
-require './helper'
+require './Parser/helper'
 
 grammar Rc
   rule main
     packages:import* other:(fun / class / statement)* {
       def to_ast
-        RootNode.new(multi_to_ast(packages), multi_to_ast(other))
+        Root.new(multi_to_ast(packages), multi_to_ast(other))
       end
     }
   end
@@ -12,7 +12,7 @@ grammar Rc
   rule import
     'import' white+ quote name:identifier quote space+ {
       def to_ast
-        PackageNode.new(name.to_ast)
+        Package.new(name.to_ast)
       end
     }
   end
@@ -23,7 +23,7 @@ grammar Rc
     stmts:statements
     block_end {
       def to_ast
-        FunNode.new(name.to_ast, optional_to_ast(args), stmts.to_ast)
+        Function.new(name.to_ast, optional_to_ast(args), stmts.to_ast)
       end
     }
   end
@@ -66,7 +66,7 @@ grammar Rc
     name:identifier args:call_args {
       def to_ast
       begin
-        FunCallNode.new(name.to_ast, args.to_ast)
+        FunCall.new(name.to_ast, args.to_ast)
       rescue => e
         p e
         debug args
@@ -99,7 +99,7 @@ grammar Rc
     define:(space / fun / class_member_var)*
     block_end {
       def to_ast
-        ClassNode.new(name.to_ast, define_ast, parent.inspect)
+        ClassDefine.new(name.to_ast, define_ast, parent.inspect)
       end
 
       def define_ast
@@ -118,7 +118,7 @@ grammar Rc
      'var' white+ name:identifier val:(white* '=' white* expression)? {
         def to_ast
           expr = optional_node_exist?(val)? val.elements[-1] : nil
-          ClassMemberVarNode.new(name.to_ast, expr.to_ast)
+          ClassMemberVar.new(name.to_ast, expr.to_ast)
         end
      }
   end
@@ -126,7 +126,7 @@ grammar Rc
   rule statements
     stmts:(statement*) {
       def to_ast
-        StatementsNode.new(multi_to_ast(stmts))
+        Statements.new(multi_to_ast(stmts))
       end
     }
   end
@@ -134,7 +134,7 @@ grammar Rc
   rule statement
     stmt_node:(break_point / variant / if / while / return_stmt / assign / expression)? space+ {
       def to_ast
-        StatementNode.new(optional_to_ast(stmt_node))
+        Statement.new(optional_to_ast(stmt_node))
       end
     }
   end
@@ -151,7 +151,7 @@ grammar Rc
   rule assign
     var:(identifier_node / class_member_access) white* '=' space* val:expression {
       def to_ast
-        AssignNode.new(var.to_ast, val.to_ast)
+        Assign.new(var.to_ast, val.to_ast)
       end
     }
   end
@@ -159,7 +159,7 @@ grammar Rc
   rule variant
     'var' space+ name:identifier space+ '=' space+ expr:expression {
       def to_ast
-        VariantNode.new(name.to_ast, expr.to_ast)
+        Variant.new(name.to_ast, expr.to_ast)
       end
     }
   end
@@ -173,7 +173,7 @@ grammar Rc
     statements)?
     block_end {
       def to_ast
-        IfNode.new(if_cond.to_ast, if_stmts.to_ast,
+        If.new(if_cond.to_ast, if_stmts.to_ast,
           elsif_ast, else_ast)
       end
 
@@ -208,7 +208,7 @@ grammar Rc
   rule return_stmt
     'return' white+ expr:expression {
       def to_ast
-        ReturnNode.new(expr.to_ast)
+        Return.new(expr.to_ast)
       end
     }
   end
@@ -220,7 +220,7 @@ grammar Rc
   rule expression
     first:term after:(space* op space* term)* {
       def to_ast
-        ExprNode.new(([first] + multi_term_ast).map(&:to_ast))
+        Expression.new(([first] + multi_term_ast).map(&:to_ast))
       end
 
       def multi_term_ast
@@ -232,7 +232,7 @@ grammar Rc
   rule op
     op_char:('+' / '-' / '*' / '/') {
       def to_ast
-        OpNode.new(text_value)
+        Op.new(text_value)
       end
     }
   end
@@ -252,7 +252,7 @@ grammar Rc
     args:call_args? {
       def to_ast
         args_val = optional_node_exist?(args)? args.to_ast : []
-        ClassMemberAccessNode.new(instance_name.to_ast, member_name.to_ast, args_val)
+        ClassMemberAccess.new(instance_name.to_ast, member_name.to_ast, args_val)
       end
     }
   end
@@ -263,7 +263,7 @@ grammar Rc
     class_name:upper_case_name  space? '.' space? 'new' space?
     args:call_args {
       def to_ast
-        NewExprNode.new(class_name.to_ast, args.to_ast)
+        NewExpr.new(class_name.to_ast, args.to_ast)
       end
     }
   end
@@ -271,7 +271,7 @@ grammar Rc
   rule identifier_node
     name:identifier {
       def to_ast
-        IdentifierNode.new(name.to_ast)
+        Identifier.new(name.to_ast)
       end
     }
   end

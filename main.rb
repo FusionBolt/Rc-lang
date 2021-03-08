@@ -1,9 +1,3 @@
-require './parser'
-require './log'
-require './env'
+require './interpreter/interpreter'
 
-root = Parser.parse File.open('demo.rc').read
-
-env = Env.new
-root.to_ast.eval(env).main(env)
-p env
+Interpreter.new(File.open('demo.rc').read).interpret

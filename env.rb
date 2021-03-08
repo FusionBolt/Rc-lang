@@ -1,9 +1,19 @@
-require './log'
+require './Lib/log'
 
 class Env < Hash
   def initialize(*several_variants)
     super
     update init
+  end
+
+  def enter_fun(args_env)
+    @backup = self.dup
+    self.update args_env
+  end
+
+  def exit_fun
+    self.clear
+    self.update @backup
   end
 
   def init

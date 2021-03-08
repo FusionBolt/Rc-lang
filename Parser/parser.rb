@@ -1,8 +1,9 @@
 require 'treetop'
-require './ast_node'
+require_relative '../AST/ast_node'
 
 class Parser
-  Treetop.load('./syntax.treetop')
+  # TODO:file path question
+  Treetop.load('./Parser/syntax.treetop')
   @@parser = RcParser.new
 
   def self.parse(data)

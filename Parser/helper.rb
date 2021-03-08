@@ -1,4 +1,4 @@
-require './ast_node'
+require_relative '../AST/ast_node'
 
 def debug(data, info = '')
   1 + 1
@@ -43,5 +43,5 @@ def multi_to_ast(list)
 end
 
 def to_instance_node(ast)
-  InstanceNode.new(ast.class,{:_val => ast})
+  Instance.new(ast.class, { :_val => ast})
 end
