@@ -6,6 +6,9 @@ def main
   var pass_param_ret_val = pass_param(1, 2, 3)
   var f1_v = f1(1, 2, 3)
 
+  var num = 1
+  num = 2
+
   var set = Set.new(1, 2, num)
   var foo = Foo.new()
   set.uniq()
@@ -13,8 +16,6 @@ def main
   var b1 = true
   var b2 = false
 
-  var num = 1
-  num = 2
   var s1 = 'str'
   var s2 = "str"
 

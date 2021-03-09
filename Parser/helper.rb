@@ -22,7 +22,7 @@ def optional_to_ast(node)
     # TODO: 'NotImplement'
     # for example, args may be exist or not exist
     []
-  end                  
+  end
 end
 
 # + 1-n
@@ -32,6 +32,7 @@ end
 
 # * 0-n
 # if *, then element will be empty
+# TODO:block given?
 def multi_to_ast(list)
   if list.elements.empty?
     []
@@ -43,5 +44,5 @@ def multi_to_ast(list)
 end
 
 def to_instance_node(ast)
-  Instance.new(ast.class, { :_val => ast})
+  Rc::Instance.new(ast.class, { :_val => ast})
 end

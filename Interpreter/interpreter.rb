@@ -2,18 +2,21 @@ require './Parser/parser'
 require './env'
 require_relative 'visitor'
 
-class Interpreter
-  def initialize(input)
-    @ast = Parser.parse(input).to_ast
-    @visitor = Visitor.new
-  end
+module Rc
+  class Interpreter
+    def initialize(env = Env.new)
+      @ast = nil
+      @env = env
+      @visitor = Visitor.new(env)
+    end
 
-  def interpret
-    # env = Env.new
-    # @ast.eval(env).main(env)
-    # p env
-    @visitor.visit(@ast)
-    @visitor.main()
+    def run(input)
+      @ast = Parser.parse(input).to_ast
+      @visitor.visit(@ast)
+    end
+
+    def main
+      @visitor.main
+    end
   end
-  # TODO:repl
 end

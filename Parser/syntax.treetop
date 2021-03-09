@@ -1,4 +1,5 @@
 require './Parser/helper'
+require './AST/ast_node'
 
 grammar Rc
   rule main
@@ -126,7 +127,7 @@ grammar Rc
   rule statements
     stmts:(statement*) {
       def to_ast
-        Statements.new(multi_to_ast(stmts))
+        Stmts.new(multi_to_ast(stmts))
       end
     }
   end
@@ -134,7 +135,7 @@ grammar Rc
   rule statement
     stmt_node:(break_point / variant / if / while / return_stmt / assign / expression)? space+ {
       def to_ast
-        Statement.new(optional_to_ast(stmt_node))
+        Stmt.new(optional_to_ast(stmt_node))
       end
     }
   end

@@ -1,3 +1,7 @@
 require './interpreter/interpreter'
+require './interpreter/repl'
 
-Interpreter.new(File.open('demo.rc').read).interpret
+# Rc::REPL.new.run
+i = Rc::Interpreter.new
+i.run(File.open('demo.rc').read)
+i.main
