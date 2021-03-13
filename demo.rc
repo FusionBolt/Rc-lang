@@ -5,7 +5,7 @@ def main
   f1(1, 2, 3)
   var pass_param_ret_val = pass_param(1, 2, 3)
   var f1_v = f1(1, 2, 3)
-
+  call_stack1()
   var num = 1
   num = 2
 
@@ -41,6 +41,18 @@ def main
   var after_return = 0
   return num
 
+end
+
+def call_stack1()
+  call_stack2()
+end
+
+def call_stack2()
+  call_stack3()
+end
+
+def call_stack3()
+  1
 end
 
 def pass_param(a, b, c)

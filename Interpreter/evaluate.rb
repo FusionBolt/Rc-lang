@@ -36,17 +36,15 @@ module Rc
       name = node.name
       fun = @env[name]
       if fun.class == Rc::Function
-        eval_log "call:#{name}"
         # TODO:param check
-        return_val = @visitor.run_fun(fun, node.args)
-        eval_log "call:#{name} end"
-        return_val
+        @visitor.run_fun(fun, node.args)
       else
         raise "call #{name} failed, error env:: #{@env}"
       end
     end
 
     def eval_class_member_access(node)
+      # TODO:refactor
       # TODO:member fun access args
       member_name = node.member_name
       node = @env[node.instance_name]

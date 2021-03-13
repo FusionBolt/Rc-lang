@@ -1,5 +1,6 @@
 require_relative 'evaluate'
 require_relative 'helper'
+require_relative 'call_stack'
 # TODO:传递参数
 # 对象的问题
 # CallStack and track the statement
@@ -11,6 +12,7 @@ module Rc
       @env = env
       @env.system_var_init
       @evaluator = Evaluate.new(self, @env)
+      @call_stack = CallStack.new
     end
 
     def visit(node)
@@ -28,13 +30,16 @@ module Rc
       p @env
     end
 
+    # TODO:refactor by decorator
     def run_fun(fun, args)
       if args.length != fun.args.length
         raise 'ArgsLengthNotMatch'
       end
       args_env = fun.args.zip(args.map { |arg| @evaluator.evaluate(arg) }).to_h
       @env.subroutine(args_env) do
-        visit(fun.stmts)
+        @call_stack.subroutine(StackFrame.new(fun, @env)) do
+          visit(fun.stmts)
+        end
       end
     end
 
