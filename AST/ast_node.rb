@@ -56,14 +56,36 @@ module Rc
     end
   end
 
+  class Lambda < Function
+    def initialize(args, stmts)
+      super('lambda', args, stmts)
+    end
+  end
+
   class ClassDefine
     attr_reader :name, :define, :parent
-
+    # TODO:parent need double scanning?
+    # TODO:Circular reference
     def initialize(name, define, parent = nil)
       @name, @define, @parent = name, define, parent
       @fun_list = @define.select { |d| d.class == Function }
       @var_list = @define.select { |d| d.class != Function }
       $logger.debug "implement class:#{@name}"
+    end
+
+    def get_parent(env)
+      unless @parent.nil?
+        @parent = env.find_symbol(@parent)
+      end
+    end
+
+    # inherit var
+    def instance_var_env
+      if @parent.nil?
+        var_env
+      else
+        var_env.merge(@parent.var_env)
+      end
     end
 
     def inspect(indent = nil)
@@ -84,6 +106,17 @@ module Rc
 
     def instance_constructor
       fun_env['init']
+    end
+
+    # TODO:changed, class member
+    def fetch_member(member)
+      if full_env.include? member
+        full_env[member]
+      elsif not @parent.nil?
+        @parent.fetch_member member
+      else
+        nil
+      end
     end
 
     def fun_env

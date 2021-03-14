@@ -6,6 +6,7 @@ require_relative 'call_stack'
 # CallStack and track the statement
 # about class and instance
 
+# TODO:add a tool to track stmt
 module Rc
   class Visitor
     def initialize(env = Env.new)
@@ -27,7 +28,6 @@ module Rc
       else
         raise 'MainNotFound'
       end
-      p @env
     end
 
     # TODO:refactor by decorator
@@ -38,7 +38,12 @@ module Rc
       args_env = fun.args.zip(args.map { |arg| @evaluator.evaluate(arg) }).to_h
       @env.subroutine(args_env) do
         @call_stack.subroutine(StackFrame.new(fun, @env)) do
-          visit(fun.stmts)
+          rtn_val = visit(fun.stmts)
+          # TODO:refactor
+          if fun.name == 'main'
+            p @env
+          end
+          rtn_val
         end
       end
     end
@@ -60,6 +65,7 @@ module Rc
     # TODO:preprocessing?
     def on_function(node)
       @env.define_symbol(node.name, node)
+      node
     end
 
     def on_class_define(node)
@@ -72,6 +78,7 @@ module Rc
         # TODO:not implement
         # init_fun.stmts.append()
       end
+      node.get_parent(@env)
       @env.define_symbol(node.name, node)
     end
 
@@ -127,7 +134,7 @@ module Rc
     end
 
     def on_debug_stmt(node)
-      p node.info
+      p node
     end
 
     def on_break_point(node)

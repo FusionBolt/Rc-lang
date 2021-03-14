@@ -32,10 +32,15 @@ module Rc
       end
     end
 
+    def eval_lambda(node)
+      node
+    end
+
     def eval_fun_call(node)
       name = node.name
       fun = @env[name]
-      if fun.class == Rc::Function
+      # normal function or lambda
+      if fun.is_a? Rc::Function
         # TODO:param check
         @visitor.run_fun(fun, node.args)
       else
@@ -43,19 +48,23 @@ module Rc
       end
     end
 
-    def eval_class_member_access(node)
-      # TODO:refactor
-      # TODO:member fun access args
-      member_name = node.member_name
-      node = @env[node.instance_name]
-      if node.class_define.fun_env.include? member_name
-        args = []
-        @visitor.run_fun(node.class_define.fun_env[member_name], args)
-      elsif node.instance_env.include? member_name
-        evaluate(node.instance_env[member_name])
-      else
-        raise 'NoMember', member_name
+    def eval_class_member_access(access)
+      member_name = access.member_name
+      instance = @env[access.instance_name]
+      send_msg(instance, member_name, access.args)
+    end
+
+    def send_msg(instance, symbol, args)
+      var = instance.fetch_var(symbol)
+      unless var.nil?
+        return evaluate(var)
       end
+      fun = instance.fetch_fun(symbol)
+      unless fun.nil?
+        return @visitor.run_fun(fun, args)
+      end
+      p symbol
+      raise 'NoMember'
     end
 
     def eval_identifier(node)
@@ -74,7 +83,7 @@ module Rc
       class_node = @env[node.class_name]
       # TODO:replace
       @visitor.run_fun(class_node.instance_constructor, node.args)
-      Instance.new(class_node, class_node.var_env, true)
+      Instance.new(class_node, class_node.instance_var_env, true)
     end
 
     def eval_op(node)

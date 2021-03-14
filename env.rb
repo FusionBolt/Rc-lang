@@ -20,6 +20,14 @@ module Rc
       find_symbol(symbol)
     end
 
+    def +(other)
+      Env.new(@env.merge(other.env))
+    end
+
+    def merge(other)
+      @env.update(other.env)
+    end
+
     def system_var_init
       @env.update init_debug_info.merge(init_exception).merge(init_args([]))
     end

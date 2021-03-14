@@ -10,6 +10,7 @@ module Rc
   end
 
   class CallStack
+    # TODO:refactor
     def initialize
       @stack = []
     end

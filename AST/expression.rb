@@ -2,12 +2,23 @@ module Rc
   class Expression
     attr_accessor :term_list
 
-    def initialize(list)
-      @term_list = list
+    # Distinguish between normal expr and lambda
+    def initialize(expr)
+      # lambda
+      if expr.class == Array
+        @term_list = expr
+      else
+        @term_list = [expr]
+      end
     end
 
     def inspect
-      @term_list.map(&:inspect).join(' ')
+      if @term_list.class == Function
+        @term_list.inspect
+      else
+        @term_list.map(&:inspect).join(' ')
+      end
+
     end
   end
 
@@ -69,16 +80,12 @@ module Rc
       end
     end
 
-    def call_fun(name)
-      @class_define.fun_env[name].eval
+    def fetch_var(var)
+      @instance_env[var]
     end
 
-    def mem_var(name)
-      @instance_env[name].eval
-    end
-
-    def update(member_name, val)
-      @instance_env[member_name] = val
+    def fetch_fun(fun)
+      @class_define.fetch_member(fun)
     end
   end
 

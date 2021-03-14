@@ -96,11 +96,19 @@ grammar Rc
 
 
   rule class
-    space* 'class' white+ name:upper_case_name  (white+ '<' white+ parent:identifier)? space+
+    space* 'class' white+ name:upper_case_name  parent:(white+ '<' white+ identifier)? space+
     define:(space / fun / class_member_var)*
     block_end {
       def to_ast
-        ClassDefine.new(name.to_ast, define_ast, parent.inspect)
+        ClassDefine.new(name.to_ast, define_ast, parent_to_ast)
+      end
+
+      def parent_to_ast
+        if optional_node_exist?(parent)
+          parent.elements[3].to_ast
+        else
+          nil
+        end
       end
 
       def define_ast
@@ -124,6 +132,7 @@ grammar Rc
      }
   end
 
+  # TODO:optional add ;
   rule statements
     stmts:(statement*) {
       def to_ast
@@ -158,9 +167,13 @@ grammar Rc
   end
 
   rule variant
-    'var' space+ name:identifier space+ '=' space+ expr:expression {
+    'var' space+ name:identifier space+ '=' space* expr:expression {
       def to_ast
+        begin
         Variant.new(name.to_ast, expr.to_ast)
+        rescue => e
+          p 'error', e
+        end
       end
     }
   end
@@ -219,6 +232,14 @@ grammar Rc
   end
 
   rule expression
+    exp:(lambda / normal_expr) {
+      def to_ast
+        Expression.new(exp.to_ast)
+      end
+    }
+  end
+
+  rule normal_expr
     first:term after:(space* op space* term)* {
       def to_ast
         Expression.new(([first] + multi_term_ast).map(&:to_ast))
@@ -226,6 +247,16 @@ grammar Rc
 
       def multi_term_ast
         after.elements.map{|e| [e.elements[1], e.elements[3]]}.flatten
+      end
+    }
+  end
+
+  # TODO:args? refactor
+  # TODO:capture outer var
+  rule lambda
+    space* '->' space* args:fun_args? space* '{' space* stmts:statements '}' {
+      def to_ast
+        Lambda.new(optional_to_ast(args), stmts.to_ast)
       end
     }
   end
