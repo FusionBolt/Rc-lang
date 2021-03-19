@@ -1,4 +1,5 @@
 require './Lib/log'
+require './Lib/error'
 
 module Rc
   class Env
@@ -8,6 +9,7 @@ module Rc
       set_self(env, outer)
     end
 
+    # TODO:refactor inspect, more clear
     def inspect
       if @outer.nil?
         "env:#{@env}, outer:nil"
@@ -32,7 +34,7 @@ module Rc
       @env.update init_debug_info.merge(init_exception).merge(init_args([]))
     end
 
-    def subroutine(args_env = {}, &call_block)
+    def sub_scope(args_env = {}, &call_block)
       start_subroutine(args_env)
       return_val = call_block.call
       end_subroutine
@@ -54,38 +56,38 @@ module Rc
       { '!!ARGC' => argv.length, '!!ARGV' => argv }
     end
 
-    def define_symbol(symbol_name, define = nil)
-      if @env.has_key? symbol_name
-        raise 'SymbolReDefine'
+    def define_symbol(sym, define = nil)
+      if @env.has_key? sym
+        raise SymbolReDefineError.new(sym)
       else
-        @env[symbol_name] = define
+        @env[sym] = define
       end
     end
 
-    def find_symbol(symbol_name)
-      if @env.has_key? symbol_name
-        @env[symbol_name]
+    def find_symbol(sym)
+      if @env.has_key? sym
+        @env[sym]
       elsif not @outer.nil?
-        @outer.find_symbol(symbol_name)
+        @outer.find_symbol(sym)
       else
-        raise "NoSymbolDefine:#{symbol_name}"
+        raise SymbolNotFoundError.new(sym)
       end
     end
 
-    def update_symbol(symbol_name, define)
-      if @env.has_key? symbol_name
-        self[symbol_name] = define
+    def update_symbol(sym, define)
+      if @env.has_key? sym
+        self[sym] = define
       elsif not @outer.nil?
-        @outer.update_symbol(symbol_name)
+        @outer.update_symbol(sym)
       else
-        raise 'SymbolNotFound'
+        raise SymbolNotFoundError.new(sym)
       end
     end
 
     private
 
-    def method_missing(symbol, *args)
-      hash_method = @env.method(symbol)
+    def method_missing(sym, *args)
+      hash_method = @env.method(sym)
       if hash_method.nil?
         super
       else
@@ -100,7 +102,7 @@ module Rc
 
     def end_subroutine
       if @outer.nil?
-        raise 'OuterEnvNil'
+        raise "OuterEnvNil current env#{@env}"
       else
         set_self(@outer.env, @outer.outer)
       end

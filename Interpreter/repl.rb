@@ -29,13 +29,14 @@ module Rc
       begin
         val = @interpreter.run(input)
       rescue => e
-        print "error occurred:#{e}"
+        puts "error occurred:#{e}"
       end
-      puts val[0].stmt.inspect
+      puts val[0].cur_stmt.inspect
     end
 
     def instruction(input)
       # TODO:implement
+      # TODO:set prompt
       case input.chomp[1..-1]
       when 'env'
         p 'env'

@@ -5,10 +5,16 @@ def main
   # test pass param
   f1(1, 2, 3)
   var pass_param_ret_val = pass_param(1, 2, 3)
-  var f1_v = pass_param(1, 2, 3)
+  var f1_v = pass_param(1, 2, 1+1)
+
+  # call ruby method
+  puts("input something")
+  var get_input = gets()
+  puts("input is:")
+  puts(get_input)
+
   # test call_stack
   call_stack1()
-
 
   var lambda = ->(x, y){ x + y }
   var lambda_rtn_val = lambda(1, 2)
@@ -36,20 +42,25 @@ def main
   var s1 = 'str'
   var s2 = "str"
 
+
   f1(1, 2, num)
 
   var id = num
 
-  if true
+  if false
+    puts("if")
     var m = 1
     var s = 2
   elsif false
+    puts("elsif1")
     var q = 2
     var a = 1
   elsif false
+    puts("elsif2")
     var n = 10
     var q = 10
   else
+    puts("else")
     var t = 22
     var n = 2
   end
@@ -71,6 +82,7 @@ end
 
 def call_stack3()
   1
+  assert(2, 1)
 end
 
 def pass_param(a, b, c)

@@ -144,7 +144,7 @@ grammar Rc
   rule statement
     stmt_node:(break_point / variant / if / while / return_stmt / assign / expression)? space+ {
       def to_ast
-        Stmt.new(optional_to_ast(stmt_node))
+        Stmt.new(optional_to_ast(stmt_node), input, interval)
       end
     }
   end
@@ -200,7 +200,7 @@ grammar Rc
       end
 
       def destruct_elsif(elsif_node)
-        [elsif_node.elements[2], elsif_node.elements[4]]
+        [elsif_node.elements[2].to_ast, elsif_node.elements[4].to_ast]
       end
 
       def else_ast

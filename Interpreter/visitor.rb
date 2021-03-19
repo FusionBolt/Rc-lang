@@ -6,7 +6,6 @@ require_relative 'call_stack'
 # CallStack and track the statement
 # about class and instance
 
-# TODO:add a tool to track stmt
 module Rc
   class Visitor
     def initialize(env = Env.new)
@@ -16,40 +15,54 @@ module Rc
       @call_stack = CallStack.new
     end
 
+    def cur_stmt
+      @call_stack.cur_stmt
+    end
+
+    def set_cur_stmt(stmt)
+      @call_stack.cur_stmt = stmt
+      $logger.info("#{@call_stack.indent}#{stmt.inspect}")
+    end
+
     def visit(node)
-      method("on_#{Helper::under_score_class_name(node)}")[node]
+      # TODO:better way?
+      return if @call_stack.error
+      begin
+        method("on_#{Helper::under_score_class_name(node)}")[node]
+      rescue Rc::RuntimeError => e
+        @call_stack.raise(e, @env)
+      end
+    end
+
+    def on_nil_class(node)
+      p node
     end
 
     def main(argv = [])
       if @env.has_key? 'main'
         $logger.info '---------------- start main ----------------'
-        # TODO:change
-        visit(Expression.new([FunCall.new('main')]))
+        run_fun(@env['main'], argv)
       else
-        raise 'MainNotFound'
+        @call_stack.raise(Rc::RuntimeError.new, @env)
       end
     end
 
     # TODO:refactor by decorator
     def run_fun(fun, args)
       if args.length != fun.args.length
-        raise 'ArgsLengthNotMatch'
+        raise Rc::ArgsLengthNotMatchError.new(fun.name, args.length, fun.args.length)
       end
       args_env = fun.args.zip(args.map { |arg| @evaluator.evaluate(arg) }).to_h
-      @env.subroutine(args_env) do
-        @call_stack.subroutine(StackFrame.new(fun, @env)) do
+      @env.sub_scope(args_env) do
+        @call_stack.subroutine(StackFrame.new(cur_stmt, fun, @env)) do
           rtn_val = visit(fun.stmts)
           # TODO:refactor
           if fun.name == 'main'
-            p @env
+            $logger.debug @env.inspect
           end
           rtn_val
         end
       end
-    end
-
-    def on_nil_class(node)
-      raise 'OnNilClass'
     end
 
     def on_root(node)
@@ -97,6 +110,7 @@ module Rc
 
     def on_stmt(node)
       return if node.stmt == []
+      set_cur_stmt(node)
       visit(node.stmt)
     end
 
@@ -113,11 +127,8 @@ module Rc
             return visit(e[1])
           end
         end
-        if node.else_stmts.any?
-          visit(node.else_stmts)
-        end
+        visit(node.else_stmts)
       end
-      # TODO:test
     end
 
     def on_assign(node)
@@ -134,7 +145,7 @@ module Rc
     end
 
     def on_debug_stmt(node)
-      p node
+      1 + 1
     end
 
     def on_break_point(node)

@@ -1,13 +1,15 @@
 require 'logger'
 
 $logger = Logger.new(STDOUT,formatter: proc {|severity, datetime, prog_name, msg|
-  "#{severity[0]}::#{msg}\n"
+  if severity == "ERROR"
+    "\033[31m#{severity[0]}::#{msg}\n"
+  else
+    "\033[371m#{severity[0]}::#{msg}\n"
+  end
 })
+
 # severity == "DEBUG"
 $logger.level = :debug
-def eval_log(msg)
-  $logger.debug "Eval::#{msg}"
-end
 # $logger.debug 'debug'
 # $logger.info 'info'
 # $logger.warn 'warn'

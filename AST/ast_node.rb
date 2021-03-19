@@ -1,8 +1,8 @@
 require './Lib/log'
 require_relative 'expression'
 require_relative 'statement'
-# TODO:valid check
-# TODO:Err Check
+require_relative 'helper'
+
 module Rc
   class Root
     attr_reader :packages, :other
@@ -40,7 +40,7 @@ module Rc
     end
 
     def inspect(indent = nil)
-      "fun:#{@name} args:(#{@args.map(&:inspect).join(',')})"
+      "fun:#{@name} args:#{args_inspect(@args)}"
     end
 
     def args_env(actual_args, env)
@@ -97,7 +97,7 @@ module Rc
     end
 
     def generate_init_fun
-      eval_log "class:#{@name} generate init fun"
+      $logger.debug "class:#{@name} generate init fun"
       # TODO:finish
       # user defined var need init
       @fun_list << Function.new('init', [],
@@ -140,8 +140,8 @@ module Rc
     attr_reader :name, :val
 
     def initialize(name, val = nil)
-      eval_log "class member var #{@name}:#{@val}"
       @name, @val = name, val
+      $logger.debug "class member var #{@name}:#{@val.inspect}"
     end
   end
 end

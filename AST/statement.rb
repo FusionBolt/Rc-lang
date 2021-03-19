@@ -24,12 +24,14 @@ module Rc
   class Stmt
     attr_reader :stmt
 
-    def initialize(stmt)
+    def initialize(stmt, input, interval)
       @stmt = stmt
+      @input, @interval = input, interval
     end
 
     def inspect(indent = nil)
-      @stmt.inspect
+      # TODO:string include escape character \n?
+      @input[@interval].gsub("\n", '')
     end
   end
 
@@ -51,7 +53,7 @@ module Rc
 
     def initialize(if_cond, if_stmts, elsif_node, else_node)
       @if_cond, @if_stmts, @elsif_list, @else_stmts =
-        if_cond, if_stmts, elsif_node, elsif_node
+        if_cond, if_stmts, elsif_node, else_node
       $logger.debug "if node"
     end
 
@@ -65,7 +67,11 @@ module Rc
 
     def initialize(var_obj, expr)
       @var_obj, @expr = var_obj, expr
-      $logger.debug "#{var_obj} assign #{expr}"
+      $logger.debug "#{inspect}"
+    end
+
+    def inspect
+      "#{@var_obj.inspect} = #{@expr.inspect}"
     end
   end
 

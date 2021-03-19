@@ -1,4 +1,5 @@
 require_relative '../AST/ast_node'
+require './Lib/error'
 
 def debug(data, info = '')
   1 + 1
@@ -37,7 +38,7 @@ def multi_to_ast(list)
   if list.elements.empty?
     []
   elsif list.elements.nil?
-    raise 'Unknown error', list
+    raise Rc::UnknownError.new(list)
   else
     plus_to_ast list
   end

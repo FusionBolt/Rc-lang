@@ -1,3 +1,5 @@
+require_relative 'helper'
+
 module Rc
   class Expression
     attr_accessor :term_list
@@ -27,11 +29,11 @@ module Rc
 
     def initialize(name, args = [])
       @name, @args = name, args
-      $logger.debug "call:#{@name} args:(#{inspect})"
+      $logger.debug "call:#{inspect}"
     end
 
     def inspect(indent = nil)
-      "#{@name}(#{@args.map(&:inspect).join(',')})"
+      "#{@name}#{args_inspect(@args)}"
     end
   end
 
@@ -40,6 +42,10 @@ module Rc
 
     def initialize(instance_name, member_name, args = [])
       @instance_name, @member_name, @args = instance_name, member_name, args
+    end
+
+    def inspect
+      "#{@instance_name}.#{@member_name} #{@args.empty?? '' : args_inspect(@args)}"
     end
   end
 
@@ -60,6 +66,10 @@ module Rc
 
     def initialize(class_name, args = [])
       @class_name, @args = class_name, args
+    end
+
+    def inspect
+      "#{@class_name}.new#{args_inspect(@args)}"
     end
   end
 

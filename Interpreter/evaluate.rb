@@ -1,21 +1,24 @@
 require_relative 'helper'
+require './Lib/Rc/assert'
+require './Lib/error'
 
 module Rc
   class Evaluate
+    # ensure lib fun can be found by method
+    include Rc::Lib
     attr_accessor :env
 
     def initialize(visitor, env = {})
       @visitor, @env = visitor, env
     end
 
-    # TODO:log indent
-    # error process and refactor
     def evaluate(node)
+      # TODO:error process, in this or visit expr?
       method("eval_#{Helper::under_score_class_name(node)}")[node]
     end
 
     def env_evaluate(node, env)
-      @env.subroutine(env) do
+      @env.sub_scope(env) do
         evaluate(node)
       end
     end
@@ -38,23 +41,28 @@ module Rc
 
     def eval_fun_call(node)
       name = node.name
-      fun = @env[name]
+      fun = @env[name] rescue nil
       # normal function or lambda
       if fun.is_a? Rc::Function
         # TODO:param check
+        # TODO:args need eval?
         @visitor.run_fun(fun, node.args)
       else
-        raise "call #{name} failed, error env:: #{@env}"
+        begin
+        method(name.to_sym).call(*node.args.map{|arg| evaluate(arg)})
+        rescue NameError => e
+          raise SymbolNotFoundError.new(name)
+        end
       end
     end
 
     def eval_class_member_access(access)
       member_name = access.member_name
       instance = @env[access.instance_name]
-      send_msg(instance, member_name, access.args)
+      send_msg(access.instance_name, instance, member_name, access.args)
     end
 
-    def send_msg(instance, symbol, args)
+    def send_msg(instance_name, instance, symbol, args)
       var = instance.fetch_var(symbol)
       unless var.nil?
         return evaluate(var)
@@ -63,8 +71,7 @@ module Rc
       unless fun.nil?
         return @visitor.run_fun(fun, args)
       end
-      p symbol
-      raise 'NoMember'
+      raise ClassMemberNotFound.new(instance_name, instance, symbol)
     end
 
     def eval_identifier(node)
@@ -73,7 +80,7 @@ module Rc
 
     def eval_instance(node)
       if node.is_obj
-        raise 'UnfinishedException'
+        raise UnFinishedError.new(node)
       else
         evaluate(node.instance_env[:_val])
       end
@@ -91,7 +98,7 @@ module Rc
     end
 
     def eval_bool_constant(node)
-      node.val
+      Kernel.eval(node.val)
     end
 
     def eval_number_constant(node)

@@ -1,5 +1,6 @@
 require 'treetop'
 require_relative '../AST/ast_node'
+require './Lib/error'
 
 module Rc
   class Parser
@@ -15,11 +16,12 @@ module Rc
       end
 
       if tree.nil?
-        p @@parser.failure_reason
-        p @@parser.failure_line
-        p @@parser.failure_column
+        raise ParserError.new(
+          @@parser.failure_reason,
+          @@parser.failure_line,
+          @@parser.failure_column
+        )
         # TODO:err recover and more err info
-        return "Parse error at offset: #{@@parser.index}"
       end
       $logger.info '----------------Parse end----------------'
       tree

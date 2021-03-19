@@ -1,18 +1,36 @@
 module Rc
+  class RcError < StandardError
+    attr_reader :error_stmt, :error_info
+    def initialize(error_stmt, error_info)
+      @error_stmt = error_stmt
+      @error_info = error_info
+    end
+
+    def error_stmt
+      @error_stmt.inspect
+    end
+  end
+
   class StackFrame
     # TODO:save this obj
     # TODO:how to process env
-    attr_accessor :caller_frame, :fun, :env
-    def initialize(fun, env)
+    attr_reader :caller_frame, :fun, :env, :cur_stmt
+    def initialize(cur_stmt, fun, env)
+      @cur_stmt = cur_stmt
       @fun, @env = fun, env
       @caller_frame = nil
     end
   end
 
   class CallStack
+    attr_accessor :cur_stmt
+    attr_reader :error
     # TODO:refactor
     def initialize
       @stack = []
+      @error = false
+      # stmt is class Stmt, this is used for regular print ExceptionStack
+      @cur_stmt = :main
     end
 
     def depth
@@ -21,13 +39,13 @@ module Rc
 
     # TODO: how to separate log info from call stack and visitor? learn more
     def pop
-      puts "#{indent}return:#{top.fun.name}"
+      $logger.debug "#{indent}return:#{top.fun.name}"
       @stack.pop
     end
 
     def push(frame)
       @stack.push(frame)
-      puts "#{indent}call:#{frame.fun.name}"
+      $logger.debug "#{indent}call:#{frame.fun.name}"
     end
 
     def top
@@ -44,9 +62,20 @@ module Rc
       ret_val
     end
 
-    private
+    # TODO:output link to the source
+    def raise(rc_error, env = Env.new)
+      @error = true
+      puts "\033[31mError Type:#{rc_error.class}\nError Info:#{rc_error.inspect}\nin:#{cur_stmt.inspect}\n#{error_call_stack}\n#{env.inspect}"
+      exit
+    end
+
     def indent
       '  ' * depth
+    end
+
+    private
+    def error_call_stack
+      @stack.reverse.map{|stack| "in:#{stack.cur_stmt.inspect}"}.join("\n")
     end
   end
 end
