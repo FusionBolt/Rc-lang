@@ -34,10 +34,6 @@ module Rc
       end
     end
 
-    def on_nil_class(node)
-      p node
-    end
-
     def main(argv = [])
       if @env.has_key? 'main'
         $logger.info '---------------- start main ----------------'
@@ -128,6 +124,12 @@ module Rc
           end
         end
         visit(node.else_stmts)
+      end
+    end
+
+    def on_unless(node)
+      unless @evaluator.evaluate(node.cond)
+        visit(node.stmts)
       end
     end
 

@@ -142,7 +142,7 @@ grammar Rc
   end
 
   rule statement
-    stmt_node:(break_point / variant / if / while / return_stmt / assign / expression)? space+ {
+    stmt_node:(break_point / variant / if / unless / while / return_stmt / assign / expression)? space+ {
       def to_ast
         Stmt.new(optional_to_ast(stmt_node), input, interval)
       end
@@ -174,6 +174,16 @@ grammar Rc
         rescue => e
           p 'error', e
         end
+      end
+    }
+  end
+
+  rule unless
+    'unless' white+ unless_cond:expression space+
+    statements
+    block_end {
+      def to_ast
+        Unless.new(unless_cond.to_ast, statements.to_ast)
       end
     }
   end

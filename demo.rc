@@ -8,10 +8,7 @@ def main
   var f1_v = pass_param(1, 2, 1+1)
 
   # call ruby method
-  puts("input something")
-  var get_input = gets()
-  puts("input is:")
-  puts(get_input)
+  # ruby_method()
 
   # test call_stack
   call_stack1()
@@ -47,6 +44,10 @@ def main
 
   var id = num
 
+  unless false
+    puts("expr is false, run unless")
+  end
+
   if false
     puts("if")
     var m = 1
@@ -60,7 +61,7 @@ def main
     var n = 10
     var q = 10
   else
-    puts("else")
+    puts("in else")
     var t = 22
     var n = 2
   end
@@ -70,6 +71,13 @@ def main
   var after_return = 0
   return num
 
+end
+
+def ruby_method()
+  puts("input something")
+  var get_input = gets()
+  puts("input is:")
+  puts(get_input)
 end
 
 def call_stack1()
@@ -82,7 +90,6 @@ end
 
 def call_stack3()
   1
-  assert(2, 1)
 end
 
 def pass_param(a, b, c)

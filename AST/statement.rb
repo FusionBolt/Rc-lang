@@ -62,6 +62,17 @@ module Rc
     end
   end
 
+  class Unless
+    attr_reader :cond, :stmts
+    def initialize(cond, stmts)
+      @cond, @stmts = cond, stmts
+    end
+
+    def inspect
+      'unless'
+    end
+  end
+
   class Assign
     attr_reader :var_obj, :expr
 
