@@ -1,4 +1,4 @@
-require_relative 'evaluate'
+require_relative 'evaluator'
 require_relative 'helper'
 require_relative 'call_stack'
 # TODO:传递参数
@@ -11,7 +11,7 @@ module Rc
     def initialize(env = Env.new)
       @env = env
       @env.system_var_init
-      @evaluator = Evaluate.new(self, @env)
+      @evaluator = Evaluator.new(self, @env)
       @call_stack = CallStack.new
     end
 
@@ -64,7 +64,7 @@ module Rc
     def on_root(node)
       # TODO:import
       node.packages.each { |n| visit(n) }
-      node.other.each { |n| visit(n) }
+      node.other.map { |n| visit(n) }
     end
 
     def on_package(node)
@@ -91,7 +91,7 @@ module Rc
       @env.define_symbol(node.name, node)
     end
 
-    def on_expression(node)
+    def on_expr(node)
       @evaluator.evaluate(node)
     end
 
@@ -134,7 +134,7 @@ module Rc
     end
 
     def on_assign(node)
-      # TODO:成员变量赋值怎么办
+      # TODO:when impl more check, should check sym is defined
       # TODO:检查var是否存在
       # TODO:未完全实现
       # TODO:成员变量赋值出错

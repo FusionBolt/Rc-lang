@@ -244,7 +244,7 @@ grammar Rc
   rule expression
     exp:(lambda / normal_expr) {
       def to_ast
-        Expression.new(exp.to_ast)
+        Expr.new(exp.to_ast)
       end
     }
   end
@@ -252,7 +252,7 @@ grammar Rc
   rule normal_expr
     first:term after:(space* op space* term)* {
       def to_ast
-        Expression.new(([first] + multi_term_ast).map(&:to_ast))
+        Expr.new(([first] + multi_term_ast).map(&:to_ast))
       end
 
       def multi_term_ast

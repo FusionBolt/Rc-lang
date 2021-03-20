@@ -1,7 +1,7 @@
 require_relative 'helper'
 
 module Rc
-  class Expression
+  class Expr
     attr_accessor :term_list
 
     # Distinguish between normal expr and lambda

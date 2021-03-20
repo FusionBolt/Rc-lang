@@ -3,7 +3,7 @@ require './Lib/Rc/assert'
 require './Lib/error'
 
 module Rc
-  class Evaluate
+  class Evaluator
     # ensure lib fun can be found by method
     include Rc::Lib
     attr_accessor :env
@@ -23,7 +23,7 @@ module Rc
       end
     end
 
-    def eval_expression(node)
+    def eval_expr(node)
       # TODO:changed
       # TODO:list order??
       term_list = node.term_list

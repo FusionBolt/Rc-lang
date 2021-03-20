@@ -4,6 +4,7 @@ require_relative 'visitor'
 
 module Rc
   class Interpreter
+    attr_reader :env
     def initialize(env = Env.new)
       @ast = nil
       @env = env

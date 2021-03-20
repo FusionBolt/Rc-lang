@@ -1,7 +1,7 @@
 require './interpreter/interpreter'
 require './interpreter/repl'
 
-# Rc::REPL.new.run
+Rc::REPL.new.run
 
 $logger.level = :error
 i = Rc::Interpreter.new

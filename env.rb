@@ -61,6 +61,7 @@ module Rc
         raise SymbolReDefineError.new(sym)
       else
         @env[sym] = define
+        define
       end
     end
 

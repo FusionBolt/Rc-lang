@@ -1,6 +1,6 @@
 require './Lib/log'
-require_relative 'expression'
-require_relative 'statement'
+require_relative 'expr'
+require_relative 'stmt'
 require_relative 'helper'
 
 module Rc
