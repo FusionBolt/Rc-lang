@@ -272,7 +272,7 @@ grammar Rc
   end
 
   rule op
-    op_char:('+' / '-' / '*' / '/') {
+    op_char:('+' / '-' / '*' / '/' / '<' / '>') {
       def to_ast
         Op.new(text_value)
       end

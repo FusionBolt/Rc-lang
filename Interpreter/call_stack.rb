@@ -11,14 +11,14 @@ module Rc
     end
   end
 
+  # TODO:refactor, how to set cur_stmt, need in constructor?
   class StackFrame
     # TODO:save this obj
     # TODO:how to process env
-    attr_reader :caller_frame, :fun, :env, :cur_stmt
+    attr_reader :fun, :env, :cur_stmt
     def initialize(cur_stmt, fun, env)
       @cur_stmt = cur_stmt
       @fun, @env = fun, env
-      @caller_frame = nil
     end
   end
 

@@ -16,6 +16,7 @@ module Rc
       end
 
       if tree.nil?
+        p @@parser.failure_reason, @@parser.failure_line, @@parser.failure_column
         raise ParserError.new(
           @@parser.failure_reason,
           @@parser.failure_line,
