@@ -95,12 +95,18 @@ module Rc
   end
 
   class AssertFailedError < Rc::RuntimeError
-    def initialize(a, b)
-      @a, @b = a, b
+    def initialize(*args)
+      @args = args;
     end
 
     def inspect
-      "#{@a} != #{@b}"
+      if @args.length == 1
+        "#{@args[0]} is false"
+      elsif @args.length == 2
+        "#{@args[0]} != #{@args[1]}"
+      else
+        raise UnFinishedError.new("not support assert length")
+      end
     end
   end
 end

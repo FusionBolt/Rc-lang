@@ -1,0 +1,32 @@
+class Foo
+  def parent_f()
+    8
+  end
+
+  def override_f()
+    p("parent")
+  end
+
+  var parent_var = 10
+end
+
+class Child < Foo
+  def init()
+    p("exec constructor")
+  end
+
+  def override_f()
+    p("child override f")
+  end
+
+  var val = 5
+end
+
+def main
+  var c = Child.new()
+  p("Child var val")
+  p(c.val)
+  p(c.parent_var)
+  p(c.parent_f())
+  c.override_f()
+end

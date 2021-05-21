@@ -5,6 +5,7 @@
 # TODO:save env
 
 require './Lib/error'
+require './Interpreter/interpreter'
 
 module Rc
   class REPLError < RcError

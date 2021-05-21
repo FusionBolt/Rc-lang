@@ -9,5 +9,11 @@ module Rc
         raise AssertFailedError.new(a, b)
       end
     end
+
+    def assert_true(a)
+      if a != true
+        raise AssertFailedError.new(a)
+      end
+    end
   end
 end

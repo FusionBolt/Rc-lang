@@ -1,0 +1,4 @@
+def main
+  var lambda = ->(x, y){ x + y }
+  p(lambda(1,2))
+end
