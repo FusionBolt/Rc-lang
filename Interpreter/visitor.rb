@@ -11,8 +11,8 @@ module Rc
     def initialize(env = Env.new)
       @env = env
       @env.system_var_init
-      @evaluator = Evaluator.new(self, @env)
       @call_stack = CallStack.new
+      @evaluator = Evaluator.new(self, @call_stack, @env)
     end
 
     def cur_stmt
@@ -25,7 +25,6 @@ module Rc
     end
 
     def visit(node)
-      # TODO:better way?
       return if @call_stack.error
       begin
         method("on_#{Helper::under_score_class_name(node)}")[node]
@@ -33,31 +32,13 @@ module Rc
         @call_stack.raise(e, @env)
       end
     end
-
+    # TODO: error will not catch
     def main(argv = [])
       if @env.has_key? 'main'
         $logger.info '---------------- start main ----------------'
-        run_fun(@env['main'], argv)
+        @evaluator.evaluate(FunCall.new('main', argv))
       else
         @call_stack.raise(Rc::RuntimeError.new, @env)
-      end
-    end
-
-    # TODO:refactor by decorator
-    def run_fun(fun, args)
-      if args.length != fun.args.length
-        raise Rc::ArgsLengthNotMatchError.new(fun.name, args.length, fun.args.length)
-      end
-      args_env = fun.args.zip(args.map { |arg| @evaluator.evaluate(arg) }).to_h
-      @env.sub_scope(args_env) do
-        @call_stack.subroutine(StackFrame.new(cur_stmt, fun, @env)) do
-          rtn_val = visit(fun.stmts)
-          # TODO:refactor
-          if fun.name == 'main'
-            $logger.debug @env.inspect
-          end
-          rtn_val
-        end
       end
     end
 

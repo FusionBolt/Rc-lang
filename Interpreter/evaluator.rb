@@ -8,8 +8,8 @@ module Rc
     include Rc::Lib
     attr_accessor :env
 
-    def initialize(visitor, env = {})
-      @visitor, @env = visitor, env
+    def initialize(visitor, call_stack, env = {})
+      @visitor, @call_stack, @env = visitor, call_stack, env
     end
 
     def evaluate(node)
@@ -46,12 +46,29 @@ module Rc
       if fun.is_a? Rc::Function
         # TODO:param check
         # TODO:args need eval?
-        @visitor.run_fun(fun, node.args)
+        run_fun(fun, node.args)
       else
         begin
         method(name.to_sym).call(*node.args.map{|arg| evaluate(arg)})
         rescue NameError => e
           raise SymbolNotFoundError.new(name)
+        end
+      end
+    end
+
+    def run_fun(fun, args)
+      if args.length != fun.args.length
+        raise Rc::ArgsLengthNotMatchError.new(fun.name, args.length, fun.args.length)
+      end
+      args_env = fun.args.zip(args.map { |arg| @evaluator.evaluate(arg) }).to_h
+      @env.sub_scope(args_env) do
+        @call_stack.subroutine(StackFrame.new(@call_stack.cur_stmt, fun, @env)) do
+          rtn_val = @visitor.visit(fun.stmts)
+          # TODO:refactor
+          if fun.name == 'main'
+            $logger.debug @env.inspect
+          end
+          rtn_val
         end
       end
     end
@@ -69,7 +86,7 @@ module Rc
       end
       fun = instance.fetch_fun(symbol)
       unless fun.nil?
-        return @visitor.run_fun(fun, args)
+        return run_fun(fun, args)
       end
       raise ClassMemberNotFound.new(instance_name, instance, symbol)
     end
@@ -89,7 +106,7 @@ module Rc
     def eval_new_expr(node)
       class_node = @env[node.class_name]
       # TODO:replace
-      @visitor.run_fun(class_node.instance_constructor, node.args)
+      run_fun(class_node.instance_constructor, node.args)
       Instance.new(class_node, class_node.instance_var_env, true)
     end
 
