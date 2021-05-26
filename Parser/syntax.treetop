@@ -290,11 +290,19 @@ grammar Rc
 
   # TODO:set args optional
   rule class_member_access
-    instance_name:identifier white* '.' member_name:identifier white*
+    instance_name:(identifier / self) white* '.' member_name:identifier white*
     args:call_args? {
       def to_ast
         args_val = optional_node_exist?(args)? args.to_ast : []
         ClassMemberAccess.new(instance_name.to_ast, member_name.to_ast, args_val)
+      end
+    }
+  end
+
+  rule self
+    'self' {
+      def to_ast
+        'self'
       end
     }
   end
@@ -391,6 +399,7 @@ grammar Rc
     'class' / 'def' / 'end' / 'var' /
     'true' / 'false' /
     'if' / 'else' / 'elsif' / 'while' /
-    'int' / 'new' / 'break' / 'return'
+    'int' / 'new' / 'break' / 'return' /
+    'self'
   end
 end

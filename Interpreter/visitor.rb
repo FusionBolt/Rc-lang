@@ -28,15 +28,15 @@ module Rc
       return if @call_stack.error
       begin
         method("on_#{Helper::under_score_class_name(node)}")[node]
-      rescue Rc::RuntimeError => e
+      rescue Rc::RuntimeError, Rc::SemanticError => e
         @call_stack.raise(e, @env)
       end
     end
-    # TODO: error will not catch
+
     def main(argv = [])
       if @env.has_key? 'main'
         $logger.info '---------------- start main ----------------'
-        @evaluator.evaluate(FunCall.new('main', argv))
+        visit(Stmt.new(Expr.new(FunCall.new('main', argv))))
       else
         @call_stack.raise(Rc::RuntimeError.new, @env)
       end
@@ -76,7 +76,6 @@ module Rc
       @evaluator.evaluate(node)
     end
 
-    # TODO:need a statement visitor?
     def on_stmts(node)
       node.stmts.each do |n|
         return_val = visit(n)
@@ -120,7 +119,12 @@ module Rc
       # TODO:未完全实现
       # TODO:成员变量赋值出错
       # TODO:env.update value
-      @env[node.var_obj.name] = @evaluator.evaluate(node.expr)
+      node_v = @evaluator.evaluate(node.expr)
+      if node.var_obj.class == ClassMemberAccess
+        @call_stack.cur_obj[node.var_obj.member_name] = node_v
+      else
+        @env[node.var_obj.name] = node_v
+      end
     end
 
     def on_return(node)

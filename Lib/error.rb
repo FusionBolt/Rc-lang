@@ -13,7 +13,6 @@ module Rc
   end
 
   class ParserError < RcError
-    # TODO:more detailed error info
     def initialize(line, column, reason)
       @line, @column, @reason = line, column, reason
     end

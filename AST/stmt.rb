@@ -24,7 +24,7 @@ module Rc
   class Stmt
     attr_reader :stmt
 
-    def initialize(stmt, input, interval)
+    def initialize(stmt, input = '', interval = '')
       @stmt = stmt
       @input, @interval = input, interval
     end

@@ -16,13 +16,15 @@ module Rc
     # TODO:save this obj
     # TODO:how to process env
     attr_reader :fun, :env, :cur_stmt
-    def initialize(cur_stmt, fun, env)
-      @cur_stmt = cur_stmt
+    attr_accessor :cur_obj
+    def initialize(cur_stmt, fun, env, cur_obj = nil)
+      @cur_stmt, @cur_obj = cur_stmt, cur_obj
       @fun, @env = fun, env
     end
   end
 
   class CallStack
+    # TODO:begin is main frame, remove cur_stmt
     attr_accessor :cur_stmt
     attr_reader :error
     # TODO:refactor
@@ -35,6 +37,10 @@ module Rc
 
     def depth
       @stack.length
+    end
+
+    def cur_obj
+      @stack[-1].cur_obj
     end
 
     # TODO: how to separate log info from call stack and visitor? learn more
@@ -59,6 +65,17 @@ module Rc
         ret_val = block.call
       end
       pop
+      ret_val
+    end
+
+    def into_member_fun(instance, &block)
+      save_obj = cur_obj
+      @stack[-1].cur_obj = instance
+      ret_val = nil
+      if block_given?
+        ret_val = block.call
+      end
+      @stack[-1].cur_obj = save_obj
       ret_val
     end
 

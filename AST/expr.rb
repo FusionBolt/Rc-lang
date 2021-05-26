@@ -97,6 +97,10 @@ module Rc
     def fetch_fun(fun)
       @class_define.fetch_member(fun)
     end
+
+    def []=(sym, val)
+      @instance_env[sym] = val
+    end
   end
 
   class Op
