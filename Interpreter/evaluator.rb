@@ -42,7 +42,7 @@ module Rc
 
     def eval_fun_call(node)
       name = node.name
-      if @env.has_key? name
+      if @env.has_symbol? name
         fun = @env[name]
         if fun.is_a? Rc::Function
           run_fun(fun, node.args)

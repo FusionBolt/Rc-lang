@@ -65,6 +65,16 @@ module Rc
       end
     end
 
+    def has_symbol?(sym)
+      if @env.has_key? sym
+        true
+      elsif not @outer.nil?
+        @outer.has_symbol?(sym)
+      else
+        false
+      end
+    end
+
     def find_symbol(sym)
       if @env.has_key? sym
         @env[sym]
