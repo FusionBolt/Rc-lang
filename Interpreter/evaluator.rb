@@ -1,6 +1,7 @@
 require_relative 'helper'
 require './Lib/Rc/assert'
 require './Lib/error'
+require './Lib/ffi'
 
 module Rc
   class Evaluator
@@ -41,18 +42,15 @@ module Rc
 
     def eval_fun_call(node)
       name = node.name
-      fun = @env[name] rescue nil
-      # normal function or lambda
-      if fun.is_a? Rc::Function
-        # TODO:param check
-        # TODO:args need eval?
-        run_fun(fun, node.args)
-      else
-        begin
-        method(name.to_sym).call(*node.args.map{|arg| evaluate(arg)})
-        rescue NameError => e
+      if @env.has_key? name
+        fun = @env[name]
+        if fun.is_a? Rc::Function
+          run_fun(fun, node.args)
+        else
           raise SymbolNotFoundError.new(name)
         end
+      else
+        FFI.call(name, node.args, self)
       end
     end
 
