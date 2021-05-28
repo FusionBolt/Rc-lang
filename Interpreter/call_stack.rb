@@ -1,6 +1,9 @@
+require './Lib/hack'
+
 module Rc
   class RcError < StandardError
     attr_reader :error_stmt, :error_info
+
     def initialize(error_stmt, error_info)
       @error_stmt = error_stmt
       @error_info = error_info
@@ -11,11 +14,9 @@ module Rc
     end
   end
 
-  # TODO:refactor, how to set cur_stmt, need in constructor?
   class StackFrame
     # TODO:how to process env
-    attr_reader :fun, :env, :cur_stmt
-    attr_accessor :cur_obj
+    attr_reader :fun, :env, :cur_stmt, :cur_obj
     def initialize(cur_stmt, fun, env, cur_obj = nil)
       @cur_stmt, @cur_obj = cur_stmt, cur_obj
       @fun, @env = fun, env
@@ -58,24 +59,8 @@ module Rc
     end
 
     def subroutine(new_frame, &block)
-      ret_val = nil
       push(new_frame)
-      if block_given?
-        ret_val = block.call
-      end
-      pop
-      ret_val
-    end
-
-    def into_member_fun(instance, &block)
-      save_obj = cur_obj
-      @stack[-1].cur_obj = instance
-      ret_val = nil
-      if block_given?
-        ret_val = block.call
-      end
-      @stack[-1].cur_obj = save_obj
-      ret_val
+      block.try(&:call).tap { pop }
     end
 
     # TODO:output link to the source

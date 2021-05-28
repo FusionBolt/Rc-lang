@@ -36,9 +36,7 @@ module Rc
 
     def sub_scope(args_env = {}, &call_block)
       start_subroutine(args_env)
-      return_val = call_block.call
-      end_subroutine
-      return_val
+      call_block.try(&:call).tap { end_subroutine }
     end
 
     # TODO:when replace with other text
