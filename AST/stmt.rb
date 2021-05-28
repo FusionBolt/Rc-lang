@@ -1,5 +1,3 @@
-# TODO:method missing and find array
-# TODO:behavior like array
 module Rc
   class Stmts
     attr_reader :stmts
@@ -18,6 +16,17 @@ module Rc
 
     def [](index)
       @stmts[index]
+    end
+
+    # TODO: tract same pattern
+    private
+    def method_missing(symbol, *args)
+      arr_method = @stmts.method(symbol)
+      if arr_method.nil?
+        super
+      else
+        arr_method.call(*args)
+      end
     end
   end
 

@@ -31,7 +31,6 @@ module Rc
   end
 
   class Function
-    # TODO:Distinguish between member fun and normal fun
     attr_reader :name, :args, :stmts
 
     def initialize(name, args, stmts)

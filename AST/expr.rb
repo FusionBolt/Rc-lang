@@ -74,7 +74,6 @@ module Rc
   end
 
   class Instance
-    # TODO:调用成员函数传入自身去执行
     attr_reader :class_define, :instance_env, :is_obj
 
     def initialize(class_define, member_env, is_obj = false)

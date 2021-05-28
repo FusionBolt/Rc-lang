@@ -13,7 +13,6 @@ module Rc
 
   # TODO:refactor, how to set cur_stmt, need in constructor?
   class StackFrame
-    # TODO:save this obj
     # TODO:how to process env
     attr_reader :fun, :env, :cur_stmt
     attr_accessor :cur_obj
