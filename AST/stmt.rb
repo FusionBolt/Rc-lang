@@ -31,7 +31,7 @@ module Rc
   end
 
   class Stmt
-    attr_reader :stmt
+    attr_reader :stmt, :interval
 
     def initialize(stmt, input = '', interval = '')
       @stmt = stmt

@@ -5,8 +5,6 @@ require './Lib/ffi'
 
 module Rc
   class Evaluator
-    # ensure lib fun can be found by method
-    include Rc::Lib
     attr_accessor :env
 
     def initialize(visitor, call_stack, env = {})

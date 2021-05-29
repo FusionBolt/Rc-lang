@@ -6,9 +6,6 @@ if ARGV.size == 0
 end
 $logger.level = :error
 i = Rc::Interpreter.new
-#i.run(source)
-#i.run(File.open('demo.Rc').read)
-# 'Demo/callstack.rc'
 src = File.open(ARGV[0]).read
 if src.nil?
   print "src is valid"
