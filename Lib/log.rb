@@ -1,6 +1,6 @@
 require 'logger'
 
-$logger = Logger.new(STDOUT,formatter: proc {|severity, datetime, prog_name, msg|
+$logger = Logger.new(STDOUT, formatter: proc { |severity, datetime, prog_name, msg|
   if severity == "ERROR"
     "\033[31m#{severity[0]}::#{msg}\n"
   else
@@ -9,9 +9,5 @@ $logger = Logger.new(STDOUT,formatter: proc {|severity, datetime, prog_name, msg
 })
 
 # severity == "DEBUG"
-$logger.level = :debug
-# $logger.debug 'debug'
-# $logger.info 'info'
-# $logger.warn 'warn'
-# $logger.error 'error'
-# $logger.fatal 'fatal'
+$logger.level = :error
+# %w[debug info warn error fatal]

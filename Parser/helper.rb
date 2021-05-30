@@ -41,6 +41,7 @@ end
 # TODO:block given?
 def multi_to_ast(list)
   if list.elements.empty?
+    # TODO:this and up Empty
     []
   elsif list.elements.nil?
     raise Rc::UnknownError.new(list)

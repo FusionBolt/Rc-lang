@@ -11,7 +11,7 @@ grammar Rc
   end
 
   rule import
-    'import' white+ quote name:identifier quote space+ {
+    space* 'import' white+ quote? name:identifier quote? space+ {
       def to_ast
         Package.new(name.to_ast)
       end
