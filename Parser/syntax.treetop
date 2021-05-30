@@ -100,7 +100,7 @@ grammar Rc
     define:(space / fun / class_member_var)*
     block_end {
       def to_ast
-        ClassDefine.new(name.to_ast, define_ast, parent_to_ast)
+        ClassDefine.new(name.to_ast, define_ast(define), parent_to_ast)
       end
 
       def parent_to_ast
@@ -110,23 +110,14 @@ grammar Rc
           nil
         end
       end
-
-      def define_ast
-        define.elements.map do |e|
-          begin
-            e.to_ast
-          rescue => e
-            nil
-          end
-        end.compact
-      end
     }
   end
 
   rule class_member_var
      'var' white+ name:identifier val:(white* '=' white* expression)? {
         def to_ast
-          expr = optional_node_exist?(val)? val.elements[-1] : nil
+        # TODO:maybe this need to be change
+          expr = optional_node_exist?(val)? val.elements[-1] : DefaultValue.new
           ClassMemberVar.new(name.to_ast, expr.to_ast)
         end
      }
@@ -329,7 +320,7 @@ grammar Rc
   rule bool_constant
     constant_val:('true' / 'false') {
       def to_ast
-        to_instance_node BoolConstant.new(text_value)
+        BoolConstant.new(text_value)
       end
     }
   end
@@ -337,7 +328,7 @@ grammar Rc
   rule num_constant
     constant_val:(integer / float) {
       def to_ast
-        to_instance_node NumberConstant.new(text_value)
+        NumberConstant.new(text_value)
       end
     }
   end
@@ -353,7 +344,7 @@ grammar Rc
   rule string_constant
     constant_val:(('"' ([^"\\] / "\\" . )* '"') / ("'" ([^'\\] / '\\' . )* "'")) {
       def to_ast
-        to_instance_node StringConstant.new(text_value)
+        StringConstant.new(text_value)
       end
     }
   end

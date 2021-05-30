@@ -121,6 +121,10 @@ module Rc
       node.op
     end
 
+    def eval_constant(node)
+      Kernel.eval(node.val)
+    end
+
     def eval_bool_constant(node)
       Kernel.eval(node.val)
     end

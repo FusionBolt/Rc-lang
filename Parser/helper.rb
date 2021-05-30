@@ -50,6 +50,19 @@ def multi_to_ast(list)
   end
 end
 
-def to_instance_node(ast)
-  Rc::Instance.new(ast.class, { :_val => ast})
+def define_ast(define)
+  define.elements.map do |e|
+    begin
+      e.to_ast
+    rescue => ex
+      # p "nil define"
+      # p ex
+      # TODO:貌似空白会引发这个问题，FIXME
+      # TODO:显示行的时候，interval的str彩色显示
+      # TODO:如果是文件则定位到具体行号
+      # line = input.line_of(e.interval.begin)
+      # p "line is:#{line}"
+      nil
+    end
+  end.compact
 end

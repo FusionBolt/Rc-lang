@@ -20,7 +20,22 @@ module Rc
       else
         @term_list.map(&:inspect).join(' ')
       end
+    end
 
+    def is_constant?
+      @term_list.all? do |term|
+        if term.is_a? Expr
+          if term.is_constant?
+            true
+          else
+            return false
+          end
+        elsif term.is_a? Constant or term.is_a? Op
+          true
+        else
+          return false
+        end
+      end
     end
   end
 
@@ -114,7 +129,7 @@ module Rc
     end
   end
 
-  class BoolConstant
+  class Constant
     attr_reader :val
 
     def initialize(constant_val)
@@ -126,27 +141,18 @@ module Rc
     end
   end
 
-  class NumberConstant
-    attr_reader :val
-
-    def initialize(constant_val)
-      @val = constant_val
-    end
-
-    def inspect(indent = nil)
-      @val
-    end
+  class BoolConstant < Constant
   end
 
-  class StringConstant
-    attr_reader :val
+  class NumberConstant < Constant
+  end
 
-    def initialize(constant_val)
-      @val = constant_val
-    end
+  class StringConstant < Constant
+  end
 
-    def inspect(indent = nil)
-      @val
+  class DefaultValue
+    def to_ast
+      DefaultValue.new
     end
   end
 end

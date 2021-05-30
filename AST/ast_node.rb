@@ -69,6 +69,7 @@ module Rc
     # TODO:Circular reference
     def initialize(name, define, parent = nil)
       @name, @define, @parent = name, define, parent
+      # TODO:refactor
       @fun_list = @define.select { |d| d.class == Function }
       @var_list = @define.select { |d| d.class != Function }
       $logger.debug "implement class:#{@name}"
@@ -100,6 +101,8 @@ module Rc
     def generate_init_fun
       $logger.debug "class:#{@name} generate init fun"
       # TODO:finish
+      # TODO:constant eval, class member call default constructor
+      # TODO:var init order
       # user defined var need init
       @fun_list << Function.new('init', [],
                                 DebugStmt.new('generate empty init'))
@@ -140,7 +143,7 @@ module Rc
   class ClassMemberVar
     attr_reader :name, :val
 
-    def initialize(name, val = nil)
+    def initialize(name, val = DefaultValue.new)
       @name, @val = name, val
       $logger.debug "class member var #{@name}:#{@val.inspect}"
     end
