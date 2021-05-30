@@ -31,7 +31,7 @@ module Rc
   end
 
   class Stmt
-    attr_reader :stmt, :interval
+    attr_reader :stmt
 
     def initialize(stmt, input = '', interval = '')
       @stmt = stmt
@@ -41,6 +41,10 @@ module Rc
     def inspect(indent = nil)
       # TODO:string include escape character \n?
       @input[@interval].gsub("\n", '')
+    end
+
+    def is_empty?
+      @stmt.class == Empty
     end
   end
 

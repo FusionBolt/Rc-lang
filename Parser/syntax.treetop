@@ -24,7 +24,7 @@ grammar Rc
     stmts:statements
     block_end {
       def to_ast
-        Function.new(name.to_ast, optional_to_ast(args), stmts.to_ast)
+        Function.new(name.to_ast, get_args(args), stmts.to_ast)
       end
     }
   end
@@ -266,7 +266,7 @@ grammar Rc
   rule lambda
     space* '->' space* args:fun_args? space* '{' space* stmts:statements '}' {
       def to_ast
-        Lambda.new(optional_to_ast(args), stmts.to_ast)
+        Lambda.new(get_args(args), stmts.to_ast)
       end
     }
   end

@@ -1,5 +1,7 @@
-require_relative '../AST/ast_node'
+require './AST/ast_node'
 require './Lib/error'
+require './Lib/types'
+require './Lib/hack'
 
 def debug(data, info = '')
   1 + 1
@@ -14,15 +16,18 @@ end
 # if ?, then element will be nil
 def optional_to_ast(node)
   if optional_node_exist? node
-    begin
-      node.to_ast
-    rescue
-      node
-    end
+    node.try(&:to_ast)
   else
-    # TODO: 'NotImplement'
-    # for example, args may be exist or not exist
+    Rc::Empty.new
+  end
+end
+
+def get_args(node)
+  val = optional_to_ast(node)
+  if val.class == Rc::Empty
     []
+  else
+    val
   end
 end
 

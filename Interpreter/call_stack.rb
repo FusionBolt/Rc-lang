@@ -50,8 +50,9 @@ module Rc
     end
 
     def push(frame)
-      @stack.push(frame)
-      $logger.debug "#{indent}call:#{frame.fun.name}"
+      @stack.push(frame).tap do
+        $logger.debug "#{indent}call:#{frame.fun.name}"
+      end
     end
 
     def top

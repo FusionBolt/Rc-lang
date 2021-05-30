@@ -1,19 +1,21 @@
 require './Lib/log'
+require './Lib/types'
 require_relative 'expr'
 require_relative 'stmt'
 require_relative 'helper'
 
 module Rc
   class Root
-    attr_reader :packages, :other
+    attr_reader :packages, :defines
 
-    def initialize(packages, other)
-      @packages, @other = packages, other
+    def initialize(packages, defines)
+      @packages = packages
+      @defines = defines.reject { |define| define.class == Stmt && define.is_empty? }
     end
 
     def inspect(indent = nil)
       (@packages.map { |p| p.inspect } +
-        @other.map { |s| s.inspect }).join("\n")
+        @defines.map { |s| s.inspect }).join("\n")
     end
   end
 

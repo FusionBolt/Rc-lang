@@ -45,7 +45,7 @@ module Rc
     def on_root(node)
       # TODO:import
       node.packages.each { |n| visit(n) }
-      node.other.map { |n| visit(n) }
+      node.defines.map { |n| visit(n) }
     end
 
     def on_package(node)
