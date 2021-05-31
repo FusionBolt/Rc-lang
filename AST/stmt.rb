@@ -87,6 +87,8 @@ module Rc
   end
 
   class Assign
+    # because of in the left maybe a member access
+    # TODO:set left val and right val concept
     attr_reader :var_obj, :expr
 
     def initialize(var_obj, expr)

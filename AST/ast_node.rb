@@ -32,29 +32,35 @@ module Rc
     end
   end
 
-  class Function
-    attr_reader :name, :args, :stmts
+class Function
+  # args is str list
+  # TODO:is ok?
+  attr_reader :name, :args, :stmts
 
-    def initialize(name, args, stmts)
-      @name, @args, @stmts = name, args, stmts
-      $logger.debug "implement #{inspect}"
-    end
+  def initialize(name, args, stmts)
+    @name, @args, @stmts = name, args, stmts
+    $logger.debug "implement #{inspect}"
+  end
 
-    def inspect(indent = nil)
-      "fun:#{@name} args:#{args_inspect(@args)}"
-    end
+  def inspect(indent = nil)
+    "fun:#{@name} args:#{args_inspect(@args)}"
+  end
 
     def args_env(actual_args, env)
       @args.zip(actual_args.map { |arg| arg.eval(env) }).to_h
     end
 
-    def args_valid_check
-      @args.length == @args.uniq.length
-    end
+  def args_valid_check
+    @args.length == @args.uniq.length
+  end
 
-    def deconstruct
-      [@name, @args, @stmts]
-    end
+  def deconstruct
+    [@name, @args, @stmts]
+  end
+
+  def empty?
+    stmts.empty?
+  end
   end
 
   class Lambda < Function

@@ -1,22 +1,6 @@
 require 'rspec'
 require_relative '../Parser/parser'
-
-def parse(src)
-  Rc::Parser.parse(src).to_ast
-end
-
-def test_class(src, classes = [])
-  root = parse(src)
-  expect(root.packages).to eq []
-  expect(root.defines.size).to eq classes.size
-  expect(root.defines.detect { |d| d.class != Rc::ClassDefine }).to eq nil
-  expect(root.defines.map { |d| d.name }).to eq classes
-  if classes.size == 1
-    root.defines[0]
-  else
-    root.defines
-  end
-end
+require_relative 'parser_helper'
 
 describe Rc::Parser do
   before do
@@ -25,14 +9,6 @@ describe Rc::Parser do
 
   after do
     # Do nothing
-  end
-
-  def test_import(src, packages = [])
-    root = parse(src)
-    expect(root.class).to eq Rc::Root
-    expect(root.defines).to eq []
-    expect(root.packages.map { |p| p.name }).to eq packages
-    root.packages
   end
 
   context 'import' do
@@ -53,20 +29,6 @@ import
     end
   end
 
-  def test_ast_fun(fun, name, args = [])
-    expect(fun.class).to eq(Rc::Function)
-    expect(fun.name).to eq(name)
-    expect(fun.args).to eq(args)
-    fun
-  end
-
-  def test_one_fun(src, fun_name, args = [])
-    root = parse(src)
-    expect(root.class).to eq(Rc::Root)
-    expect(root.defines.size).to eq 1
-    test_ast_fun(root.defines[0], fun_name, args)
-  end
-
   context 'def fun' do
     context 'empty fun body' do
       it 'empty fun' do
@@ -81,7 +43,8 @@ FUN
 
       end
 FUN
-        test_one_fun(f2, 'foo')
+
+        test_one_empty_fun(f2, 'foo')
       end
 
       it 'fun has param' do
@@ -90,11 +53,11 @@ FUN
 
       end
 F
-        test_one_fun(f1, 'foo', %w[a b])
+        test_one_empty_fun(f1, 'foo', %w[a b])
       end
     end
     context 'full fun body' do
-      it '' do
+      it 'has expr' do
         f1 = <<F
       def foo(a, b, c)
         a + b + c
@@ -103,6 +66,29 @@ F
         f = test_one_fun(f1, 'foo', %w[a b c])
         expect(f.stmts.size).to eq 1
         expect(f.stmts[0].stmt.class).to eq Rc::Expr
+      end
+    end
+
+    context 'lambda' do
+      it 'empty' do
+        l = <<LAMBDA
+    f = ->(){}
+LAMBDA
+        test_lambda(l, 'f', [])
+      end
+
+      it 'has param' do
+        l = <<LAMBDA
+    l = ->(x, y){}
+LAMBDA
+        test_lambda(l, 'l', %w[x y])
+      end
+
+      it 'has body' do
+        l = <<LAMBDA
+    l = ->(x, y){ print("lambda") }
+LAMBDA
+        test_lambda(l, 'l', %w[x y])
       end
     end
   end
@@ -153,9 +139,9 @@ CLASS
 CLASS
         c = test_class(c, ['Foo'])
         expect(c.define.size).to be 3
-        test_ast_fun(c.define[0], 'init', %w[a b])
-        test_ast_fun(c.define[1], 'f1', %w[a b c])
-        test_ast_fun(c.define[2], 'f2', %w[m n])
+        test_one_fun_sign(c.define[0], 'init', %w[a b])
+        test_one_fun_sign(c.define[1], 'f1', %w[a b c])
+        test_one_fun_sign(c.define[2], 'f2', %w[m n])
       end
 
       context 'inherit' do
