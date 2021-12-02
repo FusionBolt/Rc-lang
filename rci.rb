@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require './interpreter/interpreter'
+require './Interpreter/interpreter'
 
 if ARGV.size == 0
   print("should set source file name")
