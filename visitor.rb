@@ -1,7 +1,13 @@
 module Rc
   module Visitor
     def visit(node)
+      begin
       method("on_#{Helper::under_score_class_name(node)}")[node]
+      rescue => e
+        # todo:error process
+        p e
+        exit
+      end
     end
 
     def on_root(node)
@@ -15,15 +21,13 @@ module Rc
 
     def on_class_define(node) end
 
-    def on_expr(node) end
-
     def on_stmts(node)
       node.stmts.each do |n|
         visit(n)
       end
     end
 
-    def on_stmt(node) end
+    def on_stmt(node) = visit(node.stmt)
 
     def on_variant(node) end
 
@@ -39,7 +43,9 @@ module Rc
 
     def on_debug_stmt(node) end
 
-    def on_expr(node) end
+    def on_expr(node)
+      node.term_list.each {|term| visit(term) }
+    end
 
     def on_lambda(node) end
 

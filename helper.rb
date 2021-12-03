@@ -16,7 +16,19 @@ module Rc
         tr("-", "_").
         downcase
     end
+
+    def reverse_kv(hash)
+      sum = {}
+      hash.each do |(k, vs)|
+        vs.each do |v|
+          sum[v] = sum.fetch(v, Set[]) + Set[k]
+        end
+      end
+      sum
+    end
+
     module_function :under_score_class_name
     module_function :underscore
+    module_function :reverse_kv
   end
 end
