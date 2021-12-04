@@ -15,15 +15,12 @@ module Rc
     def run(input)
       @ast = Parser.parse(input).to_ast
       @visitor.visit(@ast)
+      @visitor.main
     end
 
     def call_graph
       graph = CallGraph.new(@env)
       graph.analysis(@env['main'])
-    end
-
-    def main
-      @visitor.main
     end
   end
 end

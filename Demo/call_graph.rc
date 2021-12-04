@@ -1,0 +1,16 @@
+def f1
+  f2()
+end
+
+def f2
+  f1()
+  f3()
+end
+
+def f3
+end
+
+def main
+  f1()
+  f2()
+end
