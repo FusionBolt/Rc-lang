@@ -1,4 +1,5 @@
-require_relative '../ir/ssa'
+require_relative '../ir/tac/tac'
+require_relative '../ir/ssa/ssa'
 require_relative '../analysis/call_graph'
 require_relative '../analysis/global_env'
 require './parser/parser'
@@ -12,6 +13,13 @@ module Rc
     def compile(input)
       ast = parse(input)
       env = Analysis::GlobalEnvVisitor.new.analysis(ast)
+      main = env['main']
+      puts 'To Tac'
+      tac = Tac.to_tac(main)
+      puts tac
+      puts 'To SSA'
+      ssa = SSA.to_ssa(tac)
+      puts ssa
     end
   end
 end

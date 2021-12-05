@@ -3,7 +3,7 @@ module Rc
     def under_score_class_name(obj)
       s = obj.class.to_s
       if s.include? '::'
-        underscore(s.split('::')[1])
+        underscore(s.split('::')[-1])
       else
         underscore(s)
       end

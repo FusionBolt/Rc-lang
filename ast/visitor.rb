@@ -5,7 +5,7 @@ module Rc
     def visit(node)
       begin
       method("on_#{Helper::under_score_class_name(node)}")[node]
-      rescue => e
+      rescue NoMethodError => e
         # todo:error process
         $logger.error "Error in visitor\nnode:#{node}\nerror info:#{e}"
         exit
@@ -45,9 +45,9 @@ module Rc
 
     def on_debug_stmt(node) end
 
-    def on_expr(node)
-      node.term_list.each {|term| visit(term) }
-    end
+    def on_expr(node) = visit(node.expr)
+
+    def on_binary(node) end
 
     def on_lambda(node) end
 
@@ -61,6 +61,7 @@ module Rc
 
     def on_new_expr(node) end
 
+    # remove
     def on_op(node) end
 
     def on_constant(node) end

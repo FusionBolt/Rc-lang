@@ -2,15 +2,18 @@ require_relative 'helper'
 
 module Rc
   class Expr
-    attr_accessor :term_list
+    attr_accessor :term_list, :expr
 
     # Distinguish between normal expr and lambda
     def initialize(expr)
       # lambda
       if expr.class == Array
-        @term_list = term_list_to_operator(expr)
+        # todo: fix code about this
+        @term_list = expr
+        @expr = term_list_to_operator(expr)
       else
         @term_list = [expr]
+        @expr = expr
       end
     end
 
@@ -47,15 +50,11 @@ module Rc
         max_index = find_max_infix_index(term_list)
         term_list = replace_operator(term_list, max_index)
       end
-      term_list
+      term_list[0]
     end
 
     def to_s
-      if @term_list.class == Function
-        @term_list.to_s
-      else
-        @term_list.map(&:to_s).join(' ')
-      end
+      @expr.to_s
     end
 
     def is_constant?
