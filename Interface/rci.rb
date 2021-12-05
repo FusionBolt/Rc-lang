@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require './Interpreter/interpreter'
+require './Interpreter/ast_interpreter'
 
 if ARGV.size == 0
   print("should set source file name")
@@ -10,4 +10,4 @@ if src.nil?
   print "src is valid"
   return
 end
-Rc::Interpreter.new.run(src)
+Rc::ASTInterpreter.new.run(src)

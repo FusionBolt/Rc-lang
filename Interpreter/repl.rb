@@ -5,7 +5,7 @@
 # TODO:save env
 
 require './Lib/error'
-require './Interpreter/interpreter'
+require './Interpreter/ast_interpreter'
 
 module Rc
   class REPLError < RcError
@@ -23,7 +23,7 @@ module Rc
   class REPL
     def initialize
       @history = []
-      @interpreter = Interpreter.new
+      @interpreter = ASTInterpreter.new
       @prompt = 'Rc> '
     end
 

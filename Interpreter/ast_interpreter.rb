@@ -4,7 +4,7 @@ require_relative 'visitor'
 require_relative '../call_graph'
 
 module Rc
-  class Interpreter
+  class ASTInterpreter
     attr_reader :env
     def initialize(env = Env.new)
       @ast = nil
