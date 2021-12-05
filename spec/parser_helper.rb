@@ -1,9 +1,16 @@
 require 'rspec'
+require_relative '../parser/parser'
 require_relative '../ast/ast_node'
 
 module RcTestHelpers
   def parse(src)
     Rc::Parser.parse(src).to_ast
+  end
+
+  def parse_demo(name)
+    path = File.join(File.dirname(__FILE__), '..', 'demo', "#{name}.rc")
+    src = File.open(path).read
+    parse(src)
   end
 
   def test_root_single_define(src)

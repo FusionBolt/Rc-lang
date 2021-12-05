@@ -1,4 +1,6 @@
 require_relative '../ir/ssa'
+require_relative '../analysis/call_graph'
+require_relative '../analysis/global_env'
 require './parser/parser'
 
 module Rc
@@ -10,7 +12,6 @@ module Rc
     def compile(input)
       ast = parse(input)
       env = Analysis::GlobalEnvVisitor.new.analysis(ast)
-      Rc.fun_to_ssa(env['main'])
     end
   end
 end
