@@ -185,4 +185,34 @@ CLASS
       end
     end
   end
+
+  context 'expr' do
+    it 'first_combine' do
+      c = <<EXPR
+  a = 1 * 3 + 2
+EXPR
+      test_expr(c, 'a = ((1 * 3) + 2)')
+    end
+
+    it 'after_combine' do
+      c = <<EXPR
+  b = 1 + 2 * 3
+EXPR
+      test_expr(c, 'b = (1 + (2 * 3))')
+    end
+
+    it 'same_infix' do
+      c = <<EXPR
+  c = 1 * 3 + 2 * 3
+EXPR
+      test_expr(c, 'c = ((1 * 3) + (2 * 3))')
+    end
+
+    it 'repeat_multi' do
+      c = <<EXPR
+  d = 1 * 2 * 3 * 4
+EXPR
+      test_expr(c, 'd = (((1 * 2) * 3) * 4)')
+    end
+  end
 end

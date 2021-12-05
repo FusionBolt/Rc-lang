@@ -8,10 +8,46 @@ module Rc
     def initialize(expr)
       # lambda
       if expr.class == Array
-        @term_list = expr
+        @term_list = term_list_to_operator(expr)
       else
         @term_list = [expr]
       end
+    end
+
+    def find_max_infix_index(term_list)
+      # todo:maybe lowest infix can be replace with a symbol
+      max_infix = 15
+      max_index = term_list.size
+      term_list.each_with_index do |term, index|
+        next unless term.is_a? Op
+        if term.infix < max_infix
+          max_infix = term.infix
+          max_index = index
+        end
+      end
+      max_index
+    end
+
+    def make_binary(term_list, index)
+      op = term_list[index]
+      lhs = term_list[index - 1]
+      rhs = term_list[index + 1]
+      Binary.new(op, lhs, rhs)
+    end
+
+    def replace_operator(term_list, index)
+      left = term_list.slice(0, index - 1)
+      binary = [make_binary(term_list, index)]
+      rights = term_list.slice(index + 2, term_list.size)
+      left + binary + rights
+    end
+
+    def term_list_to_operator(term_list)
+      while term_list.size != 1
+        max_index = find_max_infix_index(term_list)
+        term_list = replace_operator(term_list, max_index)
+      end
+      term_list
     end
 
     def to_s
@@ -47,7 +83,7 @@ module Rc
     end
 
     def to_s
-      "#{lhs} #{op} #{rhs}"
+      "(#{lhs} #{op} #{rhs})"
     end
   end
 

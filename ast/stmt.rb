@@ -6,8 +6,8 @@ module Rc
       @stmts = stmts
     end
 
-    def inspect(indent = nil)
-      @stmts.map(&:inspect)
+    def to_s(indent = nil)
+      @stmts.map(&:to_s)
     end
 
     def append(stmt)
@@ -38,9 +38,10 @@ module Rc
       @input, @interval = input, interval
     end
 
-    def inspect(indent = nil)
+    def to_s(indent = nil)
       # TODO:string include escape character \n?
-      @input[@interval].gsub("\n", '')
+      stmt.to_s
+      # @input[@interval].gsub("\n", '')
     end
 
     def is_empty?
@@ -53,11 +54,11 @@ module Rc
 
     def initialize(name, expr)
       @name, @expr = name, expr
-      $logger.debug "var:#{@name} val:#{@expr.inspect}"
+      $logger.debug "var:#{@name} val:#{@expr.to_s}"
     end
 
-    def inspect(indent = nil)
-      "var #{@name} = #{@expr.inspect}"
+    def to_s(indent = nil)
+      "var #{@name} = #{@expr.to_s}"
     end
   end
 
@@ -70,7 +71,7 @@ module Rc
       $logger.debug "if node"
     end
 
-    def inspect(indent = nil)
+    def to_s(indent = nil)
       'if'
     end
   end
@@ -81,7 +82,7 @@ module Rc
       @cond, @stmts = cond, stmts
     end
 
-    def inspect
+    def to_s
       'unless'
     end
   end
@@ -93,11 +94,11 @@ module Rc
 
     def initialize(var_obj, expr)
       @var_obj, @expr = var_obj, expr
-      $logger.debug "#{inspect}"
+      $logger.debug "#{to_s}"
     end
 
-    def inspect
-      "#{@var_obj.inspect} = #{@expr.inspect}"
+    def to_s
+      "#{@var_obj.to_s} = #{@expr.to_s}"
     end
   end
 
@@ -106,11 +107,11 @@ module Rc
 
     def initialize(expr)
       @expr = expr
-      $logger.debug inspect
+      $logger.debug to_s
     end
 
-    def inspect
-      "return #{@expr.inspect}"
+    def to_s
+      "return #{@expr.to_s}"
     end
   end
 

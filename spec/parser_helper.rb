@@ -76,4 +76,9 @@ module RcTestHelpers
       root.defines
     end
   end
+
+  def test_expr(src, str)
+    root = parse(src)
+    expect(root.to_s).to eq str
+  end
 end
