@@ -13,9 +13,9 @@ module Rc
       @defines = defines.reject { |define| define.class == Stmt && define.is_empty? }
     end
 
-    def inspect(indent = nil)
-      (@packages.map { |p| p.inspect } +
-        @defines.map { |s| s.inspect }).join("\n")
+    def to_s(indent = nil)
+      (@packages.map { |p| p.to_s } +
+        @defines.map { |s| s.to_s }).join("\n")
     end
   end
 
@@ -27,7 +27,7 @@ module Rc
       $logger.debug "import package:#{@name}"
     end
 
-    def inspect(indent = nil)
+    def to_s(indent = nil)
       "import \"#{@package_name}\""
     end
   end
@@ -39,16 +39,16 @@ class Function
 
   def initialize(name, args, stmts)
     @name, @args, @stmts = name, args, stmts
-    $logger.debug "implement #{inspect}"
+    $logger.debug "implement #{to_s}"
   end
 
-  def inspect(indent = nil)
-    "fun:#{@name} args:#{args_inspect(@args)}"
+  def to_s(indent = nil)
+    "fun:#{@name} args:#{args_to_s(@args)}"
   end
 
-    def args_env(actual_args, env)
-      @args.zip(actual_args.map { |arg| arg.eval(env) }).to_h
-    end
+  def args_env(actual_args, env)
+    @args.zip(actual_args.map { |arg| arg.eval(env) }).to_h
+  end
 
   def args_valid_check
     @args.length == @args.uniq.length
@@ -96,7 +96,7 @@ class Function
       end
     end
 
-    def inspect(indent = nil)
+    def to_s(indent = nil)
       "class:#{@name}"
     end
 
@@ -151,7 +151,7 @@ class Function
 
     def initialize(name, val = DefaultValue.new)
       @name, @val = name, val
-      $logger.debug "class member var #{@name}:#{@val.inspect}"
+      $logger.debug "class member var #{@name}:#{@val.to_s}"
     end
   end
 end

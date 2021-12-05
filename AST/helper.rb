@@ -1,3 +1,3 @@
-def args_inspect(args)
+def args_to_s(args)
   "(#{args.map(&:inspect).join(',')})"
 end

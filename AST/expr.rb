@@ -14,11 +14,11 @@ module Rc
       end
     end
 
-    def inspect
+    def to_s
       if @term_list.class == Function
-        @term_list.inspect
+        @term_list.to_s
       else
-        @term_list.map(&:inspect).join(' ')
+        @term_list.map(&:to_s).join(' ')
       end
     end
 
@@ -44,11 +44,11 @@ module Rc
 
     def initialize(name, args = [])
       @name, @args = name, args
-      $logger.debug "call:#{inspect}"
+      $logger.debug "call:#{to_s}"
     end
 
-    def inspect(indent = nil)
-      "#{@name}#{args_inspect(@args)}"
+    def to_s(indent = nil)
+      "#{@name}#{args_to_s(@args)}"
     end
   end
 
@@ -59,8 +59,8 @@ module Rc
       @instance_name, @member_name, @args = instance_name, member_name, args
     end
 
-    def inspect
-      "#{@instance_name}.#{@member_name} #{@args.empty?? '' : args_inspect(@args)}"
+    def to_s
+      "#{@instance_name}.#{@member_name} #{@args.empty?? '' : args_to_s(@args)}"
     end
   end
 
@@ -71,7 +71,7 @@ module Rc
       @name = name
     end
 
-    def inspect(indent = nil)
+    def to_s(indent = nil)
       @name
     end
   end
@@ -83,8 +83,8 @@ module Rc
       @class_name, @args = class_name, args
     end
 
-    def inspect
-      "#{@class_name}.new#{args_inspect(@args)}"
+    def to_s
+      "#{@class_name}.new#{args_to_s(@args)}"
     end
   end
 
@@ -96,11 +96,11 @@ module Rc
       @is_obj = is_obj
     end
 
-    def inspect
+    def to_s
       if @is_obj
-        "#{@class_define.inspect} instance"
+        "#{@class_define.to_s} instance"
       else
-        instance_env[:_val].inspect
+        instance_env[:_val].to_s
       end
     end
 
@@ -124,7 +124,7 @@ module Rc
       @op = op
     end
 
-    def inspect(indent = nil)
+    def to_s(indent = nil)
       @op
     end
   end
@@ -136,7 +136,7 @@ module Rc
       @val = constant_val
     end
 
-    def inspect(indent = nil)
+    def to_s(indent = nil)
       @val
     end
   end
