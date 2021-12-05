@@ -39,6 +39,18 @@ module Rc
     end
   end
 
+  class Binary
+    attr_reader :op, :lhs, :rhs
+
+    def initialize(op, lhs, rhs)
+      @op, @lhs, @rhs = op, lhs, rhs
+    end
+
+    def to_s
+      "#{lhs} #{op} #{rhs}"
+    end
+  end
+
   class FunCall
     attr_reader :name, :args
 
@@ -126,6 +138,11 @@ module Rc
 
     def to_s(indent = nil)
       @op
+    end
+
+    def infix
+      infix_map = {'+' => 10, '-' => 10, '*' => 5, '/' => 5}
+      infix_map[@op]
     end
   end
 
