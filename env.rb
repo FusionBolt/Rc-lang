@@ -1,6 +1,6 @@
-require './Lib/log'
-require './Lib/error'
-require './Lib/hack'
+require './lib/log'
+require './lib/error'
+require './lib/hack'
 
 module Rc
   class Env

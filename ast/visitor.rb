@@ -1,4 +1,4 @@
-require_relative '../helper'
+require_relative '../lib/helper'
 
 module Rc
   module Visitor
@@ -7,7 +7,7 @@ module Rc
       method("on_#{Helper::under_score_class_name(node)}")[node]
       rescue => e
         # todo:error process
-        puts "Error in visitor\nnode:#{node}\nerror info:#{e}"
+        $logger.error "Error in visitor\nnode:#{node}\nerror info:#{e}"
         exit
       end
     end

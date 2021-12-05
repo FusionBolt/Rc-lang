@@ -1,4 +1,4 @@
-require_relative 'AST/visitor'
+require_relative '../ast/visitor'
 require 'set'
 
 module Rc

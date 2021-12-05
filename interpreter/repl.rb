@@ -4,7 +4,7 @@
 # TODO:ctrl D退出
 # TODO:save env
 
-require './Lib/error'
+require './lib/error'
 require './Interpreter/ast_interpreter'
 
 module Rc
@@ -80,7 +80,7 @@ module Rc
     def single_inst(inst)
       case inst
       when 'env'
-        puts @interpreter.env.inspect
+        puts @interpreter.env.to_s
       when 'help'
         help
       when 'history'

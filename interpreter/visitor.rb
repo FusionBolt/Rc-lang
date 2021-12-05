@@ -1,5 +1,5 @@
 require_relative 'evaluator'
-require_relative '../helper'
+require_relative '../lib/helper'
 require_relative 'call_stack'
 # TODO:传递参数
 # 对象的问题

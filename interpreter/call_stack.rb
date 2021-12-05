@@ -1,4 +1,4 @@
-require './Lib/hack'
+require './lib/hack'
 
 module Rc
   class RcError < StandardError

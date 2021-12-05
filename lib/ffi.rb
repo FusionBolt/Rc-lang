@@ -1,4 +1,4 @@
-require './Lib/Rc/assert'
+require './lib/Rc/assert'
 
 module Rc
   class FFI

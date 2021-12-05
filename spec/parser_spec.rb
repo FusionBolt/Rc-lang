@@ -1,5 +1,5 @@
 require 'rspec'
-require_relative '../Parser/parser'
+require_relative '../parser/parser'
 require_relative 'parser_helper'
 
 describe Rc::Parser do

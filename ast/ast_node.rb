@@ -1,5 +1,5 @@
-require './Lib/log'
-require './Lib/types'
+require './lib/log'
+require './lib/types'
 require_relative 'expr'
 require_relative 'stmt'
 require_relative 'helper'

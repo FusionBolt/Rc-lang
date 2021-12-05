@@ -1,5 +1,5 @@
-require './Parser/helper'
-require './AST/ast_node'
+require './parser/helper'
+require './ast/ast_node'
 
 grammar Rc
   rule main
@@ -69,7 +69,7 @@ grammar Rc
       begin
         FunCall.new(name.to_ast, args.to_ast)
       rescue => e
-        p e
+        puts e
         debug args
       end
       end

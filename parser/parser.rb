@@ -1,11 +1,11 @@
 require 'treetop'
-require_relative '../AST/ast_node'
-require './Lib/error'
+require_relative '../ast/ast_node'
+require './lib/error'
 
 module Rc
   class Parser
     # TODO:file path question
-    Treetop.load('./Parser/syntax.treetop')
+    Treetop.load('./parser/syntax.treetop')
     @@parser = RcParser.new
 
     def self.parse(data)
@@ -16,7 +16,7 @@ module Rc
       end
 
       if tree.nil?
-        p @@parser.failure_reason, @@parser.failure_line, @@parser.failure_column
+        $logger.info "#{@@parser.failure_reason}, #{@@parser.failure_line}, #{@@parser.failure_column}"
         raise ParserError.new(
           @@parser.failure_reason,
           @@parser.failure_line,

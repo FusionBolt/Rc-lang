@@ -1,7 +1,7 @@
-require './AST/ast_node'
-require './Lib/error'
-require './Lib/types'
-require './Lib/hack'
+require './ast/ast_node'
+require './lib/error'
+require './lib/types'
+require './lib/hack'
 
 def debug(data, info = '')
   1 + 1
@@ -55,13 +55,9 @@ def define_ast(define)
     begin
       e.to_ast
     rescue => ex
-      # p "nil define"
-      # p ex
       # TODO:貌似空白会引发这个问题，FIXME
       # TODO:显示行的时候，interval的str彩色显示
       # TODO:如果是文件则定位到具体行号
-      # line = input.line_of(e.interval.begin)
-      # p "line is:#{line}"
       nil
     end
   end.compact

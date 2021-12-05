@@ -1,5 +1,5 @@
 require 'rspec'
-require_relative '../AST/ast_node'
+require_relative '../ast/ast_node'
 
 module RcTestHelpers
   def parse(src)
