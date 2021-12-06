@@ -3,10 +3,10 @@ require_relative '../../ast/visitor'
 module Rc
   module Tac
     def to_tac(ast)
-      TacGenerator.new.generate(ast.stmts).tac_list
+      TacTranslator.new.generate(ast.stmts).tac_list
     end
 
-    class TacInst
+    class Quad
       attr_accessor :op, :result, :lhs, :rhs
 
       def initialize(op, result, lhs, rhs)
@@ -58,14 +58,24 @@ module Rc
     end
 
     class CondJump
+      attr_accessor :cond, :true_addr, :false_addr
+
+      def initialize(cond, equality, false_addr)
+        @cond, @equality, @false_addr = cond, equality, false_addr
+      end
     end
 
     class Label
+      attr_reader :name
+
+      def initialize(name)
+        @name = name
+      end
     end
 
     class Empty
       def to_s
-        ""
+        "empty"
       end
     end
 
@@ -75,13 +85,14 @@ module Rc
     class EmptyValue < Empty
     end
 
-    class TacGenerator
+    class TacTranslator
       include Visitor
       attr_reader :tac_list
 
       def initialize
         @tmp_count = 0
         @tac_list = []
+        @label_count = 0
       end
 
       def generate(node)
@@ -89,8 +100,12 @@ module Rc
         self
       end
 
-      def get_tmp
-        TempName.new("#{@tmp_count}").tap{ @tmp_count += 1}
+      def get_tmp_name
+        TempName.new("#{@tmp_count}").tap{ @tmp_count += 1 }
+      end
+
+      def generate_label
+        Label.new("L#{@label_count}").tap{ @label_count += 1 }
       end
 
       # def on_stmts(node)
@@ -100,17 +115,17 @@ module Rc
       def on_assign(node)
         name = visit(node.var_obj)
         expr = visit(node.expr)
-        if expr.is_a? TacInst
+        if expr.is_a? Quad
           @tac_list[-1].result = name
         else
-          inst = TacInst.new(EmptyOp.new, name, expr, EmptyValue.new)
+          inst = Quad.new(EmptyOp.new, name, expr, EmptyValue.new)
           @tac_list.push inst
         end
         # translate last tac
       end
 
       def get_result(ret_val)
-        if ret_val.is_a? TacInst
+        if ret_val.is_a? Quad
           ret_val.result
         else
           ret_val
@@ -120,9 +135,24 @@ module Rc
       def on_binary(node)
         first_tac = visit(node.lhs)
         second_tac = visit(node.rhs)
-        inst = TacInst.new(node.op, get_tmp, get_result(first_tac), get_result(second_tac))
+        inst = Quad.new(node.op, get_tmp_name, get_result(first_tac), get_result(second_tac))
         @tac_list.push inst
         inst
+      end
+
+      def on_if(node)
+        puts node
+        node.stmt_list.each do |cond, stmts|
+          cond_tac = visit(cond)
+          true_label = generate_label
+          @tac_list.push true_label
+          jump = CondJump.new(cond_tac, true_label, nil)
+          @tac_list.push jump
+          visit(stmts)
+          false_label = generate_label
+          jump.false_addr = false_label
+          @tac_list.push false_label
+        end
       end
 
       def on_lambda(node) end

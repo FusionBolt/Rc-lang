@@ -15,7 +15,7 @@ module Rc
     end
 
     def to_ssa(tac_list)
-      visitor = SSAGenerator.new
+      visitor = SSATranslator.new
       tac_list = visitor.visit(tac_list)
       name_map = visitor.name_map
       tac_list.map do |inst|
@@ -31,11 +31,11 @@ module Rc
             item
           end
         end
-        Tac::TacInst.new(*args)
+        Tac::Quad.new(*args)
       end
     end
 
-    class SSAGenerator
+    class SSATranslator
       include Tac::Visitor
       attr_reader :name_map
 
@@ -60,7 +60,7 @@ module Rc
         Tac::Name.new(ssa_name(name))
       end
 
-      def on_tac_inst(inst)
+      def on_quad(inst)
         super
         inst.result = update_map(inst.result)
         inst

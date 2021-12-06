@@ -63,16 +63,18 @@ module Rc
   end
 
   class If
+    # elsif_list -> [[cond, stmts]]
     attr_reader :if_cond, :if_stmts, :elsif_list, :else_stmts
-
+    attr_reader :stmt_list
     def initialize(if_cond, if_stmts, elsif_node, else_node)
       @if_cond, @if_stmts, @elsif_list, @else_stmts =
         if_cond, if_stmts, elsif_node, else_node
+      @stmt_list = [if_cond, if_stmts] + elsif_node
       $logger.debug "if node"
     end
 
     def to_s(indent = nil)
-      'if'
+      "if #{@stmt_list} #{else_stmts}"
     end
   end
 

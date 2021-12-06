@@ -4,4 +4,10 @@ def main
     b = 1 + 2 * 3
     n = a + b
     c = 1 * n + 2 * 3
+
+    if true
+        q = 1
+    else
+        q = 2
+    end
 end

@@ -21,7 +21,7 @@ module Rc
 
       def on_empty_value(inst) = inst
 
-      def on_tac_inst(inst)
+      def on_quad(inst)
         visit(inst.op)
         visit(inst.lhs)
         visit(inst.rhs)
