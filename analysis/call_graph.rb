@@ -51,6 +51,7 @@ module Rc
           @callee
         end
 
+        # todo:a error, should get
         def on_if(node) = node.instance_variables.each(&:visit)
 
         def on_fun_call(node) = @callee.add(node.name)

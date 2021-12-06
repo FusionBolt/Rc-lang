@@ -4,8 +4,35 @@ require_relative '../tac/visitor'
 
 module Rc
   module SSA
+    def raw_name(n)
+      if n.is_a? Tac::Name
+        n.name.gsub(/%/, "").split(':')[0]
+      elsif n.is_a? String
+        n
+      else
+        raise "invalid tac inst#{n} for raw_name"
+      end
+    end
+
     def to_ssa(tac_list)
-      SSAGenerator.new.visit(tac_list)
+      visitor = SSAGenerator.new
+      tac_list = visitor.visit(tac_list)
+      name_map = visitor.name_map
+      tac_list.map do |inst|
+        args = inst.instance_variables.map do |i|
+          item = inst.instance_variable_get(i)
+          if item.is_a? Tac::Name
+            raw_name = raw_name(item)
+            if name_map.has_key?(raw_name) && name_map[raw_name] == 0
+              item.name = "%#{raw_name}"
+            end
+            item
+          else
+            item
+          end
+        end
+        Tac::TacInst.new(*args)
+      end
     end
 
     class SSAGenerator
@@ -24,7 +51,7 @@ module Rc
         if n.is_a? Tac::TempName
           return n.name
         end
-        name = n.name.gsub(/%/, "").split(':')[0]
+        name = SSA.raw_name(n)
         if @name_map.has_key? name
           @name_map[name] += 1
         else
@@ -51,71 +78,71 @@ module Rc
     end
 
     # def root_to_ssa(ast)
-  #   @env = Analysis::GlobalEnvVisitor.new.analysis(ast)
-  # end
-  #
-  # def fun_to_ssa(ast)
-  #   SSAVisitor.new.visit(ast.stmts)
-  # end
+    #   @env = Analysis::GlobalEnvVisitor.new.analysis(ast)
+    # end
+    #
+    # def fun_to_ssa(ast)
+    #   SSAVisitor.new.visit(ast.stmts)
+    # end
 
-  # translate a fun body to ssa
-  # class SSAVisitor
-  #   include Visitor
-  #   attr_reader :num_map, :inst_list
-  #
-  #   def initialize
-  #     @num_map = {}
-  #     @inst_list = []
-  #   end
-  #
-  #   # todo:hack to hash
-  #   def update_map(name)
-  #     if @num_map.has_key? name
-  #       @num_map[name] += 1
-  #     else
-  #       @num_map[name] = 0
-  #     end
-  #     "@#{name}#{@num_map[name]}"
-  #   end
-  #
-  #   def on_stmts(node)
-  #     # get multi ssa list
-  #     # todo:default return []
-  #     node.stmts.reduce([]) {|sum, n| sum + visit(n)}
-  #   end
-  #
-  #   def on_if(node)
-  #
-  #   end
-  #
-  #   def on_assign(node)
-  #     # todo:first visit expr
-  #     unless node.var_obj.is_a? Identifier
-  #       raise "not support no id in ssa:on_assign"
-  #     end
-  #     new_name = visit(node.var_obj)
-  #     new_val = visit(node.expr)
-  #
-  #     # name = node.var_obj.name
-  #     # new_name = update_map(name)
-  #     # todo:this is not true
-  #     [SSA.new(new_name, new_val)]
-  #     # a name map to count
-  #     # a name map to a usage set
-  #   end
-  #
-  #   def on_new_expr(node)
-  #
-  #   end
-  #
-  #   def on_variant(node)
-  #   end
-  #
-  #   def on_identifier(node)
-  #     update_map(node.name)
-  #   end
-  # end
+    # translate a fun body to ssa
+    # class SSAVisitor
+    #   include Visitor
+    #   attr_reader :num_map, :inst_list
+    #
+    #   def initialize
+    #     @num_map = {}
+    #     @inst_list = []
+    #   end
+    #
+    #   # todo:hack to hash
+    #   def update_map(name)
+    #     if @num_map.has_key? name
+    #       @num_map[name] += 1
+    #     else
+    #       @num_map[name] = 0
+    #     end
+    #     "@#{name}#{@num_map[name]}"
+    #   end
+    #
+    #   def on_stmts(node)
+    #     # get multi ssa list
+    #     # todo:default return []
+    #     node.stmts.reduce([]) {|sum, n| sum + visit(n)}
+    #   end
+    #
+    #   def on_if(node)
+    #
+    #   end
+    #
+    #   def on_assign(node)
+    #     # todo:first visit expr
+    #     unless node.var_obj.is_a? Identifier
+    #       raise "not support no id in ssa:on_assign"
+    #     end
+    #     new_name = visit(node.var_obj)
+    #     new_val = visit(node.expr)
+    #
+    #     # name = node.var_obj.name
+    #     # new_name = update_map(name)
+    #     # todo:this is not true
+    #     [SSA.new(new_name, new_val)]
+    #     # a name map to count
+    #     # a name map to a usage set
+    #   end
+    #
+    #   def on_new_expr(node)
+    #
+    #   end
+    #
+    #   def on_variant(node)
+    #   end
+    #
+    #   def on_identifier(node)
+    #     update_map(node.name)
+    #   end
+    # end
 
-  module_function :to_ssa
+    module_function :to_ssa, :raw_name
   end
 end
