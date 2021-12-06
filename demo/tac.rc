@@ -9,5 +9,13 @@ def main
         q = 1
     else
         q = 2
+        if false
+            s = 1
+        elsif true
+            s = 2
+        else
+            s = 3
+        end
     end
+    n = 1
 end

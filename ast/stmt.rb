@@ -69,7 +69,7 @@ module Rc
     def initialize(if_cond, if_stmts, elsif_node, else_node)
       @if_cond, @if_stmts, @elsif_list, @else_stmts =
         if_cond, if_stmts, elsif_node, else_node
-      @stmt_list = [if_cond, if_stmts] + elsif_node
+      @stmt_list = [[if_cond, if_stmts]] + elsif_node
       $logger.debug "if node"
     end
 

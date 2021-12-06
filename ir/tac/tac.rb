@@ -41,7 +41,7 @@ module Rc
       end
 
       def to_s
-        @num
+        @num.to_s
       end
     end
 
@@ -60,22 +60,42 @@ module Rc
     class CondJump
       attr_accessor :cond, :true_addr, :false_addr
 
-      def initialize(cond, equality, false_addr)
-        @cond, @equality, @false_addr = cond, equality, false_addr
+      def initialize(cond, true_addr, false_addr)
+        @cond, @true_addr, @false_addr = cond, true_addr, false_addr
+      end
+
+      def to_s
+        "#{@cond}? #{true_addr} #{false_addr}"
+      end
+    end
+
+    class Jump
+      attr_accessor :target
+
+      def initialize(target)
+        @target = target
+      end
+
+      def to_s
+        "Jump to #{target}"
       end
     end
 
     class Label
-      attr_reader :name
+      attr_accessor :name
 
       def initialize(name)
         @name = name
+      end
+
+      def to_s
+        @name
       end
     end
 
     class Empty
       def to_s
-        "empty"
+        ""
       end
     end
 
@@ -142,17 +162,25 @@ module Rc
 
       def on_if(node)
         puts node
+        after_if = Label.new("after_if_default")
+        jump_after_if = Jump.new(after_if)
         node.stmt_list.each do |cond, stmts|
           cond_tac = visit(cond)
           true_label = generate_label
+          cond_jump = CondJump.new(cond_tac, true_label, nil)
+          @tac_list.push cond_jump
           @tac_list.push true_label
-          jump = CondJump.new(cond_tac, true_label, nil)
-          @tac_list.push jump
           visit(stmts)
+          @tac_list.push jump_after_if
           false_label = generate_label
-          jump.false_addr = false_label
+          cond_jump.false_addr = false_label
           @tac_list.push false_label
         end
+        visit(node.else_stmts)
+        @tac_list.push jump_after_if
+        new_label = generate_label
+        after_if.name = new_label.name
+        @tac_list.push after_if
       end
 
       def on_lambda(node) end

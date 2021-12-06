@@ -16,7 +16,7 @@ module Rc
       end
 
       if tree.nil?
-        $logger.info "#{@@parser.failure_reason}, #{@@parser.failure_line}, #{@@parser.failure_column}"
+        $logger.error "#{@@parser.failure_reason}, #{@@parser.failure_line}, #{@@parser.failure_column}"
         raise ParserError.new(
           @@parser.failure_reason,
           @@parser.failure_line,
