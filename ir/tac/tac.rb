@@ -2,8 +2,8 @@ require_relative '../../ast/visitor'
 
 module Rc
   module Tac
-    def to_tac(ast)
-      TacTranslator.new.generate(ast.stmts).tac_list
+    def to_tac(fun)
+      TacTranslator.new.generate(fun).tac_list
     end
 
     class Quad
@@ -57,7 +57,10 @@ module Rc
     class Mem
     end
 
-    class CondJump
+    class Jump
+    end
+
+    class CondJump < Jump
       attr_accessor :cond, :true_addr, :false_addr
 
       def initialize(cond, true_addr, false_addr)
@@ -65,11 +68,11 @@ module Rc
       end
 
       def to_s
-        "#{@cond}? #{true_addr} #{false_addr}"
+        "Cond Jump: #{@cond}? #{true_addr} #{false_addr}"
       end
     end
 
-    class Jump
+    class DirectJump < Jump
       attr_accessor :target
 
       def initialize(target)
@@ -77,7 +80,7 @@ module Rc
       end
 
       def to_s
-        "Jump to #{target}"
+        "Direct Jump to #{target}"
       end
     end
 
@@ -115,8 +118,9 @@ module Rc
         @label_count = 0
       end
 
-      def generate(node)
-        visit(node)
+      def generate(fun)
+        @tac_list.push Label.new(fun.name)
+        visit(fun.stmts)
         self
       end
 
@@ -161,9 +165,8 @@ module Rc
       end
 
       def on_if(node)
-        puts node
         after_if = Label.new("after_if_default")
-        jump_after_if = Jump.new(after_if)
+        jump_after_if = DirectJump.new(after_if)
         node.stmt_list.each do |cond, stmts|
           cond_tac = visit(cond)
           true_label = generate_label
@@ -209,7 +212,6 @@ module Rc
 
       def on_string_constant(node) end
     end
-
     module_function :to_tac
   end
 end

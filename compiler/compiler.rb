@@ -1,5 +1,6 @@
 require_relative '../ir/tac/tac'
 require_relative '../ir/ssa/ssa'
+require_relative '../ir/cfg'
 require_relative '../analysis/call_graph'
 require_relative '../analysis/global_env'
 require './parser/parser'
@@ -17,9 +18,12 @@ module Rc
       puts 'To Tac'
       tac = Tac.to_tac(main)
       puts tac
-      puts 'To SSA'
-      ssa = SSA.to_ssa(tac)
-      puts ssa
+      puts 'To CFG'
+      cfg = CFG.to_cfg(tac)
+      puts cfg
+      # puts 'To SSA'
+      # ssa = SSA.to_ssa(tac)
+      # puts ssa
     end
   end
 end
