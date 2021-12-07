@@ -5,7 +5,7 @@ require_relative '../tac/visitor'
 module Rc
   module SSA
     def raw_name(n)
-      if n.is_a? Tac::Name
+      if n.is_a? TAC::Name
         n.name.gsub(/%/, "").split(':')[0]
       elsif n.is_a? String
         n
@@ -21,7 +21,7 @@ module Rc
       tac_list.map do |inst|
         args = inst.instance_variables.map do |i|
           item = inst.instance_variable_get(i)
-          if item.is_a? Tac::Name
+          if item.is_a? TAC::Name
             raw_name = raw_name(item)
             if name_map.has_key?(raw_name) && name_map[raw_name] == 0
               item.name = "%#{raw_name}"
@@ -31,12 +31,12 @@ module Rc
             item
           end
         end
-        Tac::Quad.new(*args)
+        TAC::Quad.new(*args)
       end
     end
 
     class SSATranslator
-      include Tac::Visitor
+      include TAC::Visitor
       attr_reader :name_map
 
       def initialize
@@ -48,7 +48,7 @@ module Rc
       end
 
       def update_map(n)
-        if n.is_a? Tac::TempName
+        if n.is_a? TAC::TempName
           return n.name
         end
         name = SSA.raw_name(n)
@@ -57,7 +57,7 @@ module Rc
         else
           @name_map[name] = 0
         end
-        Tac::Name.new(ssa_name(name))
+        TAC::Name.new(ssa_name(name))
       end
 
       def on_quad(inst)

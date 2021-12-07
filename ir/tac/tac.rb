@@ -1,7 +1,7 @@
 require_relative '../../ast/visitor'
 
 module Rc
-  module Tac
+  module TAC
     def to_tac(fun)
       TacTranslator.new.generate(fun).tac_list
     end
@@ -70,6 +70,10 @@ module Rc
       def to_s
         "Cond Jump: #{@cond}? #{true_addr} #{false_addr}"
       end
+
+      def deconstruct
+        [@cond, @true_addr, @false_addr]
+      end
     end
 
     class DirectJump < Jump
@@ -81,6 +85,10 @@ module Rc
 
       def to_s
         "Direct Jump to #{target}"
+      end
+
+      def deconstruct
+        [@target]
       end
     end
 
@@ -121,6 +129,7 @@ module Rc
       def generate(fun)
         @tac_list.push Label.new(fun.name)
         visit(fun.stmts)
+        @tac_list.push DirectJump.new(Label.new("TempReturnLabel"))
         self
       end
 

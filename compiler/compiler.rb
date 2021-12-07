@@ -16,11 +16,12 @@ module Rc
       env = Analysis::GlobalEnvVisitor.new.analysis(ast)
       main = env['main']
       puts 'To Tac'
-      tac = Tac.to_tac(main)
+      tac = TAC.to_tac(main)
       puts tac
       puts 'To CFG'
       cfg = CFG.to_cfg(tac)
       puts cfg
+      cfg.to_dot("/home/homura/Code/Rc-lang/test.png")
       # puts 'To SSA'
       # ssa = SSA.to_ssa(tac)
       # puts ssa
