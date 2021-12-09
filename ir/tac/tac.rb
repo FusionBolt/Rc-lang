@@ -3,7 +3,15 @@ require_relative '../../ast/visitor'
 module Rc
   module TAC
     def to_tac(fun)
-      TacTranslator.new.generate(fun).tac_list
+      TacTranslator.new.generate(fun)
+    end
+
+    class Function
+      attr_reader :name, :tac_list
+
+      def initialize(name, tac_list)
+        @name, @tac_list = name, tac_list
+      end
     end
 
     class Quad
@@ -127,10 +135,7 @@ module Rc
       end
 
       def generate(fun)
-        @tac_list.push Label.new(fun.name)
-        visit(fun.stmts)
-        @tac_list.push DirectJump.new(Label.new("TempReturnLabel"))
-        self
+        visit(fun)
       end
 
       def get_tmp_name
@@ -193,6 +198,13 @@ module Rc
         new_label = generate_label
         after_if.name = new_label.name
         @tac_list.push after_if
+      end
+
+      def on_function(fun)
+        @tac_list.push Label.new(fun.name)
+        visit(fun.stmts)
+        @tac_list.push DirectJump.new(Label.new("TempReturnLabel"))
+        Function.new(fun.name, @tac_list)
       end
 
       def on_lambda(node) end

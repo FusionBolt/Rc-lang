@@ -1,12 +1,16 @@
 module Rc
   module Helper
-    def under_score_class_name(obj)
+    def pure_class_name(obj)
       s = obj.class.to_s
       if s.include? '::'
-        underscore(s.split('::')[-1])
+        s.split('::')[-1]
       else
-        underscore(s)
+        s
       end
+    end
+
+    def under_score_class_name(obj)
+      underscore pure_class_name obj
     end
 
     def underscore(str)
@@ -30,5 +34,6 @@ module Rc
     module_function :under_score_class_name
     module_function :underscore
     module_function :reverse_kv
+    module_function :pure_class_name
   end
 end

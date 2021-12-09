@@ -1,6 +1,7 @@
 require_relative '../ir/tac/tac'
 require_relative '../ir/ssa/ssa'
 require_relative '../ir/cfg'
+require_relative '../ir/rcvm/vm'
 require_relative '../analysis/call_graph'
 require_relative '../analysis/global_env'
 require './parser/parser'
@@ -17,14 +18,14 @@ module Rc
       main = env['main']
       puts 'To Tac'
       tac = TAC.to_tac(main)
-      puts tac
+      puts tac.tac_list
       puts 'To CFG'
-      cfg = CFG.to_cfg(tac)
+      cfg = CFG.to_cfg(tac.tac_list)
       puts cfg
       cfg.to_dot("/home/homura/Code/Rc-lang/test.png")
-      # puts 'To SSA'
-      # ssa = SSA.to_ssa(tac)
-      # puts ssa
+      puts 'To VM Inst'
+      vm_list = RCVM.to_vm_inst(tac)
+      puts vm_list
     end
   end
 end
