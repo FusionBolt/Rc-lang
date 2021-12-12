@@ -15,7 +15,7 @@ module Rc
       end
 
       def to_s
-        "Label: #{@name}"
+        "Label #{@name}"
       end
     end
 
@@ -27,7 +27,7 @@ module Rc
       end
 
       def to_s
-        "Cond #{cond} #{addr}"
+        "CondJump #{cond} #{addr}"
       end
     end
 

@@ -26,6 +26,9 @@ module Rc
       puts 'To VM Inst'
       vm_list = RCVM.to_vm_inst(tac)
       puts vm_list
+      File.open('/home/homura/Code/RCVM/cmake-build-debug/inst.rcvi', 'w') do |f|
+        f.write(vm_list.map(&:to_s).join("\n"))
+      end
     end
   end
 end
