@@ -20,14 +20,21 @@ module Rc
         @connections = make_connect
       end
 
+      def blocks
+        @blocks.values
+      end
+
       def make_connect
-        @blocks.values.map do |block|
+        # todo:basic block to a linked list?
+        blocks.map do |block|
           case block
           in BasicBlock[label, jump]
             case jump
             in TAC::DirectJump[target]
+              block.all_next = [@blocks[target]]
               [Connection.new(label, target)]
             in TAC::CondJump[_, true_addr, false_addr]
+              block.all_next = [@blocks[true_addr], @blocks[false_addr]]
               [Connection.new(label, true_addr), Connection.new(label, false_addr)]
             else
               raise "Invalid Jump: #{jump}"
@@ -51,6 +58,8 @@ module Rc
     end
 
     class BasicBlock
+      attr_accessor :all_next
+
       def initialize(begin_label)
         @inst_list = [begin_label]
       end
@@ -63,6 +72,7 @@ module Rc
         @inst_list.last
       end
 
+      # todo:add a helper for direct get all instance var
       def to_s
         "BasicBlock #{label} #{jump}"
       end
@@ -118,6 +128,68 @@ module Rc
       ControlFlowGraph.new(blocks)
     end
 
-    module_function :to_cfg, :valid_do
+
+    class Road
+      attr_reader :list
+
+      def initialize
+        @list = []
+      end
+
+      def append(node)
+        @list.push node
+      end
+
+      def to_s
+        @list.map(&:to_s).join("\n")
+      end
+    end
+
+    class Tag
+      attr_reader :tag_value
+
+      def initialize
+        @tag_value = {}
+      end
+
+      def mark(key)
+        @tag_value[key] = true
+      end
+
+      def has_marked(key)
+        @tag_value.has_key? key
+      end
+    end
+
+    def search_all_branches(cfg)
+      blocks = cfg.blocks
+      tag = Tag.new
+      q = blocks
+      roads = []
+      # dfs that traverse all nodes
+      until q.empty?
+        roads.push search_single_road(q, tag)
+      end
+      roads
+    end
+
+    def search_single_road(q, tag)
+        t = Road.new
+        b = q.shift
+        until tag.has_marked(b)
+          tag.mark(b)
+          t.append(b)
+          # find first
+          first_next_b = b.all_next.find { |next_b| not tag.has_marked(next_b) }
+          if first_next_b.nil?
+            break
+          else
+            b = first_next_b
+          end
+        end
+        t
+    end
+
+    module_function :to_cfg, :valid_do, :search_all_branches, :search_single_road
   end
 end

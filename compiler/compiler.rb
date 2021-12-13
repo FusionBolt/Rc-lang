@@ -23,6 +23,9 @@ module Rc
       cfg = CFG.to_cfg(tac.tac_list)
       puts cfg
       cfg.to_dot("/home/homura/Code/Rc-lang/test.png")
+      puts 'To roads'
+      roads = CFG.search_all_branches(cfg)
+      puts roads
       puts 'To VM Inst'
       vm_list = RCVM.to_vm_inst(tac)
       puts vm_list
