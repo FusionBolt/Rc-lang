@@ -15,9 +15,8 @@ module Rc
     def compile(input)
       ast = parse(input)
       env = Analysis::GlobalEnvVisitor.new.analysis(ast)
-      main = env['main']
       puts 'To Tac'
-      tac = TAC.to_tac(main)
+      tac = TAC.to_tac(ast, env)
       puts tac.tac_list
       puts 'To CFG'
       cfg = CFG.to_cfg(tac.tac_list)

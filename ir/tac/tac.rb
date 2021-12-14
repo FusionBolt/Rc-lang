@@ -2,8 +2,21 @@ require_relative '../../ast/visitor'
 
 module Rc
   module TAC
-    def to_tac(fun)
-      TacTranslator.new.generate(fun)
+    class TACRoot
+      # symbol store by str
+      attr_accessor :tac_list, :entry, :sym_table, :const_table
+
+      def initialize(tac_list, env, sym_table, const_table)
+        @entry = env.fetch('main', nil)
+        @tac_list = tac_list
+        @sym_table, @const_table = sym_table, const_table
+      end
+    end
+
+    def to_tac(ast, env)
+      main = env['main']
+      fun_list = TacTranslator.new.visit(ast)
+      TACRoot.new(tac_list, env, {}, {})
     end
 
     class Function
@@ -38,6 +51,7 @@ module Rc
       end
     end
 
+    # likely reg
     class TempName < Name
     end
 
@@ -124,18 +138,29 @@ module Rc
     class EmptyValue < Empty
     end
 
+    class Move
+      attr_accessor :expr, :target
+
+      def initialize(expr, target)
+        @expr, @target = expr, target
+      end
+    end
+
+    # todo:mixin code which not visitor
     class TacTranslator
       include Visitor
       attr_reader :tac_list
 
       def initialize
+        local_init
+        @const_table = {}
+        @sym_table = {}
+      end
+
+      def local_init
         @tmp_count = 0
         @tac_list = []
         @label_count = 0
-      end
-
-      def generate(fun)
-        visit(fun)
       end
 
       def get_tmp_name
@@ -201,8 +226,12 @@ module Rc
       end
 
       def on_function(fun)
+        initialize
         @tac_list.push Label.new(fun.name)
         visit(fun.stmts)
+        # return value store into a temp name
+        @tac_list.push Move.new(@tac_list[-1], get_tmp_name)
+        # todo:need return to caller, rollback call stack
         @tac_list.push DirectJump.new(Label.new("TempReturnLabel"))
         Function.new(fun.name, @tac_list)
       end

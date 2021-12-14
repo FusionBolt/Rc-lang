@@ -35,10 +35,11 @@ module Rc
 class Function
   # args is str list
   # TODO:is ok?
-  attr_reader :name, :args, :stmts
+  attr_reader :name, :args, :stmts, :return
 
   def initialize(name, args, stmts)
     @name, @args, @stmts = name, args, stmts
+    @return = stmts[-1]
     $logger.debug "implement #{to_s}"
   end
 

@@ -1,0 +1,8 @@
+def main
+    a = 1
+    f1(a)
+end
+
+def f1(n)
+    n
+end
