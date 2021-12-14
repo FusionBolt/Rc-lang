@@ -58,7 +58,7 @@ module Rc
     end
 
     class BasicBlock
-      attr_accessor :all_next
+      attr_accessor :all_next, :inst_list
 
       def initialize(begin_label)
         @inst_list = [begin_label]
@@ -161,6 +161,41 @@ module Rc
       end
     end
 
+    def blocks_to_tac_list(blocks)
+      blocks.reduce([]) { |block| block.inst_list }
+    end
+
+    # 1. after cond_jump is false label -> not process
+    # 2. after cond_jump is true label -> 1. switch true and false; 2. cond = not cond
+    # 3. generate a new label lf' and insert
+    # cond_jump(cond, a, b, lt, lf')
+    # label lf'
+    # jump lf
+    # todo: 3 need test
+    def reorder_branches(cfg)
+      blocks = search_all_branches(cfg)
+      # lower and raise
+      tac_list = blocks_to_tac_list(blocks)
+      tac_list.each_with_index do |tac, index|
+        if tac.is_a? TAC::CondJump
+          next_tac = tac_list[index + 1]
+          if next_tac == tac.false_addr
+            # is ok
+          elsif next_tac == tac.true_addr
+            next_false_tac = tac_list[index + 2]
+            tac_list[index + 1], tac_list[index + 2] = next_false_tac, next_tac
+          else
+            old_false_branch = tac.false_addr
+            new_false_branch = TAC::Label.new("#{tac.false_addr.name}f'")
+            tac.false_addr = new_false_branch
+            tac_list.insert(index + 1, new_false_branch)
+            TAC::DirectJump.new(old_false_branch)
+          end
+        end
+      end
+      to_cfg(tac_list)
+    end
+
     def search_all_branches(cfg)
       blocks = cfg.blocks
       tag = Tag.new
@@ -170,7 +205,9 @@ module Rc
       until q.empty?
         roads.push search_single_road(q, tag)
       end
-      roads
+      roads.reduce([]) do |sum, road|
+        sum + road.list
+      end
     end
 
     def search_single_road(q, tag)
@@ -179,8 +216,8 @@ module Rc
         until tag.has_marked(b)
           tag.mark(b)
           t.append(b)
-          # find first
-          first_next_b = b.all_next.find { |next_b| not tag.has_marked(next_b) }
+          # find last(false branch)
+          first_next_b = b.all_next.reverse.find { |next_b| not tag.has_marked(next_b) }
           if first_next_b.nil?
             break
           else
@@ -190,6 +227,6 @@ module Rc
         t
     end
 
-    module_function :to_cfg, :valid_do, :search_all_branches, :search_single_road
+    module_function :to_cfg, :valid_do, :search_all_branches, :search_single_road, :reorder_branches, :blocks_to_tac_list
   end
 end
