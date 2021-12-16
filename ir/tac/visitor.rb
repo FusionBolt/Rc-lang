@@ -21,6 +21,16 @@ module Rc
 
       def on_empty_value(inst) = inst
 
+      def on_move(inst) = inst
+
+      def on_tac_root(inst)
+        inst.fun_list.map { |f| visit(f) }
+      end
+
+      def on_control_flow_graph(cfg)
+        cfg.to_tac_list.map { |x| visit(x) }
+      end
+
       def on_quad(inst)
         visit(inst.op)
         visit(inst.lhs)

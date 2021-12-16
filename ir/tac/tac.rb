@@ -4,19 +4,29 @@ module Rc
   module TAC
     class TACRoot
       # symbol store by str
-      attr_accessor :tac_list, :entry, :sym_table, :const_table
+      attr_accessor :fun_list, :entry, :sym_table, :const_table
 
-      def initialize(tac_list, env, sym_table, const_table)
+      def initialize(fun_list, env, sym_table, const_table)
         @entry = env.fetch('main', nil)
-        @tac_list = tac_list
+        @fun_list = fun_list
         @sym_table, @const_table = sym_table, const_table
+      end
+
+      def to_s
+        <<TOS
+entry:#{@entry}
+#{@fun_list.map(&:to_s).join("\n")}
+TOS
+      end
+
+      def process(&proc_f)
+        @fun_list.map! { |fun| proc_f.call(fun) }
       end
     end
 
     def to_tac(ast, env)
-      main = env['main']
       fun_list = TacTranslator.new.visit(ast)
-      TACRoot.new(tac_list, env, {}, {})
+      TACRoot.new(fun_list, env, {}, {})
     end
 
     class Function
@@ -68,15 +78,6 @@ module Rc
     end
 
     class Loop
-    end
-
-    class Bn
-    end
-
-    class Call
-    end
-
-    class Mem
     end
 
     class Jump
@@ -146,9 +147,17 @@ module Rc
       end
     end
 
+    class Call
+      attr_accessor :target, :args
+
+      def initialize(target, args)
+        @target, @args = target, args
+      end
+    end
+
     # todo:mixin code which not visitor
     class TacTranslator
-      include Visitor
+      include Rc::Visitor
       attr_reader :tac_list
 
       def initialize
@@ -253,7 +262,8 @@ module Rc
       def on_constant(node) end
 
       def on_bool_constant(node)
-        Number.new(node.val == 1)
+        # this is a hack
+        Number.new(node.val.to_i)
       end
 
       def on_number_constant(node)

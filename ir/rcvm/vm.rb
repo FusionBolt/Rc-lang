@@ -39,6 +39,11 @@ module Rc
         DirectJump.new(inst.target)
       end
 
+      # todo:process this
+      def on_move(inst)
+        inst
+      end
+
       def on_op(inst)
         case inst.op
         in "+"

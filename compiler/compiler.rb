@@ -17,14 +17,19 @@ module Rc
       env = Analysis::GlobalEnvVisitor.new.analysis(ast)
       puts 'To Tac'
       tac = TAC.to_tac(ast, env)
-      puts tac.tac_list
+      puts tac
       puts 'To CFG'
-      cfg = CFG.to_cfg(tac.tac_list)
-      puts cfg
-      cfg.to_dot("/home/homura/Code/Rc-lang/test.png")
-      puts 'To roads'
-      roads = CFG.search_all_branches(cfg)
-      puts roads
+      tac.process { |f| CFG.to_cfg(f.tac_list) }
+      puts tac
+      puts 'Reorder branches'
+      tac.process { |f| CFG.reorder_branches(f) }
+      puts tac
+      # cfg_tac = CFG.to_cfg(tac.tac_list)
+      # puts cfg_tac
+      # cfg_tac.fun_list[0].to_dot("/home/homura/Code/Rc-lang/test.png")
+      # puts 'To roads'
+      # roads = CFG.search_all_branches(cfg)
+      # puts roads
       puts 'To VM Inst'
       vm_list = RCVM.to_vm_inst(tac)
       puts vm_list

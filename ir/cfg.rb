@@ -24,6 +24,15 @@ module Rc
         @blocks.values
       end
 
+      def get_targets_block(targets)
+        targets.map do |t|
+          if (not @blocks.has_key? t) && t.name != 'TempReturnLabel'
+            raise 'invalid target block'
+          end
+          @blocks[t]
+        end
+      end
+
       def make_connect
         # todo:basic block to a linked list?
         blocks.map do |block|
@@ -31,10 +40,10 @@ module Rc
           in BasicBlock[label, jump]
             case jump
             in TAC::DirectJump[target]
-              block.all_next = [@blocks[target]]
+              block.all_next = get_targets_block [target]
               [Connection.new(label, target)]
             in TAC::CondJump[_, true_addr, false_addr]
-              block.all_next = [@blocks[true_addr], @blocks[false_addr]]
+              block.all_next = get_targets_block [true_addr, false_addr]
               [Connection.new(label, true_addr), Connection.new(label, false_addr)]
             else
               raise "Invalid Jump: #{jump}"
@@ -55,9 +64,14 @@ module Rc
           g.output(:png => path)
         end
       end
+
+      def to_tac_list
+        CFG.blocks_to_tac_list(blocks)
+      end
     end
 
     class BasicBlock
+      # todo:all next a bad design, because set value by outer
       attr_accessor :all_next, :inst_list
 
       def initialize(begin_label)
@@ -66,6 +80,15 @@ module Rc
 
       def label
         @inst_list.first
+      end
+
+      def name
+        label.name
+      end
+
+      def next_labels
+        # when next is TempReturnLabel, b is nil
+        @all_next.map { |b| b.try(&:name) }
       end
 
       def jump
@@ -162,7 +185,7 @@ module Rc
     end
 
     def blocks_to_tac_list(blocks)
-      blocks.reduce([]) { |block| block.inst_list }
+      blocks.reduce([]) { |sum, block| sum + block.inst_list }
     end
 
     # 1. after cond_jump is false label -> not process
