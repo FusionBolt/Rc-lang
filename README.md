@@ -1,7 +1,15 @@
 # Rc-Lang
 
-a simple proj to learn how to implement a ast interpreter
+a simple programming language under development
 
-# Usage
+## Usage
+
 `bundle install`
+
 `ruby rci.rb src.rc`
+
+## Test
+
+rspec
+
+bundle exec rspec
