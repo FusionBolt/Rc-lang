@@ -113,6 +113,10 @@ TOS
       def deconstruct
         [@target]
       end
+
+      def eql?(other)
+        @target == other.target
+      end
     end
 
     class Label
@@ -124,6 +128,10 @@ TOS
 
       def to_s
         @name
+      end
+
+      def eql?(other)
+        @name == other.name
       end
     end
 

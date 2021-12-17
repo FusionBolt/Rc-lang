@@ -153,18 +153,18 @@ module Rc
 
 
     class Road
-      attr_reader :list
+      attr_reader :blocks
 
       def initialize
-        @list = []
+        @blocks = []
       end
 
       def append(node)
-        @list.push node
+        @blocks.push node
       end
 
       def to_s
-        @list.map(&:to_s).join("\n")
+        @blocks.map(&:to_s).join("\n")
       end
     end
 
@@ -197,8 +197,14 @@ module Rc
     # todo: 3 need test
     def reorder_branches(cfg)
       blocks = search_all_branches(cfg)
-      # lower and raise
+      # lower
       tac_list = blocks_to_tac_list(blocks)
+      reorder_branches_impl(tac_list)
+      # raise
+      to_cfg(tac_list)
+    end
+
+    def reorder_branches_impl(tac_list)
       tac_list.each_with_index do |tac, index|
         if tac.is_a? TAC::CondJump
           next_tac = tac_list[index + 1]
@@ -211,12 +217,12 @@ module Rc
             old_false_branch = tac.false_addr
             new_false_branch = TAC::Label.new("#{tac.false_addr.name}f'")
             tac.false_addr = new_false_branch
+            # todo:good replace way?
             tac_list.insert(index + 1, new_false_branch)
-            TAC::DirectJump.new(old_false_branch)
+            tac_list.insert(index + 2, TAC::DirectJump.new(old_false_branch))
           end
         end
       end
-      to_cfg(tac_list)
     end
 
     def search_all_branches(cfg)
@@ -229,7 +235,7 @@ module Rc
         roads.push search_single_road(q, tag)
       end
       roads.reduce([]) do |sum, road|
-        sum + road.list
+        sum + road.blocks
       end
     end
 
@@ -250,6 +256,7 @@ module Rc
         t
     end
 
-    module_function :to_cfg, :valid_do, :search_all_branches, :search_single_road, :reorder_branches, :blocks_to_tac_list
+    module_function :to_cfg, :valid_do, :search_all_branches, :search_single_road, :blocks_to_tac_list
+    module_function :reorder_branches, :reorder_branches_impl
   end
 end
