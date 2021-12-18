@@ -1,15 +1,16 @@
 # Rc-Lang
 
-a simple programming language under development
+A simple programming language under development.
+The compiler(rcc) is continuously updated, and the actual operation is subject to testing.
 
 ## Usage
 
-`bundle install`
+install dependencies `bundle install`
 
-`ruby rci.rb src.rc`
+interpreter `bundle exec ruby interface/rci.rb demo.rc`
+
+compiler `bundle exec ruby interface/rcc.rb demo.rc`
 
 ## Test
-
-rspec
 
 bundle exec rspec
