@@ -121,5 +121,13 @@ module Rc
     def set_self(env, outer)
       @env, @outer = env, outer
     end
+
+    def empty?
+      if @outer.nil?
+        @env.empty?
+      else
+        @env.empty? && @outer.empty?
+      end
+    end
   end
 end

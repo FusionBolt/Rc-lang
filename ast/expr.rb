@@ -200,6 +200,9 @@ module Rc
   end
 
   class StringConstant < Constant
+    def initialize(constant_val)
+      @val = constant_val[1..-2]
+    end
   end
 
   class DefaultValue

@@ -14,7 +14,7 @@ module Rc
 
     def compile(input)
       ast = parse(input)
-      env = Analysis::GlobalEnvVisitor.new.analysis(ast)
+      env, sym_table = Analysis::GlobalEnvVisitor.new.analysis(ast)
       puts 'To Tac'
       tac = TAC.to_tac(ast, env)
       puts tac

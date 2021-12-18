@@ -19,7 +19,9 @@ module Rc
 
     def on_package(node) end
 
-    def on_function(node) end
+    def on_function(node)
+      visit(node.stmts)
+    end
 
     def on_class_define(node) end
 
@@ -37,7 +39,10 @@ module Rc
 
     def on_unless(node) end
 
-    def on_assign(node) end
+    def on_assign(node)
+      visit(node.var_obj)
+      visit(node.expr)
+    end
 
     def on_return(node) end
 
