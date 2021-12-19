@@ -35,9 +35,14 @@ TOS
       def initialize(name, tac_list)
         @name, @tac_list = name, tac_list
       end
+
+      def [](index)
+        @tac_list[index]
+      end
     end
 
     class Quad
+      # op: binary, alloc
       attr_accessor :op, :result, :lhs, :rhs
 
       def initialize(op, result, lhs, rhs)
@@ -74,6 +79,10 @@ TOS
 
       def to_s
         @num.to_s
+      end
+
+      def eql?(other)
+        @num == other.num
       end
     end
 
@@ -152,6 +161,14 @@ TOS
 
       def initialize(expr, target)
         @expr, @target = expr, target
+      end
+    end
+
+    class Alloc
+      attr_accessor :type, :result
+
+      def initialize(type, result)
+        @type, @result = type, result
       end
     end
 
@@ -255,7 +272,11 @@ TOS
 
       def on_lambda(node) end
 
-      def on_fun_call(node) end
+      def on_fun_call(node)
+        # todo:need process this and new expr
+        args = node.args.map {|a| visit(a)}
+        @tac_list.push Call.new(node.name, args)
+      end
 
       def on_class_member_access(access) end
 
@@ -265,7 +286,14 @@ TOS
 
       def on_instance(node) end
 
-      def on_new_expr(node) end
+      def on_new_expr(node)
+        mem = get_tmp_name
+        alloc = Alloc.new(node.class_name, mem)
+        args = node.args.map {|a| visit(a)}
+        call = Call.new(node.class_name, [alloc] + args)
+        @tac_list.push alloc
+        @tac_list.push call
+      end
 
       def on_constant(node) end
 
@@ -275,7 +303,7 @@ TOS
       end
 
       def on_number_constant(node)
-        Number.new(node.val)
+        Number.new(node.val.to_i)
       end
 
       def on_string_constant(node) end
