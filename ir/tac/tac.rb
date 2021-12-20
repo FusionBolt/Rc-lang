@@ -232,7 +232,7 @@ TOS
       def on_binary(node)
         first_tac = visit(node.lhs)
         second_tac = visit(node.rhs)
-        inst = Quad.new(node.op, get_tmp_name, get_result(first_tac), get_result(second_tac))
+        inst = Quad.new(node.op.op, get_tmp_name, get_result(first_tac), get_result(second_tac))
         @tac_list.push inst
         inst
       end

@@ -204,6 +204,14 @@ module Rc
       to_cfg(tac_list)
     end
 
+    def set_not_cond(tac_list, index)
+      old_cond_jump = tac_list[index]
+      # todo:remove temp name
+      not_cond = TAC::Quad.new('!', TAC::TempName.new('tmp'), old_cond_jump.cond, nil)
+      tac_list.insert(index, not_cond)
+      old_cond_jump.cond = not_cond
+    end
+
     def reorder_branches_impl(tac_list)
       tac_list.each_with_index do |tac, index|
         if tac.is_a? TAC::CondJump
@@ -211,8 +219,10 @@ module Rc
           if next_tac == tac.false_addr
             # is ok
           elsif next_tac == tac.true_addr
+            # todo:fix this and add test
             next_false_tac = tac_list[index + 2]
             tac_list[index + 1], tac_list[index + 2] = next_false_tac, next_tac
+            set_not_cond(tac_list, index)
           else
             old_false_branch = tac.false_addr
             new_false_branch = TAC::Label.new("#{tac.false_addr.name}f'")
@@ -257,6 +267,6 @@ module Rc
     end
 
     module_function :to_cfg, :valid_do, :search_all_branches, :search_single_road, :blocks_to_tac_list
-    module_function :reorder_branches, :reorder_branches_impl
+    module_function :reorder_branches, :reorder_branches_impl, :set_not_cond
   end
 end

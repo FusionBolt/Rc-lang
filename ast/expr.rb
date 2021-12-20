@@ -176,7 +176,7 @@ module Rc
     end
 
     def infix
-      infix_map = {'+' => 10, '-' => 10, '*' => 5, '/' => 5}
+      infix_map = {'+' => 10, '-' => 10, '*' => 5, '/' => 5, '!' => 4}
       infix_map[@op]
     end
   end
