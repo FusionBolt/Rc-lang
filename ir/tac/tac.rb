@@ -164,6 +164,14 @@ TOS
       end
     end
 
+    class Return
+      attr_accessor :ret_val
+
+      def initialize(ret_val)
+        @ret_val = ret_val
+      end
+    end
+
     class Alloc
       attr_accessor :type, :result
 
@@ -264,8 +272,9 @@ TOS
         @tac_list.push Label.new(fun.name)
         visit(fun.stmts)
         # return value store into a temp name
-        @tac_list.push Move.new(@tac_list[-1], get_tmp_name)
-        # todo:need return to caller, rollback call stack
+        @tac_list.push Return.new(@tac_list[-1])
+        # todo:this jump need process, when return after this, maybe set a return in function is ok
+        # used for BasicBlock
         @tac_list.push DirectJump.new(Label.new("TempReturnLabel"))
         Function.new(fun.name, @tac_list)
       end

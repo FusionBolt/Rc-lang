@@ -3,6 +3,12 @@ require_relative './inst'
 
 module Rc
   module RCVM
+    module MemoryLocation
+      ESP = 0
+      EAX = 1
+      RBP = 2
+    end
+
     def to_vm_inst(fun)
       RCVMInstTranslator.new.visit(fun)
     end
@@ -11,7 +17,7 @@ module Rc
       include TAC::Visitor
 
       def on_function(fun)
-        fun.tac_list.map { |t| visit(t) }.flatten + [Return.new]
+        fun.tac_list.map { |t| visit(t) }.flatten
       end
 
       def on_label(inst)
@@ -42,6 +48,12 @@ module Rc
       # todo:process this
       def on_move(inst)
         inst
+      end
+
+      def on_return(inst)
+        # pop value to eax
+        Pop.new(MemoryLocation::EAX)
+        Return.new
       end
 
       def on_op(inst)
