@@ -1,6 +1,6 @@
 require_relative 'helper'
 
-module Rc
+module Rc::AST
   class Expr
     attr_accessor :term_list, :expr
 
@@ -107,7 +107,7 @@ module Rc
     end
 
     def to_s
-      "#{@instance_name}.#{@member_name} #{@args.empty?? '' : args_to_s(@args)}"
+      "#{@instance_name}.#{@member_name} #{@args.empty? ? '' : args_to_s(@args)}"
     end
   end
 
@@ -176,7 +176,7 @@ module Rc
     end
 
     def infix
-      infix_map = {'+' => 10, '-' => 10, '*' => 5, '/' => 5, '!' => 4}
+      infix_map = { '+' => 10, '-' => 10, '*' => 5, '/' => 5, '!' => 4 }
       infix_map[@op]
     end
   end

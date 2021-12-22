@@ -1,4 +1,4 @@
-require_relative '../../ast/visitor'
+require_relative '../ast/visitor'
 require_relative '../../analysis/global_env'
 require_relative '../tac/visitor'
 

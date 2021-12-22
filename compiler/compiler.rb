@@ -9,7 +9,8 @@ require './parser/parser'
 module Rc
   class Compiler
     def parse(input)
-      Parser.parse(input).to_ast
+      input = Parser.parse(input)
+      input.to_ast
     end
 
     def compile(input)

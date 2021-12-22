@@ -1,8 +1,9 @@
 require 'rspec'
 require_relative '../parser/parser'
-require_relative '../ast/ast_node'
+require_relative '../ir/ast/ast_node'
 
 module RcTestHelpers
+  include Rc::AST
   def parse(src)
     Rc::Parser.parse(src).to_ast
   end
@@ -15,14 +16,14 @@ module RcTestHelpers
 
   def test_root_single_define(src)
     root = parse(src)
-    expect(root.class).to eq(Rc::Root)
+    expect(root.class).to eq(Root)
     expect(root.defines.size).to eq 1
     root.defines[0]
   end
 
   def test_import(src, packages = [])
     root = parse(src)
-    expect(root.class).to eq Rc::Root
+    expect(root.class).to eq Root
     expect(root.defines).to eq []
     expect(root.packages.map { |p| p.name }).to eq packages
     root.packages
@@ -39,7 +40,7 @@ module RcTestHelpers
   end
 
   def test_one_ast_fun(fun, name, args = [])
-    expect(fun.class).to eq(Rc::Function)
+    expect(fun.class).to eq(Function)
     test_one_fun_sign(fun, name, args)
     fun
   end
@@ -68,7 +69,7 @@ module RcTestHelpers
     root = parse(src)
     expect(root.packages).to eq []
     expect(root.defines.size).to eq classes.size
-    expect(root.defines.detect { |d| d.class != Rc::ClassDefine }).to eq nil
+    expect(root.defines.detect { |d| d.class != ClassDefine }).to eq nil
     expect(root.defines.map { |d| d.name }).to eq classes
     if classes.size == 1
       root.defines[0]

@@ -1,4 +1,4 @@
-require_relative '../../ast/visitor'
+require_relative '../ast/visitor'
 
 module Rc
   module TAC
@@ -190,7 +190,7 @@ TOS
 
     # todo:mixin code which not visitor
     class TacTranslator
-      include Rc::Visitor
+      include AST::Visitor
       attr_reader :tac_list
 
       def initialize

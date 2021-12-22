@@ -1,11 +1,11 @@
 require './parser/helper'
-require './ast/ast_node'
+require './ir/ast/ast_node'
 
 grammar Rc
   rule main
     packages:import* other:(fun / class / statement)* {
       def to_ast
-        Root.new(multi_to_ast(packages), multi_to_ast(other))
+        AST::Root.new(multi_to_ast(packages), multi_to_ast(other))
       end
     }
   end
@@ -13,7 +13,7 @@ grammar Rc
   rule import
     space* 'import' white+ quote? name:identifier quote? space+ {
       def to_ast
-        Package.new(name.to_ast)
+        AST::Package.new(name.to_ast)
       end
     }
   end
@@ -24,7 +24,7 @@ grammar Rc
     stmts:statements
     block_end {
       def to_ast
-        Function.new(name.to_ast, get_args(args), stmts.to_ast)
+        AST::Function.new(name.to_ast, get_args(args), stmts.to_ast)
       end
     }
   end
@@ -67,7 +67,7 @@ grammar Rc
     name:identifier args:call_args {
       def to_ast
       begin
-        FunCall.new(name.to_ast, args.to_ast)
+        AST::FunCall.new(name.to_ast, args.to_ast)
       rescue => e
         puts e
         debug args
@@ -100,7 +100,7 @@ grammar Rc
     define:(space / fun / class_member_var)*
     block_end {
       def to_ast
-        ClassDefine.new(name.to_ast, define_ast(define), parent_to_ast)
+        AST::ClassDefine.new(name.to_ast, define_ast(define), parent_to_ast)
       end
 
       def parent_to_ast
@@ -117,8 +117,8 @@ grammar Rc
      'var' white+ name:identifier val:(white* '=' white* expression)? {
         def to_ast
         # TODO:maybe this need to be change
-          expr = optional_node_exist?(val)? val.elements[-1] : DefaultValue.new
-          ClassMemberVar.new(name.to_ast, expr.to_ast)
+          expr = optional_node_exist?(val)? val.elements[-1] : AST::DefaultValue.new
+          AST::ClassMemberVar.new(name.to_ast, expr.to_ast)
         end
      }
   end
@@ -127,7 +127,7 @@ grammar Rc
   rule statements
     stmts:(statement*) {
       def to_ast
-        Stmts.new(multi_to_ast(stmts))
+        AST::Stmts.new(multi_to_ast(stmts))
       end
     }
   end
@@ -135,7 +135,7 @@ grammar Rc
   rule statement
     stmt_node:(break_point / variant / if / unless / while / return_stmt / assign / expression)? space+ {
       def to_ast
-        Stmt.new(optional_to_ast(stmt_node), input, interval)
+        AST::Stmt.new(optional_to_ast(stmt_node), input, interval)
       end
     }
   end
@@ -144,7 +144,7 @@ grammar Rc
   rule break_point
     &'break' 'break' {
       def to_ast
-        BreakPoint.new
+        AST::BreakPoint.new
       end
     }
   end
@@ -152,7 +152,7 @@ grammar Rc
   rule assign
     var:(identifier_node / class_member_access) white* '=' space* val:expression {
       def to_ast
-        Assign.new(var.to_ast, val.to_ast)
+        AST::Assign.new(var.to_ast, val.to_ast)
       end
     }
   end
@@ -161,7 +161,7 @@ grammar Rc
     'var' space+ name:identifier space+ '=' space* expr:expression {
       def to_ast
         begin
-        Variant.new(name.to_ast, expr.to_ast)
+        AST::Variant.new(name.to_ast, expr.to_ast)
         rescue => e
           p 'error', e
         end
@@ -174,7 +174,7 @@ grammar Rc
     statements
     block_end {
       def to_ast
-        Unless.new(unless_cond.to_ast, statements.to_ast)
+        AST::Unless.new(unless_cond.to_ast, statements.to_ast)
       end
     }
   end
@@ -188,7 +188,7 @@ grammar Rc
     statements)?
     block_end {
       def to_ast
-        If.new(if_cond.to_ast, if_stmts.to_ast,
+        AST::If.new(if_cond.to_ast, if_stmts.to_ast,
           elsif_ast, else_ast)
       end
 
@@ -223,7 +223,7 @@ grammar Rc
   rule return_stmt
     'return' white+ expr:expression {
       def to_ast
-        Return.new(expr.to_ast)
+        AST::Return.new(expr.to_ast)
       end
     }
   end
@@ -235,7 +235,7 @@ grammar Rc
   rule expression
     exp:(lambda / normal_expr) {
       def to_ast
-        Expr.new(exp.to_ast)
+        AST::Expr.new(exp.to_ast)
       end
     }
   end
@@ -243,7 +243,7 @@ grammar Rc
   rule normal_expr
     first:term after:(space* op space* term)* {
       def to_ast
-        Expr.new(([first] + multi_term_ast).map(&:to_ast))
+        AST::Expr.new(([first] + multi_term_ast).map(&:to_ast))
       end
 
       def multi_term_ast
@@ -257,7 +257,7 @@ grammar Rc
   rule lambda
     space* '->' space* args:fun_args? space* '{' space* stmts:statements '}' {
       def to_ast
-        Lambda.new(get_args(args), stmts.to_ast)
+        AST::Lambda.new(get_args(args), stmts.to_ast)
       end
     }
   end
@@ -265,7 +265,7 @@ grammar Rc
   rule op
     op_char:('+' / '-' / '*' / '/' / '<' / '>') {
       def to_ast
-        Op.new(text_value)
+        AST::Op.new(text_value)
       end
     }
   end
@@ -285,7 +285,7 @@ grammar Rc
     args:call_args? {
       def to_ast
         args_val = optional_node_exist?(args)? args.to_ast : []
-        ClassMemberAccess.new(instance_name.to_ast, member_name.to_ast, args_val)
+        AST::ClassMemberAccess.new(instance_name.to_ast, member_name.to_ast, args_val)
       end
     }
   end
@@ -304,7 +304,7 @@ grammar Rc
     class_name:upper_case_name  space? '.' space? 'new' space?
     args:call_args {
       def to_ast
-        NewExpr.new(class_name.to_ast, args.to_ast)
+        AST::NewExpr.new(class_name.to_ast, args.to_ast)
       end
     }
   end
@@ -312,7 +312,7 @@ grammar Rc
   rule identifier_node
     name:identifier {
       def to_ast
-        Identifier.new(name.to_ast)
+        AST::Identifier.new(name.to_ast)
       end
     }
   end
@@ -320,7 +320,7 @@ grammar Rc
   rule bool_constant
     constant_val:('true' / 'false') {
       def to_ast
-        BoolConstant.new(text_value)
+        AST::BoolConstant.new(text_value)
       end
     }
   end
@@ -328,7 +328,7 @@ grammar Rc
   rule num_constant
     constant_val:(integer / float) {
       def to_ast
-        NumberConstant.new(text_value)
+        AST::NumberConstant.new(text_value)
       end
     }
   end
@@ -344,7 +344,7 @@ grammar Rc
   rule string_constant
     constant_val:(('"' ([^"\\] / "\\" . )* '"') / ("'" ([^'\\] / '\\' . )* "'")) {
       def to_ast
-        StringConstant.new(text_value)
+        AST::StringConstant.new(text_value)
       end
     }
   end

@@ -1,11 +1,11 @@
-require_relative '../ast/visitor'
+require_relative '../ir/ast/visitor'
 require_relative '../env'
 require 'set'
 
 module Rc
   module Analysis
     class GlobalEnvVisitor
-      include Visitor
+      include AST::Visitor
       attr_reader :env, :sym_table
 
       def initialize

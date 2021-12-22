@@ -1,4 +1,4 @@
-require_relative '../ast/visitor'
+require_relative '../ir/ast/visitor'
 require 'set'
 
 module Rc
@@ -42,7 +42,7 @@ module Rc
       end
 
       class CallGraphVisitor
-        include Visitor
+        include AST::Visitor
         attr_reader :callee
 
         def analysis(fun)

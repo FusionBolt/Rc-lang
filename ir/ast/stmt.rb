@@ -1,4 +1,4 @@
-module Rc
+module Rc::AST
   class Stmts
     attr_reader :stmts
 
@@ -19,7 +19,9 @@ module Rc
     end
 
     # TODO: tract same pattern
+
     private
+
     def method_missing(symbol, *args)
       arr_method = @stmts.method(symbol)
       if arr_method.nil?
@@ -45,7 +47,7 @@ module Rc
     end
 
     def is_empty?
-      @stmt.class == Empty
+      @stmt.class == Rc::Empty
     end
   end
 
@@ -66,6 +68,7 @@ module Rc
     # elsif_list -> [[cond, stmts]]
     attr_reader :if_cond, :if_stmts, :elsif_list, :else_stmts
     attr_reader :stmt_list
+
     def initialize(if_cond, if_stmts, elsif_node, else_node)
       @if_cond, @if_stmts, @elsif_list, @else_stmts =
         if_cond, if_stmts, elsif_node, else_node
@@ -80,6 +83,7 @@ module Rc
 
   class Unless
     attr_reader :cond, :stmts
+
     def initialize(cond, stmts)
       @cond, @stmts = cond, stmts
     end

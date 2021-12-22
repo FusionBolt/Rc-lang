@@ -1,4 +1,4 @@
-require './ast/ast_node'
+require_relative '../ir/ast/ast_node'
 require './lib/error'
 require './lib/types'
 require './lib/hack'

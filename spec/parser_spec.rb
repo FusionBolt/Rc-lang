@@ -65,7 +65,7 @@ F
 F
         f = test_one_fun(f1, 'foo', %w[a b c])
         expect(f.stmts.size).to eq 1
-        expect(f.stmts[0].stmt.class).to eq Rc::Expr
+        expect(f.stmts[0].stmt.class).to eq Rc::AST::Expr
       end
     end
 
@@ -116,7 +116,7 @@ CLASS
         c = test_class(c, %w[Set])
         expect(c.define.size).to eq 1
         init_fun = c.define[0]
-        expect(init_fun.class).to eq Rc::Function
+        expect(init_fun.class).to eq Rc::AST::Function
         expect(init_fun.name).to eq 'init'
         expect(init_fun.stmts.empty?).to be true
       end
@@ -169,7 +169,7 @@ CLASS
 CLASS
           c = test_class(c, %w[Foo])
           expect(c.define.size).to eq 1
-          expect(c.define[0].class).to be Rc::ClassMemberVar
+          expect(c.define[0].class).to be Rc::AST::ClassMemberVar
         end
         it 'has default val' do
           c = <<CLASS
@@ -180,7 +180,7 @@ CLASS
           c = test_class(c, %w[Foo])
           expect(c.define.size).to eq 1
           v = c.define[0]
-          expect(v.class).to be Rc::ClassMemberVar
+          expect(v.class).to be Rc::AST::ClassMemberVar
         end
       end
     end

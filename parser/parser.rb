@@ -1,5 +1,5 @@
 require 'treetop'
-require_relative '../ast/ast_node'
+require_relative '../ir/ast/ast_node'
 require './lib/error'
 
 module Rc
