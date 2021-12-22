@@ -1,5 +1,5 @@
-require_relative '../../analysis/global_env'
-require_relative '../../ir/tac/tac'
+require './analysis/global_env'
+require './ir/tac/tac'
 
 module RcTestHelpers
   def get_tac(src)

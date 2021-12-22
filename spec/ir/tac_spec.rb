@@ -1,6 +1,6 @@
 require 'rspec'
 require 'set'
-require_relative '../../ir/tac/tac'
+require './ir/tac/tac'
 require_relative 'ir_helper'
 
 describe 'tac' do

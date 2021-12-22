@@ -1,6 +1,6 @@
-require_relative '../ast/visitor'
-require_relative '../../analysis/global_env'
-require_relative '../tac/visitor'
+require './ir/ast/visitor'
+require './analysis/global_env'
+require './ir/tac/visitor'
 
 module Rc
   module SSA

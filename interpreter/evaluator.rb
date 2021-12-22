@@ -1,4 +1,4 @@
-require_relative '../lib/helper'
+require './lib/helper'
 require './lib/Rc/assert'
 require './lib/error'
 require './lib/ffi'

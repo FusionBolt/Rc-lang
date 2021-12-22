@@ -1,7 +1,7 @@
 require 'rspec'
 require 'set'
-require_relative '../../analysis/call_graph'
-require_relative '../../analysis/global_env'
+require './analysis/call_graph'
+require './analysis/global_env'
 require_relative '../parser_helper'
 
 describe Rc::Analysis::CallGraph do

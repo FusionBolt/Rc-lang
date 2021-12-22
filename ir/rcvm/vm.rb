@@ -1,4 +1,4 @@
-require_relative '../tac/visitor'
+require './ir/tac/visitor'
 require_relative './inst'
 
 module Rc

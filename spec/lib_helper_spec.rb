@@ -1,6 +1,6 @@
 require 'rspec'
 require 'set'
-require_relative '../lib/helper'
+require './lib/helper'
 
 describe 'LibHelper' do
   before do

@@ -1,6 +1,6 @@
 require 'rspec'
-require_relative '../parser/parser'
-require_relative '../ir/ast/ast_node'
+require './parser/parser'
+require './ir/ast/ast_node'
 
 module RcTestHelpers
   include Rc::AST

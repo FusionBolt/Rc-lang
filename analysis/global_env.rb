@@ -1,5 +1,5 @@
-require_relative '../ir/ast/visitor'
-require_relative '../env'
+require './ir/ast/visitor'
+require './lib/env'
 require 'set'
 
 module Rc

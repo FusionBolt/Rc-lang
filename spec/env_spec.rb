@@ -1,5 +1,5 @@
 require 'rspec'
-require_relative '../env'
+require './lib/env'
 
 describe 'Env' do
   before do

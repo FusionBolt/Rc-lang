@@ -1,4 +1,4 @@
-require_relative '../../lib/helper'
+require './lib/helper'
 
 module Rc::AST
   module Visitor

@@ -1,9 +1,9 @@
-require_relative '../ir/tac/tac'
-require_relative '../ir/ssa/ssa'
-require_relative '../ir/cfg'
-require_relative '../ir/rcvm/vm'
-require_relative '../analysis/call_graph'
-require_relative '../analysis/global_env'
+require './ir/tac/tac'
+require './ir/ssa/ssa'
+require './ir/cfg'
+require './ir/rcvm/vm'
+require './analysis/call_graph'
+require './analysis/global_env'
 require './parser/parser'
 
 module Rc

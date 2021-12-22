@@ -1,6 +1,6 @@
 require 'rspec'
 require 'set'
-require_relative '../../analysis/global_env'
+require './analysis/global_env'
 require_relative '../parser_helper'
 
 describe Rc::Analysis::GlobalEnvVisitor do

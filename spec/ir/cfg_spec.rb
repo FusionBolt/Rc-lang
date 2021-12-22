@@ -1,6 +1,6 @@
 require 'rspec'
 require 'set'
-require_relative '../../ir/cfg'
+require './ir/cfg'
 require_relative 'ir_helper'
 
 describe 'CFG' do

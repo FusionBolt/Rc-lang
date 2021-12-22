@@ -1,7 +1,7 @@
 require './parser/parser'
-require './env'
+require './lib/env'
 require_relative 'visitor'
-require_relative '../analysis/call_graph'
+require './analysis/call_graph'
 
 module Rc
   class ASTInterpreter

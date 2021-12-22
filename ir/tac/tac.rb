@@ -1,4 +1,4 @@
-require_relative '../ast/visitor'
+require './ir/ast/visitor'
 
 module Rc
   module TAC
