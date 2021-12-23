@@ -3,6 +3,7 @@ require 'set'
 require './ir/tac/tac'
 require_relative 'ir_helper'
 
+include Rc::TAC
 describe 'tac' do
   context 'constructor' do
     it 'succeed' do
@@ -40,6 +41,21 @@ CALL
       expect(call_f1.is_a? Rc::TAC::Call).to eq true
       expect(call_f1.target).to eq 'f1'
       expect(call_f1.args).to eql [Rc::TAC::Number.new(1), Rc::TAC::Number.new(2), Rc::TAC::Number.new(3)]
+    end
+  end
+
+  context 'string' do
+    it 'succeed' do
+      src = <<SRC
+def f1
+  a = 'str'
+end
+SRC
+      tac = get_tac(src)
+      expect(tac.const_table).to eql ['str']
+      assign = tac.first_fun_tac_list[1]
+      expect(assign.is_a? Rc::TAC::Quad).to be true
+      expect(assign.lhs).to eql Memory.new(0)
     end
   end
 end

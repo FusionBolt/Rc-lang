@@ -88,3 +88,15 @@ describe 'Env' do
     end
   end
 end
+
+describe 'ConstTable' do
+  context 'str' do
+    it 'succeed' do
+      table = Rc::ConstTable.new
+      expect(table.add 'str').to eq 0
+      expect(table.add 'str').to eq 0
+      expect(table.add 'str1').to eq 1
+      expect(table.size)
+    end
+  end
+end

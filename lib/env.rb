@@ -97,12 +97,7 @@ module Rc
     private
 
     def method_missing(sym, *args)
-      hash_method = @env.method(sym)
-      if hash_method.nil?
-        super
-      else
-        hash_method.call(*args)
-      end
+      @env.method(sym).try {|x| x.call(*args)}
     end
 
     def start_subroutine(args_env = {})
@@ -127,6 +122,37 @@ module Rc
         @env.empty?
       else
         @env.empty? && @outer.empty?
+      end
+    end
+  end
+
+  class ConstTable
+    attr_reader :list
+
+    def initialize
+      @list = []
+    end
+
+    def add(constant)
+      # todo:slow, if @list == Set[], maybe can't index
+      i = @list.index(constant)
+      if i.nil?
+        @list.push constant
+        @list.size - 1
+      else
+        i
+      end
+    end
+
+    private def method_missing(symbol, *args)
+      @list.method(symbol).try { |x| x.call(*args) }
+    end
+
+    def eql?(other)
+      if other.is_a? Array
+        @list == other
+      else
+        @list.eql? other.list
       end
     end
   end
