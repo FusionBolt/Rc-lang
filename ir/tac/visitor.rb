@@ -4,6 +4,7 @@ module Rc
   module TAC
     module Visitor
       def visit(inst)
+        puts inst
         method("on_#{Helper::under_score_class_name(inst)}")[inst]
       end
 

@@ -1,4 +1,5 @@
 require './ir/tac/visitor'
+require './lib/env'
 require_relative './inst'
 
 module Rc
@@ -10,7 +11,24 @@ module Rc
     end
 
     def to_vm_inst(fun)
-      RCVMInstTranslator.new.visit(fun)
+      list = RCVMInstTranslator.new.visit(fun)
+      sym_table = analysis_sym_table(list)
+      update_call_addr(list, sym_table)
+    end
+
+    def analysis_sym_table(list)
+      sym_table = Env.new
+      # todo: maybe a slow impl
+      list.each_with_index do |inst, index|
+        if inst.is_a? Label
+          sym_table.define_symbol inst.name, index
+        end
+      end
+      sym_table
+    end
+
+    def update_call_addr(list, sym_table)
+      list.filter { |x| x.is_a? UnsetAddr }.map { |a| Addr.new('code', sym_table[a]) }
     end
 
     class RCVMInstTranslator
@@ -27,22 +45,22 @@ module Rc
       def on_quad(inst)
         v1 = Push.new(visit(inst.lhs))
         v2 = if inst.rhs.is_a? TAC::Empty
-          []
-        else
-          Push.new(visit(inst.rhs))
-        end
-        op = visit(inst.op)
+               []
+             else
+               Push.new(visit(inst.rhs))
+             end
+        op = process_op(inst.op)
         res = Pop.new(visit(inst.result))
         [v1, v2, op, res]
       end
 
       def on_cond_jump(inst)
         # todo:fix this
-        CondJump.new(inst.cond, inst.true_addr)
+        CondJump.new(inst.cond, UnsetAddr.new(inst.true_addr.name))
       end
 
       def on_direct_jump(inst)
-        DirectJump.new(inst.target)
+        DirectJump.new(UnsetAddr.new(inst.target.name))
       end
 
       # todo:process this
@@ -56,8 +74,8 @@ module Rc
         Return.new
       end
 
-      def on_op(inst)
-        case inst.op
+      def process_op(op)
+        case op
         in "+"
           Add.new
         in "-"
@@ -66,8 +84,11 @@ module Rc
           Mul.new
         in "/"
           Div.new
+        in "assign"
+          # todo:which should pop
+          Pop.new(0)
         else
-          raise "not supported op #{inst.op.class}:#{inst.op}"
+          raise "not supported op #{op}"
         end
       end
 
@@ -78,8 +99,14 @@ module Rc
       def on_empty_value(inst)
         []
       end
+
+      def on_call(inst)
+        # todo:set a error addr
+        # find in env and push?
+        inst
+      end
     end
 
-    module_function :to_vm_inst
+    module_function :to_vm_inst, :analysis_sym_table, :update_call_addr
   end
 end

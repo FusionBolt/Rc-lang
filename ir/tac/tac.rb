@@ -4,10 +4,10 @@ module Rc
   module TAC
     class TACRoot
       # symbol store by str
-      attr_accessor :fun_list, :entry, :sym_table, :const_table
+      attr_reader :fun_list, :entry, :sym_table, :const_table
 
-      def initialize(fun_list, env, sym_table, const_table)
-        @entry = env.fetch('main', nil)
+      def initialize(fun_list, sym_table, const_table)
+        @entry = sym_table.fetch('main', nil)
         @fun_list = fun_list
         @sym_table, @const_table = sym_table, const_table
       end
@@ -51,7 +51,7 @@ TOS
         @addr = addr
       end
 
-      def eql?(other)
+      def ==(other)
         @addr == other.addr
       end
     end
@@ -67,6 +67,10 @@ TOS
       def to_s
         "#{@result} = #{@lhs} #{@op} #{@rhs}"
       end
+
+      def ==(other)
+        @op == other.op && @result == other.result && @lhs == other.lhs && @rhs == other.rhs
+      end
     end
 
     class Name
@@ -78,6 +82,10 @@ TOS
 
       def to_s
         @name.gsub(/:/, '')
+      end
+
+      def ==(other)
+        @name == other.name
       end
     end
 
@@ -96,7 +104,7 @@ TOS
         @num.to_s
       end
 
-      def eql?(other)
+      def ==(other)
         @num == other.num
       end
     end
@@ -138,7 +146,7 @@ TOS
         [@target]
       end
 
-      def eql?(other)
+      def ==(other)
         @target == other.target
       end
     end
@@ -154,7 +162,7 @@ TOS
         @name
       end
 
-      def eql?(other)
+      def ==(other)
         @name == other.name
       end
     end
@@ -162,6 +170,10 @@ TOS
     class Empty
       def to_s
         ""
+      end
+
+      def ==(other)
+        self.class == other.class
       end
     end
 

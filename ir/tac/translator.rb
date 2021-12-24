@@ -15,7 +15,7 @@ module Rc::TAC
 
     def translate(ast, env)
       def_list = visit(ast)
-      TACRoot.new(def_list, env, {}, @const_table)
+      TACRoot.new(def_list, @sym_table, @const_table)
     end
 
     def local_init
@@ -40,9 +40,10 @@ module Rc::TAC
       name = visit(node.var_obj)
       expr = visit(node.expr)
       if expr.is_a? Quad
-        @tac_list[-1].result = name
+        @tac_list.push Quad.new('assign', name, expr.result, EmptyValue.new)
       else
-        inst = Quad.new(EmptyOp.new, name, expr, EmptyValue.new)
+        # todo:maybe a error
+        inst = Quad.new('assign', name, expr, EmptyValue.new)
         @tac_list.push inst
       end
       # translate last tac
@@ -87,7 +88,7 @@ module Rc::TAC
     end
 
     def on_function(fun)
-      initialize
+      local_init
       @tac_list.push Label.new(fun.name)
       visit(fun.stmts)
       # return value store into a temp name
@@ -95,7 +96,7 @@ module Rc::TAC
       # todo:this jump need process, when return after this, maybe set a return in function is ok
       # used for BasicBlock
       @tac_list.push DirectJump.new(Label.new("TempReturnLabel"))
-      Function.new(fun.name, @tac_list)
+      Function.new(fun.name, @tac_list).tap {|f| @sym_table[fun.name] = f }
     end
 
     def on_lambda(node) end
@@ -103,7 +104,9 @@ module Rc::TAC
     def on_fun_call(node)
       # todo:need process this and new expr
       args = node.args.map {|a| visit(a)}
-      @tac_list.push Call.new(node.name, args)
+      call = Call.new(node.name, args)
+      @tac_list.push call
+      @tac_list.push Quad.new('assign', get_tmp_name, call, EmptyValue.new)
     end
 
     def on_class_member_access(access) end

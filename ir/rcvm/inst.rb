@@ -19,6 +19,25 @@ module Rc
       end
     end
 
+    class FunLabel < Label
+    end
+
+    class Addr
+      attr_reader :seg, :offset
+
+      def initialize(seg, offset)
+        @seg, @offset = seg, offset
+      end
+    end
+
+    class UnsetAddr
+      attr_reader :name
+
+      def initialize(name)
+        @name = name
+      end
+    end
+
     class CondJump
       attr_accessor :cond, :addr
 

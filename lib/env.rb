@@ -148,11 +148,11 @@ module Rc
       @list.method(symbol).try { |x| x.call(*args) }
     end
 
-    def eql?(other)
+    def ==(other)
       if other.is_a? Array
         @list == other
       else
-        @list.eql? other.list
+        @list.== other.list
       end
     end
   end

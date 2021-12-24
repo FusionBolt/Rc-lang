@@ -1,0 +1,9 @@
+def multi(a, b)
+    c = a * b
+    c
+end
+
+def main
+    puts('The World!')
+    v = multi(1, 2)
+end

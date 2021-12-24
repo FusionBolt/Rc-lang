@@ -111,7 +111,7 @@ CFG_TEST
         new_direct_jump = Rc::TAC::DirectJump.new(@f)
         expect(result.size).to eq 7
         expect(result[1].false_addr).to eq result[2]
-        expect(result[2..-1]).to eql [new_l, new_direct_jump] + old_label
+        expect(result[2..-1]).to eq [new_l, new_direct_jump] + old_label
       end
     end
   end
