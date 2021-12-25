@@ -73,6 +73,15 @@ TOS
       end
     end
 
+    class Assign < Quad
+      def initialize(result, lhs)
+        @op = 'assign'
+        @result = result
+        @lhs = lhs
+        @rhs = EmptyValue.new
+      end
+    end
+
     class Name
       attr_accessor :name
 
@@ -207,11 +216,20 @@ TOS
       end
     end
 
-    class Call
-      attr_accessor :target, :args
+    class Call < Quad
+      def initialize(result, target, args)
+        @op = 'call'
+        @result = result
+        @lhs = target
+        @rhs = args
+      end
 
-      def initialize(target, args)
-        @target, @args = target, args
+      def target
+        @lhs
+      end
+
+      def args
+        @rhs
       end
     end
 

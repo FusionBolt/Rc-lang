@@ -39,14 +39,22 @@ module Rc::TAC
     def on_assign(node)
       name = visit(node.var_obj)
       expr = visit(node.expr)
-      if expr.is_a? Quad
-        @tac_list.push Quad.new('assign', name, expr.result, EmptyValue.new)
+      # todo:can be refactor
+      inst = Assign.new(name, expr)
+      @tac_list.push inst
+      inst
+    end
+
+    def on_expr(node)
+      expr = visit(node.expr)
+      if expr.is_a? Number or expr.is_a? Memory or expr.is_a? Name
+        #is ok, can be used directly as an operand
+        expr
+      elsif expr.is_a? Quad
+        expr.result
       else
-        # todo:maybe a error
-        inst = Quad.new('assign', name, expr, EmptyValue.new)
-        @tac_list.push inst
+        raise 'unknown'
       end
-      # translate last tac
     end
 
     def get_result(ret_val)
@@ -101,12 +109,22 @@ module Rc::TAC
 
     def on_lambda(node) end
 
+    def translate_node_to_operand(node)
+      if node.is_a? Quad
+        node.result
+      else
+        node
+      end
+    end
+
     def on_fun_call(node)
       # todo:need process this and new expr
-      args = node.args.map {|a| visit(a)}
-      call = Call.new(node.name, args)
+      # todo:process same like on_expr
+      args = node.args.map {|a| translate_node_to_operand(visit(a))}
+      result_name = get_tmp_name
+      call = Call.new(result_name, Name.new(node.name), args)
       @tac_list.push call
-      @tac_list.push Quad.new('assign', get_tmp_name, call, EmptyValue.new)
+      call
     end
 
     def on_class_member_access(access) end
@@ -121,9 +139,10 @@ module Rc::TAC
       mem = get_tmp_name
       alloc = Alloc.new(node.class_name, mem)
       args = node.args.map {|a| visit(a)}
-      call = Call.new(node.class_name, [alloc] + args)
+      call = Call.new(get_tmp_name, node.class_name, [alloc] + args)
       @tac_list.push alloc
       @tac_list.push call
+      call
     end
 
     def on_constant(node) end

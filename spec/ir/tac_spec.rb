@@ -17,10 +17,10 @@ SRC
       # todo:can be refactor
       tac = get_tac(s)
       list = tac.first_fun_tac_list
-      expect(list[1]).to eq Quad.new('assign', Name.new('a'), Number.new(1), EmptyValue.new)
-      expect(list[2]).to eq Quad.new('assign', Name.new('b'), Number.new(2), EmptyValue.new)
+      expect(list[1]).to eq Assign.new(Name.new('a'), Number.new(1))
+      expect(list[2]).to eq Assign.new(Name.new('b'), Number.new(2))
       expect(list[3]).to eq Quad.new('*', TempName.new('0'), Name.new('a'), Name.new('b'))
-      expect(list[4]).to eq Quad.new('assign', Name.new('c'), TempName.new('0'), EmptyValue.new)
+      expect(list[4]).to eq Assign.new(Name.new('c'), TempName.new('0'))
     end
   end
 
@@ -58,7 +58,7 @@ CALL
       f = tac.fun_list[1]
       call_f1 = f[1]
       expect(call_f1.is_a? Rc::TAC::Call).to eq true
-      expect(call_f1.target).to eq 'f1'
+      expect(call_f1.target).to eq Name.new('f1')
       expect(call_f1.args).to eq [Rc::TAC::Number.new(1), Rc::TAC::Number.new(2), Rc::TAC::Number.new(3)]
     end
   end
@@ -100,6 +100,26 @@ SRC
       tac = get_tac(s)
       expect(tac.sym_table.has_key? 'f1').to eq true
       expect(tac.first_fun_tac_list[0]).to eq Label.new('f1')
+    end
+  end
+
+  context 'compose' do
+    it 'assign call result' do
+      s = <<SRC
+def f
+  v = f1(1, 2, 3)
+end
+
+def f1(a, b, c)
+  a + b + c
+end
+SRC
+      tac = get_tac(s)
+      list = tac.first_fun_tac_list
+      call_result = TempName.new('0')
+      expect(list[1]).to eq Call.new(call_result, Name.new('f1'), [Number.new(1), Number.new(2), Number.new(3)])
+      expect(list[2]).to eq Assign.new(Name.new('v'), call_result)
+      expect(list[3].class).to eq Return
     end
   end
 end
