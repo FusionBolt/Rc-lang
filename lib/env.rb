@@ -136,11 +136,9 @@ module Rc
     def add(constant)
       # todo:slow, if @list == Set[], maybe can't index
       i = @list.index(constant)
-      if i.nil?
+      i.or_else do
         @list.push constant
         @list.size - 1
-      else
-        i
       end
     end
 

@@ -6,11 +6,19 @@ class Object
       public_send(*a, &b) if respond_to?(a.first)
     end
   end
+
+  def or_else(&block)
+    self
+  end
 end
 
 class NilClass
   def try(*args)
     nil
+  end
+
+  def or_else(&block)
+    block.call
   end
 end
 

@@ -39,21 +39,17 @@ module Rc::TAC
     def on_assign(node)
       name = visit(node.var_obj)
       expr = visit(node.expr)
-      # todo:can be refactor
-      inst = Assign.new(name, expr)
-      @tac_list.push inst
-      inst
+      Assign.new(name, expr).tap { |assign| @tac_list.push assign }
     end
 
     def on_expr(node)
       expr = visit(node.expr)
-      if expr.is_a? Number or expr.is_a? Memory or expr.is_a? Name
-        #is ok, can be used directly as an operand
+      if expr.is_a? Operand
         expr
       elsif expr.is_a? Quad
         expr.result
       else
-        raise 'unknown'
+        raise 'unknown expr type'
       end
     end
 
@@ -148,7 +144,6 @@ module Rc::TAC
     def on_constant(node) end
 
     def on_bool_constant(node)
-      # this is a hack
       Number.new(node.val.to_i)
     end
 

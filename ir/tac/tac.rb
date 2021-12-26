@@ -1,4 +1,6 @@
 require_relative 'translator'
+require_relative 'quad'
+require_relative 'operand'
 
 module Rc
   module TAC
@@ -41,80 +43,6 @@ TOS
 
       def [](index)
         @tac_list[index]
-      end
-    end
-
-    class Memory
-      attr_reader :addr
-
-      def initialize(addr)
-        @addr = addr
-      end
-
-      def ==(other)
-        @addr == other.addr
-      end
-    end
-
-    class Quad
-      # op: binary, alloc
-      attr_accessor :op, :result, :lhs, :rhs
-
-      def initialize(op, result, lhs, rhs)
-        @op, @result, @lhs, @rhs = op, result, lhs, rhs
-      end
-
-      def to_s
-        "#{@result} = #{@lhs} #{@op} #{@rhs}"
-      end
-
-      def ==(other)
-        @op == other.op && @result == other.result && @lhs == other.lhs && @rhs == other.rhs
-      end
-    end
-
-    class Assign < Quad
-      def initialize(result, lhs)
-        @op = 'assign'
-        @result = result
-        @lhs = lhs
-        @rhs = EmptyValue.new
-      end
-    end
-
-    class Name
-      attr_accessor :name
-
-      def initialize(name)
-        @name = name
-      end
-
-      def to_s
-        @name.gsub(/:/, '')
-      end
-
-      def ==(other)
-        @name == other.name
-      end
-    end
-
-    # likely reg
-    class TempName < Name
-    end
-
-    class Number
-      attr_accessor :num
-
-      def initialize(num)
-        @num = num
-      end
-
-      def to_s
-        @num.to_s
-      end
-
-      def ==(other)
-        @num == other.num
       end
     end
 
@@ -216,22 +144,7 @@ TOS
       end
     end
 
-    class Call < Quad
-      def initialize(result, target, args)
-        @op = 'call'
-        @result = result
-        @lhs = target
-        @rhs = args
-      end
 
-      def target
-        @lhs
-      end
-
-      def args
-        @rhs
-      end
-    end
 
     module_function :to_tac
   end
