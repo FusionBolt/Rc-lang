@@ -91,16 +91,30 @@ SRC
   end
 
   context 'fun' do
-    it 'succeed' do
+    it 'empty fun' do
       s = <<SRC
 def f1
   
 end
 SRC
       tac = get_tac(s)
+      list = tac.first_fun_tac_list
       expect(tac.sym_table.has_key? 'f1').to eq true
-      expect(tac.first_fun_tac_list[0]).to eq Label.new('f1')
+      expect(list[0]).to eq Label.new('f1')
+      expect(list[1]).to eq Return.new(EmptyValue.new)
     end
+
+    # todo:this case is fail, when last stmt is a expr,
+#     it 'direct return value' do
+#       s = <<SRC
+# def f1
+#  1
+# end
+# SRC
+#       list = get_first_fun_tac_list(s)
+#       expect(list[1]).to eq Return.new(Number.new(1))
+#     end
+    # todo:test last is if and while
   end
 
   context 'compose' do

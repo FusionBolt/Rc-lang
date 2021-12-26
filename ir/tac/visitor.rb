@@ -1,12 +1,10 @@
 require './lib/helper'
+require './lib/visitor'
 
 module Rc
   module TAC
     module Visitor
-      def visit(inst)
-        puts inst
-        method("on_#{Helper::under_score_class_name(inst)}")[inst]
-      end
+      include Rc::Lib::Visitor
 
       def on_array(inst) = inst.map {|n| visit(n)}
 

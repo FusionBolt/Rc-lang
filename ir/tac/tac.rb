@@ -102,22 +102,10 @@ TOS
       def ==(other)
         @name == other.name
       end
-    end
 
-    class Empty
-      def to_s
-        ""
+      def to_operand
+        EmptyValue.new
       end
-
-      def ==(other)
-        self.class == other.class
-      end
-    end
-
-    class EmptyOp < Empty
-    end
-
-    class EmptyValue < Empty
     end
 
     class Move
@@ -134,6 +122,10 @@ TOS
       def initialize(ret_val)
         @ret_val = ret_val
       end
+
+      def ==(other)
+        @ret_val == other.ret_val
+      end
     end
 
     class Alloc
@@ -143,8 +135,6 @@ TOS
         @type, @result = type, result
       end
     end
-
-
 
     module_function :to_tac
   end

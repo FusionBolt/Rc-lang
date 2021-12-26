@@ -33,9 +33,7 @@ module Rc::AST
     end
 
     class Function
-      # args is str list
-      # TODO:is ok?
-      attr_reader :name, :args, :stmts, :or_else
+      attr_reader :name, :args, :stmts
 
       def initialize(name, args, stmts)
         @name, @args, @stmts = name, args, stmts

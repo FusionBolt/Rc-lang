@@ -255,12 +255,9 @@ module Rc
         until tag.has_marked(b)
           tag.mark(b)
           t.append(b)
-          # find last(false branch)
-          first_next_b = b.all_next.reverse.find { |next_b| not tag.has_marked(next_b) }
-          if first_next_b.nil?
-            break
-          else
-            b = first_next_b
+          # find last(false branch), not find(result is nil) then return
+          b = b.all_next.reverse.find { |next_b| not tag.has_marked(next_b) }.or_else do |_|
+            return t
           end
         end
         t

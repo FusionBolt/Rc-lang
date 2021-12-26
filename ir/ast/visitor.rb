@@ -1,17 +1,8 @@
 require './lib/helper'
+require './lib/visitor'
 
 module Rc::AST
-  module Visitor
-    def visit(node)
-      begin
-        method("on_#{Rc::Helper::under_score_class_name(node)}")[node]
-      rescue NoMethodError => e
-        # todo:error process
-        $logger.error "Error in visitor\nnode:#{node}\nerror info:#{e}"
-        exit
-      end
-    end
-
+  module StmtVisitor
     def on_root(node)
       node.packages.each { |n| visit(n) }
       node.defines.map { |n| visit(n) }
@@ -26,7 +17,7 @@ module Rc::AST
     def on_class_define(node) end
 
     def on_stmts(node)
-      node.stmts.each do |n|
+      node.stmts.map do |n|
         visit(n)
       end
     end
@@ -49,7 +40,9 @@ module Rc::AST
     def on_break_point(node) end
 
     def on_debug_stmt(node) end
+  end
 
+  module ExprVisitor
     def on_expr(node) = visit(node.expr)
 
     def on_binary(node) end
@@ -69,12 +62,20 @@ module Rc::AST
     # remove
     def on_op(node) end
 
-    def on_constant(node) end
+    def on_constant(node)
+      raise "node should not be a general constant #{node}"
+    end
 
     def on_bool_constant(node) end
 
     def on_number_constant(node) end
 
     def on_string_constant(node) end
+  end
+
+  module Visitor
+    include StmtVisitor
+    include ExprVisitor
+    include Rc::Lib::Visitor
   end
 end

@@ -2,9 +2,60 @@ require './ir/ast/visitor'
 require './lib/env'
 
 module Rc::TAC
-  # todo:mixin code which not visitor
+  # Expr should return value
+  module ExprTranslator
+    include Rc::AST::ExprVisitor
+
+    def on_expr(node)
+      visit(node.expr).to_operand
+    end
+
+    def on_lambda(node) end
+
+    def on_fun_call(node)
+      # todo:need process this and new expr
+      # todo:process same like on_expr
+      args = node.args.map { |a| (visit(a)).to_operand }
+      result_name = get_tmp_name
+      call = Call.new(result_name, Name.new(node.name), args)
+      @tac_list.push call
+      call
+    end
+
+    def on_class_member_access(access) end
+
+    def on_identifier(node)
+      Name.new(node.name)
+    end
+
+    def on_instance(node) end
+
+    def on_new_expr(node)
+      mem = get_tmp_name
+      alloc = Alloc.new(node.class_name, mem)
+      args = node.args.map {|a| visit(a)}
+      call = Call.new(get_tmp_name, node.class_name, [alloc] + args)
+      @tac_list.push alloc
+      @tac_list.push call
+      call
+    end
+
+    def on_bool_constant(node)
+      Number.new(node.val.to_i)
+    end
+
+    def on_number_constant(node)
+      Number.new(node.val.to_i)
+    end
+
+    def on_string_constant(node)
+      Memory.new(@const_table.add(node.val))
+    end
+  end
+
   class TacTranslator
     include Rc::AST::Visitor
+    include ExprTranslator
     attr_reader :tac_list
 
     def initialize
@@ -32,39 +83,16 @@ module Rc::TAC
       Label.new("L#{@label_count}").tap{ @label_count += 1 }
     end
 
-    # def on_stmts(node)
-    #   node.stmts.reduce([]) { |sum, n| sum + [visit(n)] }
-    # end
-
     def on_assign(node)
       name = visit(node.var_obj)
       expr = visit(node.expr)
       Assign.new(name, expr).tap { |assign| @tac_list.push assign }
     end
 
-    def on_expr(node)
-      expr = visit(node.expr)
-      if expr.is_a? Operand
-        expr
-      elsif expr.is_a? Quad
-        expr.result
-      else
-        raise 'unknown expr type'
-      end
-    end
-
-    def get_result(ret_val)
-      if ret_val.is_a? Quad
-        ret_val.result
-      else
-        ret_val
-      end
-    end
-
     def on_binary(node)
       first_tac = visit(node.lhs)
       second_tac = visit(node.rhs)
-      inst = Quad.new(node.op.op, get_tmp_name, get_result(first_tac), get_result(second_tac))
+      inst = Quad.new(node.op.op, get_tmp_name, first_tac.to_operand, second_tac.to_operand)
       @tac_list.push inst
       inst
     end
@@ -95,64 +123,15 @@ module Rc::TAC
       local_init
       @tac_list.push Label.new(fun.name)
       visit(fun.stmts)
+      # todo:should return
       # return value store into a temp name
-      @tac_list.push Return.new(@tac_list[-1])
+      @tac_list[-1].tap do |x|
+        @tac_list.push Return.new(x.to_operand)
+      end
       # todo:this jump need process, when return after this, maybe set a return in function is ok
       # used for BasicBlock
       @tac_list.push DirectJump.new(Label.new("TempReturnLabel"))
       Function.new(fun.name, @tac_list).tap {|f| @sym_table[fun.name] = f }
-    end
-
-    def on_lambda(node) end
-
-    def translate_node_to_operand(node)
-      if node.is_a? Quad
-        node.result
-      else
-        node
-      end
-    end
-
-    def on_fun_call(node)
-      # todo:need process this and new expr
-      # todo:process same like on_expr
-      args = node.args.map {|a| translate_node_to_operand(visit(a))}
-      result_name = get_tmp_name
-      call = Call.new(result_name, Name.new(node.name), args)
-      @tac_list.push call
-      call
-    end
-
-    def on_class_member_access(access) end
-
-    def on_identifier(node)
-      Name.new(node.name)
-    end
-
-    def on_instance(node) end
-
-    def on_new_expr(node)
-      mem = get_tmp_name
-      alloc = Alloc.new(node.class_name, mem)
-      args = node.args.map {|a| visit(a)}
-      call = Call.new(get_tmp_name, node.class_name, [alloc] + args)
-      @tac_list.push alloc
-      @tac_list.push call
-      call
-    end
-
-    def on_constant(node) end
-
-    def on_bool_constant(node)
-      Number.new(node.val.to_i)
-    end
-
-    def on_number_constant(node)
-      Number.new(node.val.to_i)
-    end
-
-    def on_string_constant(node)
-      Memory.new(@const_table.add(node.val))
     end
   end
 end

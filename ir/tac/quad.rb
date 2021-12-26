@@ -13,6 +13,10 @@ module Rc::TAC
     def ==(other)
       @op == other.op && @result == other.result && @lhs == other.lhs && @rhs == other.rhs
     end
+
+    def to_operand
+      @result
+    end
   end
 
   class Assign < Quad

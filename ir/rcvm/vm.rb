@@ -44,7 +44,7 @@ module Rc
 
       def on_quad(inst)
         v1 = Push.new(visit(inst.lhs))
-        v2 = if inst.rhs.is_a? TAC::Empty
+        v2 = if inst.rhs.is_a? TAC::EmptyValue
                []
              else
                Push.new(visit(inst.rhs))

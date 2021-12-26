@@ -1,5 +1,8 @@
 module Rc::TAC
   class Operand
+    def to_operand
+      self
+    end
   end
 
   class Memory < Operand
@@ -46,6 +49,16 @@ module Rc::TAC
 
     def ==(other)
       @num == other.num
+    end
+  end
+
+  class EmptyValue < Operand
+    def to_s
+      ""
+    end
+
+    def ==(other)
+      self.class == other.class
     end
   end
 end
