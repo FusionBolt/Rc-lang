@@ -32,7 +32,7 @@ module Rc
       # roads = CFG.search_all_branches(cfg)
       # puts roads
       puts 'To VM Inst'
-      vm_list = RCVM.to_vm_inst(tac)
+      vm_list = VM.to_vm_inst(tac)
       puts vm_list
       File.open('/home/homura/Code/RCVM/cmake-build-debug/inst.rcvi', 'w') do |f|
         f.write(vm_list.map(&:to_s).join("\n"))

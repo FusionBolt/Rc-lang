@@ -1,5 +1,5 @@
 module Rc
-  module RCVM
+  module VM
     # to_s util method
     module InstUtil
       def to_s

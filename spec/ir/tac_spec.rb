@@ -115,6 +115,16 @@ SRC
 #       expect(list[1]).to eq Return.new(Number.new(1))
 #     end
     # todo:test last is if and while
+    it 'return compute result' do
+      s = <<SRC
+def add(a, b)
+  a + b
+end
+SRC
+      list = get_first_fun_tac_list(s)
+      expect(list[1]).to eq Quad.new('+', TempName.new('0'), Name.new('a'), Name.new('b'))
+      expect(list[2]).to eq Return.new(TempName.new('0'))
+    end
   end
 
   context 'compose' do

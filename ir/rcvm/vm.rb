@@ -3,15 +3,15 @@ require './lib/env'
 require_relative './inst'
 
 module Rc
-  module RCVM
+  module VM
     module MemoryLocation
       ESP = 0
       EAX = 1
       RBP = 2
     end
 
-    def to_vm_inst(fun)
-      list = RCVMInstTranslator.new.visit(fun)
+    def to_vm_inst(tac)
+      list = RCVMInstTranslator.new.visit(tac)
       sym_table = analysis_sym_table(list)
       update_call_addr(list, sym_table)
     end
@@ -31,24 +31,13 @@ module Rc
       list.filter { |x| x.is_a? UnsetAddr }.map { |a| Addr.new('code', sym_table[a]) }
     end
 
-    class RCVMInstTranslator
-      include TAC::Visitor
-
-      def on_function(fun)
-        fun.tac_list.map { |t| visit(t) }.flatten
-      end
-
-      def on_label(inst)
-        Label.new(inst.name)
-      end
-
+    module QuadTranslator
       def on_quad(inst)
         v1 = Push.new(visit(inst.lhs))
-        v2 = if inst.rhs.is_a? TAC::EmptyValue
-               []
-             else
-               Push.new(visit(inst.rhs))
-             end
+        v2 = Push.new(visit(inst.rhs))
+        if inst.rhs.is_a? TAC::EmptyValue
+          raise 'quad rhs should not be empty value'
+        end
         op = process_op(inst.op)
         res = Pop.new(visit(inst.result))
         [v1, v2, op, res]
@@ -57,6 +46,35 @@ module Rc
       def on_cond_jump(inst)
         # todo:fix this
         CondJump.new(inst.cond, UnsetAddr.new(inst.true_addr.name))
+      end
+
+      def on_assign(inst)
+        Push.new(inst.value)
+        Pop.new(inst.target)
+      end
+
+      def on_call(inst)
+        # todo:set a error addr
+        # find in env and push?
+        inst
+      end
+    end
+
+    module OperandTranslator
+
+    end
+
+    class RCVMInstTranslator
+      include TAC::Visitor
+      include QuadTranslator
+      include OperandTranslator
+
+      def on_function(fun)
+        fun.tac_list.map { |t| visit(t) }.flatten
+      end
+
+      def on_label(inst)
+        Label.new(inst.name)
       end
 
       def on_direct_jump(inst)
@@ -98,12 +116,6 @@ module Rc
 
       def on_empty_value(inst)
         []
-      end
-
-      def on_call(inst)
-        # todo:set a error addr
-        # find in env and push?
-        inst
       end
     end
 

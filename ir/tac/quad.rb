@@ -26,6 +26,14 @@ module Rc::TAC
       @lhs = lhs
       @rhs = EmptyValue.new
     end
+
+    def target
+      @result
+    end
+
+    def value
+      @lhs
+    end
   end
 
   class Call < Quad
