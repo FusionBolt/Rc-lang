@@ -1,6 +1,5 @@
 def multi(a, b)
-    c = a * b
-    c
+    a * b
 end
 
 def main

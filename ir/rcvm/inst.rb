@@ -1,112 +1,145 @@
-module Rc
-  module VM
-    # to_s util method
-    module InstUtil
-      def to_s
-        Helper.pure_class_name(self)
-      end
+module Rc::VM
+  # to_s util method
+  module InstUtil
+    def to_s
+      Helper.pure_class_name(self)
     end
 
-    class Label
-      attr_reader :name
+    def ==(other)
+      self.class == other.class
+    end
+  end
 
-      def initialize(name)
-        @name = name
-      end
+  class Label
+    attr_reader :name
 
-      def to_s
-        "Label #{@name}"
-      end
+    def initialize(name)
+      @name = name
     end
 
-    class FunLabel < Label
+    def to_s
+      "Label #{@name}"
+    end
+  end
+
+  class FunLabel < Label
+  end
+
+  class Addr
+    attr_reader :seg, :offset
+
+    def initialize(seg, offset)
+      @seg, @offset = seg, offset
+    end
+  end
+
+  class UnsetAddr
+    attr_reader :name
+
+    def initialize(name)
+      @name = name
+    end
+  end
+
+  class LocalVarOperator
+    attr_accessor :offset
+
+    def initialize(offset)
+      @offset = offset
     end
 
-    class Addr
-      attr_reader :seg, :offset
+    def ==(other)
+      offset == other.offset
+    end
+  end
 
-      def initialize(seg, offset)
-        @seg, @offset = seg, offset
-      end
+  class SetLocal < LocalVarOperator
+  end
+
+  class GetLocal < LocalVarOperator
+  end
+
+  class CondJump
+    attr_accessor :cond, :addr
+
+    def initialize(cond, addr)
+      @cond, @addr = cond, addr
     end
 
-    class UnsetAddr
-      attr_reader :name
+    def to_s
+      "CondJump #{cond} #{addr}"
+    end
+  end
 
-      def initialize(name)
-        @name = name
-      end
+  class DirectJump
+    attr_reader :target
+
+    def initialize(target)
+      @target = target
     end
 
-    class CondJump
-      attr_accessor :cond, :addr
+    def to_s
+      "DirectJump #{@target}"
+    end
+  end
 
-      def initialize(cond, addr)
-        @cond, @addr = cond, addr
-      end
+  class Push
+    attr_reader :value
 
-      def to_s
-        "CondJump #{cond} #{addr}"
-      end
+    def initialize(value)
+      @value = value
     end
 
-    class DirectJump
-      attr_reader :target
-
-      def initialize(target)
-        @target = target
-      end
-
-      def to_s
-        "DirectJump #{@target}"
-      end
+    def to_s
+      "Push #{@value}"
     end
 
-    class Push
-      attr_reader :value
+    def ==(other)
+      @value == other.value
+    end
+  end
 
-      def initialize(value)
-        @value = value
-      end
+  class Pop
+    attr_reader :pos
 
-      def to_s
-        "Push #{@value}"
-      end
+    def initialize(pos)
+      @pos = pos
     end
 
-    class Pop
-      attr_reader :pos
+    def to_s
+      "Pop #{pos}"
+    end
+  end
 
-      def initialize(pos)
-        @pos = pos
-      end
+  class Call
+    attr_reader :target
 
-      def to_s
-        "Pop #{pos}"
-      end
+    def initialize(target)
+      @target = target
     end
 
-    class Call
+    def ==(other)
+      @target == other.target
     end
+  end
 
-    class Return
-      include InstUtil
-    end
+  class Return
+    include InstUtil
+  end
 
-    class Add
-      include InstUtil
-    end
+  class Add
+    include InstUtil
+  end
 
-    class Sub
-      include InstUtil
-    end
+  class Sub
+    include InstUtil
+  end
 
-    class Mul
-      include InstUtil
-    end
+  class Mul
+    include InstUtil
+  end
 
-    class Div
-      include InstUtil
-    end
+  class Div
+    include InstUtil
   end
 end
