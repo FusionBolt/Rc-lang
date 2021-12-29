@@ -1,8 +1,10 @@
+require './lib/helper'
+
 module Rc::VM
   # to_s util method
   module InstUtil
     def to_s
-      Helper.pure_class_name(self)
+      Rc::Helper.pure_class_name(self)
     end
 
     def ==(other)

@@ -6,29 +6,44 @@ module Rc
   module Analysis
     class GlobalEnvVisitor
       include AST::Visitor
-      attr_reader :env, :sym_table
+      attr_reader :define_env, :const_table
 
       def initialize
-        @env = Env.new
-        @sym_table = Set[]
+        @define_env = Env.new
+        @const_table = Set[]
+        @fun_env = { }
       end
 
       def analysis(ast)
         visit(ast)
-        [@env, @sym_table]
+        GlobalEnv.new(@define_env, @const_table, @fun_env)
       end
 
       def on_class_define(node)
-        @env.define_symbol(node.name, node)
+        @define_env.define_symbol(node.name, node)
       end
 
       def on_function(node)
-        @env.define_symbol(node.name, node)
+        @define_env.define_symbol(node.name, node)
+        @cur_fun_sym = Env.new
+        @cur_fun_var_id = 0
         visit(node.stmts)
+        @fun_env[node.name] = @cur_fun_sym
       end
 
       def on_string_constant(node)
-        @sym_table.add node.val
+        @const_table.add node.val
+      end
+
+      def on_assign(node)
+        # todo:when member access, this error
+        super
+        name = node.var_obj.name
+        @cur_fun_sym[name] = EnvItemInfo.new(cur_fun_var_id, '')
+      end
+
+      def cur_fun_var_id
+        @cur_fun_var_id.tap { @cur_fun_var_id += 1 }
       end
     end
   end

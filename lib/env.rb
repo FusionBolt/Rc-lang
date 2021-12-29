@@ -154,4 +154,16 @@ module Rc
       end
     end
   end
+
+  # todo:this maybe create by define symbol
+  class EnvItemInfo < Struct.new(:id, :type)
+  end
+
+  class GlobalEnv
+    attr_reader :define_env, :const_table, :fun_env
+
+    def initialize(define_env, const_table, fun_env)
+      @define_env, @const_table, @fun_env = define_env, const_table, fun_env
+    end
+  end
 end

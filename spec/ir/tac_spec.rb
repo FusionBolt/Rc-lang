@@ -101,7 +101,7 @@ SRC
       list = tac.first_fun_tac_list
       expect(tac.sym_table.has_key? 'f1').to eq true
       expect(list[0]).to eq Label.new('f1')
-      expect(list[1]).to eq Return.new(EmptyValue.new)
+      expect(list[1]).to eq Rc::TAC::Return.new(EmptyValue.new)
     end
 
     # todo:this case is fail, when last stmt is a expr,
@@ -123,7 +123,7 @@ end
 SRC
       list = get_first_fun_tac_list(s)
       expect(list[1]).to eq Quad.new('+', TempName.new('0'), Name.new('a'), Name.new('b'))
-      expect(list[2]).to eq Return.new(TempName.new('0'))
+      expect(list[2]).to eq Rc::TAC::Return.new(TempName.new('0'))
     end
   end
 
@@ -141,9 +141,9 @@ SRC
       tac = get_tac(s)
       list = tac.first_fun_tac_list
       call_result = TempName.new('0')
-      expect(list[1]).to eq Call.new(call_result, Name.new('f1'), [Number.new(1), Number.new(2), Number.new(3)])
+      expect(list[1]).to eq Rc::TAC::Call.new(call_result, Name.new('f1'), [Number.new(1), Number.new(2), Number.new(3)])
       expect(list[2]).to eq Assign.new(Name.new('v'), call_result)
-      expect(list[3].class).to eq Return
+      expect(list[3].class).to eq Rc::TAC::Return
     end
   end
 end

@@ -5,7 +5,7 @@ require './analysis/call_graph'
 
 module Rc
   class ASTInterpreter
-    attr_reader :env
+    attr_reader :define_env
     def initialize(env = Env.new)
       @ast = nil
       @env = env

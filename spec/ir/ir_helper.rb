@@ -4,8 +4,8 @@ require './ir/tac/tac'
 module RcTestHelpers
   def get_tac(src)
     ast = parse(src)
-    env, sym_table = Rc::Analysis::GlobalEnvVisitor.new.analysis(ast)
-    Rc::TAC.to_tac(ast, env)
+    env = Rc::Analysis::GlobalEnvVisitor.new.analysis(ast)
+    Rc::TAC.to_tac(ast, env.define_env)
   end
 
   def get_first_fun_tac_list(src)

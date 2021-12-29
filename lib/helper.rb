@@ -1,5 +1,6 @@
 module Rc
   module Helper
+    # todo: hack to obj
     def pure_class_name(obj)
       s = obj.class.to_s
       if s.include? '::'

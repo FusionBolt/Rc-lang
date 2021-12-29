@@ -1,7 +1,6 @@
 require './ir/tac/tac'
 require './ir/ssa/ssa'
 require './ir/cfg'
-require './ir/rcvm/vm'
 require './analysis/call_graph'
 require './analysis/global_env'
 require './parser/parser'
