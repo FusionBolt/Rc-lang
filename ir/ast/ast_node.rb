@@ -45,6 +45,7 @@ module Rc::AST
         "fun:#{@name} args:#{args_to_s(@args)}"
       end
 
+      # interpreter
       def args_env(actual_args, env)
         @args.zip(actual_args.map { |arg| arg.eval(env) }).to_h
       end

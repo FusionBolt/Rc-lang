@@ -28,7 +28,11 @@ module Rc
     end
 
     def merge(other)
-      @env.update(other.env)
+      if other.is_a? Env
+        @env.update(other.env)
+      else
+        @env.update(other)
+      end
     end
 
     def system_var_init

@@ -18,43 +18,74 @@ module Rc::VM
     end
   end
 
+  module VMInstOperand
+    class Value < Struct.new(:value)
+    end
+
+    # Ref a exist var
+    class Ref < Struct.new(:ref)
+    end
+
+    def push(node)
+      if node.is_a? Value
+        Push.new(node.value)
+      elsif node.is_a? Ref
+        GetLocal.new(node.ref)
+      else
+        raise "Unsupported node type #{node.class}"
+      end
+    end
+  end
+
   module ExprTranslator
     include Rc::AST::ExprVisitor
+    include VMInstOperand
 
     def on_binary(node)
       [
-        Push.new(visit(node.lhs)),
-        Push.new(visit(node.rhs)),
+        push(visit(node.lhs)),
+        push(visit(node.rhs)),
         translate_op(node.op),
       ]
     end
 
+    # value, directly push
     def on_bool_constant(node)
     end
 
     def on_number_constant(node)
-      node.val.to_i
+      Value.new node.val.to_i
     end
 
     def on_string_constant(node)
     end
 
+    # Get or Set, so need return a id
     def on_identifier(node)
-      cur_fun_env[node.name].id
+      Ref.new cur_fun_env[node.name].id
+    end
+
+    def on_fun_call(fun_call)
+      fun_call.args.map { |arg| push(visit(arg)) } + [Call.new(fun_call.name)]
     end
   end
 
   module StmtTranslator
     include Rc::AST::StmtVisitor
+    include VMInstOperand
+
+    def on_root(node)
+      node.defines.map { |n| visit(n) }
+    end
 
     def on_function(node)
       @cur_fun = node.name
-      super(node)
+      [super(node), Return.new]
     end
 
     def on_assign(node)
       res = visit(node.var_obj)
-      [visit(node.expr), SetLocal.new(res)]
+      [visit(node.expr), SetLocal.new(res.ref)]
     end
   end
 

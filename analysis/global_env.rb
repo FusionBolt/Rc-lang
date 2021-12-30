@@ -25,8 +25,10 @@ module Rc
 
       def on_function(node)
         @define_env.define_symbol(node.name, node)
+        # todo:refactor
         @cur_fun_sym = Env.new
         @cur_fun_var_id = 0
+        @cur_fun_sym.merge(node.args.map{ |arg| [arg, EnvItemInfo.new(cur_fun_var_id, '')]}.to_h)
         visit(node.stmts)
         @fun_env[node.name] = @cur_fun_sym
       end

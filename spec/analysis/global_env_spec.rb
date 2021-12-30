@@ -4,6 +4,11 @@ require './analysis/global_env'
 require_relative '../parser_helper'
 require './lib/env'
 
+def get_global_env(s)
+  ast = parse(s)
+  Rc::Analysis::GlobalEnvVisitor.new.analysis(ast)
+end
+
 describe Rc::Analysis::GlobalEnvVisitor do
   before do
   end
@@ -50,6 +55,20 @@ STR_TABLE
       e = env.fun_env['foo']
       expect(e['a']).to eq Rc::EnvItemInfo.new(0, '')
       expect(e['b']).to eq Rc::EnvItemInfo.new(1, '')
+    end
+  end
+
+  context 'fun' do
+    it 'multi fun' do
+      s = <<SRC
+def f1
+end
+def f2
+end
+SRC
+      env = get_global_env(s)
+      expect(env.fun_env.has_key? 'f1').to eq true
+      expect(env.fun_env.has_key? 'f2').to eq true
     end
   end
 end
