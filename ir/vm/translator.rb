@@ -3,6 +3,7 @@ require './lib/visitor'
 require_relative './inst'
 
 module Rc::VM
+  include Inst
   def translate_op(op)
     case op.op
     in '+'

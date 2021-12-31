@@ -52,8 +52,4 @@ SRC
       expect(list[4..]).to eq [Push.new(1), Push.new(2), Call.new('add'), Return.new]
     end
   end
-
-  context 'return' do
-
-  end
 end
