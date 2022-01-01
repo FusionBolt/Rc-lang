@@ -1,15 +1,20 @@
 require_relative 'inst'
+require './lib/helper'
 
 class Array
   def generate(&f)
     map {|a| f[a] }.join("\n")
+  end
+
+  def pure_generate(&f)
+    map { |a| a.demodulize_class }.generate(&f)
   end
 end
 
 def gen_enum_inst_type(classes)
   <<SRC
 enum class InstType {
-#{classes.generate {|c| "#{c},"}}
+#{classes.pure_generate {|c| "#{c},"}}
 }
 SRC
 end
@@ -26,12 +31,13 @@ SRC
 end
 
 def gen_class_define(klass)
+  class_name = klass.demodulize
   <<SRC
-struct #{klass} : VMInst
+struct #{class_name} : VMInst
 {
-  #{klass}()
+  #{class_name}()
   {
-    type = InstType::#{klass}
+    type = InstType::#{class_name}
   }
 }
 SRC
@@ -43,8 +49,9 @@ def gen_classes_define(classes)
 end
 
 def gen_parser(klass)
+  class_name = klass.demodulize
   <<SRC
-if (list[0] == "#{klass}") return std::make_unique<#{klass}>();
+if (list[0] == "#{class_name}") return std::make_unique<#{class_name}>();
 SRC
 end
 
@@ -58,12 +65,9 @@ SRC
 end
 
 def get_classes(mod)
-  mod.constants.select {|c| mod.const_get(c).is_a? Class}
+  mod.constants.map{|c| mod.const_get(c)}.select{|c| c.is_a? Class}
 end
-klass = Object.const_get("Rc::VM::Inst::Add")
-def get_classes_info(mod, classes)
-  classes.map {|x| }
-end
+
 classes = get_classes(Rc::VM::Inst)
 puts gen_enum_inst_type(classes)
 puts gen_classes_define(classes)

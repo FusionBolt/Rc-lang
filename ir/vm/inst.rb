@@ -5,7 +5,7 @@ module Rc::VM
     # to_s util method
     module InstUtil
       def to_s
-        Rc::Helper.pure_class_name(self)
+        self.demodulize_class
       end
 
       def ==(other)
