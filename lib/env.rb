@@ -163,11 +163,6 @@ module Rc
   class EnvItemInfo < Struct.new(:id, :type)
   end
 
-  class GlobalEnv
-    attr_reader :define_env, :const_table, :fun_env
-
-    def initialize(define_env, const_table, fun_env)
-      @define_env, @const_table, @fun_env = define_env, const_table, fun_env
-    end
+  class GlobalEnv < Struct.new(:define_env, :const_table, :fun_env)
   end
 end

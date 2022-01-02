@@ -45,11 +45,11 @@ def add(a, b)
   a + b
 end
 def f
-  add(1, 2)
+  add(3, 2)
 end
 SRC
       list = get_vm_inst(s)
-      expect(list[4..]).to eq [Push.new(1), Push.new(2), Call.new('add'), Return.new]
+      expect(list[4..]).to eq [Push.new(3), Push.new(2), Call.new('add'), Return.new]
     end
   end
 end

@@ -13,13 +13,7 @@ module Rc::VM
       end
     end
 
-    class Label
-      attr_reader :name
-
-      def initialize(name)
-        @name = name
-      end
-
+    class Label < Struct.new(:name)
       def to_s
         "Label #{@name}"
       end
@@ -28,32 +22,13 @@ module Rc::VM
     class FunLabel < Label
     end
 
-    class Addr
-      attr_reader :seg, :offset
-
-      def initialize(seg, offset)
-        @seg, @offset = seg, offset
-      end
+    class Addr < Struct.new(:seg, :offset)
     end
 
-    class UnsetAddr
-      attr_reader :name
-
-      def initialize(name)
-        @name = name
-      end
+    class UnsetAddr < Struct.new(:unset_addr)
     end
 
-    class LocalVarOperator
-      attr_accessor :offset
-
-      def initialize(offset)
-        @offset = offset
-      end
-
-      def ==(other)
-        offset == other.offset
-      end
+    class LocalVarOperator < Struct.new(:offset)
     end
 
     class SetLocal < LocalVarOperator
@@ -62,68 +37,31 @@ module Rc::VM
     class GetLocal < LocalVarOperator
     end
 
-    class CondJump
-      attr_accessor :cond, :addr
-
-      def initialize(cond, addr)
-        @cond, @addr = cond, addr
-      end
-
+    class CondJump < Struct.new(:cond, :addr)
       def to_s
         "CondJump #{cond} #{addr}"
       end
     end
 
-    class DirectJump
-      attr_reader :target
-
-      def initialize(target)
-        @target = target
-      end
-
+    class DirectJump < Struct.new(:target)
       def to_s
         "DirectJump #{@target}"
       end
     end
 
-    class Push
-      attr_reader :value
-
-      def initialize(value)
-        @value = value
-      end
-
+    class Push < Struct.new(:push)
       def to_s
         "Push #{@value}"
       end
-
-      def ==(other)
-        @value == other.value
-      end
     end
 
-    class Pop
-      attr_reader :pos
-
-      def initialize(pos)
-        @pos = pos
-      end
-
+    class Pop < Struct.new(:pos)
       def to_s
         "Pop #{pos}"
       end
     end
 
-    class Call
-      attr_reader :target
-
-      def initialize(target)
-        @target = target
-      end
-
-      def ==(other)
-        @target == other.target
-      end
+    class Call < Struct.new(:target)
     end
 
     class Return
