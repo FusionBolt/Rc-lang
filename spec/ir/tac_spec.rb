@@ -100,7 +100,7 @@ SRC
       tac = get_tac(s)
       list = tac.first_fun_tac_list
       expect(tac.sym_table.has_key? 'f1').to eq true
-      expect(list[0]).to eq Label.new('f1')
+      expect(list[0]).to eq Rc::TAC::Label.new('f1')
       expect(list[1]).to eq Rc::TAC::Return.new(EmptyValue.new)
     end
 

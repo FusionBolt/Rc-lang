@@ -72,3 +72,7 @@ classes = get_classes(Rc::VM::Inst)
 puts gen_enum_inst_type(classes)
 puts gen_classes_define(classes)
 puts gen_all_parser(classes)
+
+puts Rc::VM::Inst::Label.new('str').name_t
+puts Rc::VM::Inst::CondJump.new(true, 1).cond_t
+puts Rc::VM::Inst::CondJump.new(f, 1).addr_t

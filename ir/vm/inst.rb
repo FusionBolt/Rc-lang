@@ -1,5 +1,50 @@
 require './lib/helper'
 
+def args_to_hash(*args)
+  args.reduce({}) do |sum, arg|
+    sum.merge(
+      if arg.is_a? Hash
+        arg
+      else
+        { arg => :str }
+      end)
+  end
+end
+
+class Module
+  def attr_type(*args)
+    args = args_to_hash(*args)
+    args.map do |attr, type|
+      define_method "#{attr}_t" do
+        type
+      end
+    end
+  end
+end
+
+class TypeStruct
+  def self.new(*args, &block)
+    # if don't have allocate, will be nil class
+    obj = allocate
+    # initialize is a private method
+    # initialize must be send instead of direct call
+    obj.send(:initialize, *args, &block)
+  end
+
+  # todo:type valid check
+  def initialize(*args)
+    args = args_to_hash(*args)
+    Struct.new(*args.keys).tap do |klass|
+      args.each do |attr, type|
+        # per class Struct is different
+        klass.define_method "#{attr}_t" do
+          type
+        end
+      end
+    end
+  end
+end
+
 module Rc::VM
   module Inst
     # to_s util method
@@ -14,15 +59,17 @@ module Rc::VM
     end
 
     class Label < Struct.new(:name)
+      attr_type :name => :str
+
       def to_s
-        "Label #{@name}"
+        "Label #{name}"
       end
     end
 
     class FunLabel < Label
     end
 
-    class Addr < Struct.new(:seg, :offset)
+    class Addr < TypeStruct.new(:seg, :offset)
     end
 
     class UnsetAddr < Struct.new(:unset_addr)
@@ -37,7 +84,7 @@ module Rc::VM
     class GetLocal < LocalVarOperator
     end
 
-    class CondJump < Struct.new(:cond, :addr)
+    class CondJump < TypeStruct.new(:cond, :addr => :int)
       def to_s
         "CondJump #{cond} #{addr}"
       end
@@ -45,13 +92,13 @@ module Rc::VM
 
     class DirectJump < Struct.new(:target)
       def to_s
-        "DirectJump #{@target}"
+        "DirectJump #{target}"
       end
     end
 
     class Push < Struct.new(:push)
       def to_s
-        "Push #{@value}"
+        "Push #{value}"
       end
     end
 
