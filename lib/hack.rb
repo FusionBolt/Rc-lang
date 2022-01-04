@@ -17,7 +17,7 @@ class Object
 end
 
 class Class
-  def demodulize
+  def demodulize_class
     self.to_s.demodulize
   end
 end

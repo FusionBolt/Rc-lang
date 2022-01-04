@@ -22,7 +22,7 @@ describe Rc::Analysis::GlobalEnvVisitor do
       ast = parse_demo('call_graph')
       env = Rc::Analysis::GlobalEnvVisitor.new.analysis(ast)
       expect(env.define_env.keys).to eq %w[f1 f2 f3 main]
-      expect(env.const_table.empty?).to eq true
+      expect(env.const_table.empty?)
     end
   end
 
@@ -51,7 +51,7 @@ end
 STR_TABLE
       @ast = parse(src)
       env = Rc::Analysis::GlobalEnvVisitor.new.analysis(@ast)
-      expect(env.fun_env.has_key? 'foo').to eq true
+      expect(env.fun_env.has_key? 'foo')
       e = env.fun_env['foo']
       expect(e['a']).to eq Rc::EnvItemInfo.new(0, '')
       expect(e['b']).to eq Rc::EnvItemInfo.new(1, '')
@@ -67,8 +67,8 @@ def f2
 end
 SRC
       env = get_global_env(s)
-      expect(env.fun_env.has_key? 'f1').to eq true
-      expect(env.fun_env.has_key? 'f2').to eq true
+      expect(env.fun_env.has_key? 'f1')
+      expect(env.fun_env.has_key? 'f2')
     end
   end
 end

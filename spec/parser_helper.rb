@@ -52,7 +52,7 @@ module RcTestHelpers
   def test_one_empty_fun(src, name, args = [])
     fun = test_root_single_define(src)
     test_one_fun_sign(fun, name, args)
-    expect(fun.empty?).to be true
+    expect(fun.empty?)
     fun
   end
 

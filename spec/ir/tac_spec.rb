@@ -37,9 +37,9 @@ NEW
       # todo:fun_list set a class, override['f name']
       alloc = tac.fun_list[1][1]
       call = tac.fun_list[1][2]
-      expect(alloc.is_a? Rc::TAC::Alloc).to eq true
+      expect(alloc.is_a? Rc::TAC::Alloc)
       expect(alloc.type).to eq 'Foo'
-      expect(call.is_a? Rc::TAC::Call).to eq true
+      expect(call.is_a? Rc::TAC::Call)
       expect(call.args.size).to eq 1
     end
   end
@@ -57,7 +57,7 @@ CALL
       tac = get_tac(s)
       f = tac.fun_list[1]
       call_f1 = f[1]
-      expect(call_f1.is_a? Rc::TAC::Call).to eq true
+      expect(call_f1.is_a? Rc::TAC::Call)
       expect(call_f1.target).to eq Name.new('f1')
       expect(call_f1.args).to eq [Rc::TAC::Number.new(1), Rc::TAC::Number.new(2), Rc::TAC::Number.new(3)]
     end
@@ -73,7 +73,7 @@ SRC
       tac = get_tac(src)
       expect(tac.const_table).to eq ['str']
       assign = tac.first_fun_tac_list[1]
-      expect(assign.is_a? Rc::TAC::Quad).to be true
+      expect(assign.is_a? Rc::TAC::Quad)
       expect(assign.lhs).to eq Memory.new(0)
     end
 
@@ -99,7 +99,7 @@ end
 SRC
       tac = get_tac(s)
       list = tac.first_fun_tac_list
-      expect(tac.sym_table.has_key? 'f1').to eq true
+      expect(tac.sym_table.has_key? 'f1')
       expect(list[0]).to eq Rc::TAC::Label.new('f1')
       expect(list[1]).to eq Rc::TAC::Return.new(EmptyValue.new)
     end

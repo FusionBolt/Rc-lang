@@ -68,7 +68,7 @@ CFG_TEST
       }
       all_branches.each do |br|
         l = br.name
-        expect(res_map.has_key? l).to eq true
+        expect(res_map.has_key? l)
         expect(br.next_labels).to eq res_map[l]
       end
     end

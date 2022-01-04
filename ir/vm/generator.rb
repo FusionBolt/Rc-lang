@@ -31,7 +31,7 @@ SRC
 end
 
 def gen_class_define(klass)
-  class_name = klass.demodulize
+  class_name = klass.demodulize_class
   <<SRC
 struct #{class_name} : VMInst
 {
@@ -49,7 +49,7 @@ def gen_classes_define(classes)
 end
 
 def gen_parser(klass)
-  class_name = klass.demodulize
+  class_name = klass.demodulize_class
   <<SRC
 if (list[0] == "#{class_name}") return std::make_unique<#{class_name}>();
 SRC
@@ -72,7 +72,3 @@ classes = get_classes(Rc::VM::Inst)
 puts gen_enum_inst_type(classes)
 puts gen_classes_define(classes)
 puts gen_all_parser(classes)
-
-puts Rc::VM::Inst::Label.new('str').name_t
-puts Rc::VM::Inst::CondJump.new(true, 1).cond_t
-puts Rc::VM::Inst::CondJump.new(f, 1).addr_t

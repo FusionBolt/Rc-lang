@@ -1,49 +1,5 @@
 require './lib/helper'
-
-def args_to_hash(*args)
-  args.reduce({}) do |sum, arg|
-    sum.merge(
-      if arg.is_a? Hash
-        arg
-      else
-        { arg => :str }
-      end)
-  end
-end
-
-class Module
-  def attr_type(*args)
-    args = args_to_hash(*args)
-    args.map do |attr, type|
-      define_method "#{attr}_t" do
-        type
-      end
-    end
-  end
-end
-
-class TypeStruct
-  def self.new(*args, &block)
-    # if don't have allocate, will be nil class
-    obj = allocate
-    # initialize is a private method
-    # initialize must be send instead of direct call
-    obj.send(:initialize, *args, &block)
-  end
-
-  # todo:type valid check
-  def initialize(*args)
-    args = args_to_hash(*args)
-    Struct.new(*args.keys).tap do |klass|
-      args.each do |attr, type|
-        # per class Struct is different
-        klass.define_method "#{attr}_t" do
-          type
-        end
-      end
-    end
-  end
-end
+require './lib/type_struct'
 
 module Rc::VM
   module Inst
@@ -58,9 +14,7 @@ module Rc::VM
       end
     end
 
-    class Label < Struct.new(:name)
-      attr_type :name => :str
-
+    class Label < TypeStruct.new(:name)
       def to_s
         "Label #{name}"
       end
@@ -70,12 +24,13 @@ module Rc::VM
     end
 
     class Addr < TypeStruct.new(:seg, :offset)
+      attr_type :seg => :str
     end
 
-    class UnsetAddr < Struct.new(:unset_addr)
+    class UnsetAddr < TypeStruct.new(:unset_addr)
     end
 
-    class LocalVarOperator < Struct.new(:offset)
+    class LocalVarOperator < TypeStruct.new(:offset)
     end
 
     class SetLocal < LocalVarOperator
@@ -90,25 +45,25 @@ module Rc::VM
       end
     end
 
-    class DirectJump < Struct.new(:target)
+    class DirectJump < TypeStruct.new(:target)
       def to_s
         "DirectJump #{target}"
       end
     end
 
-    class Push < Struct.new(:push)
+    class Push < TypeStruct.new(:push => :int)
       def to_s
         "Push #{value}"
       end
     end
 
-    class Pop < Struct.new(:pos)
+    class Pop < TypeStruct.new(:pos => :int)
       def to_s
         "Pop #{pos}"
       end
     end
 
-    class Call < Struct.new(:target)
+    class Call < TypeStruct.new(:target)
     end
 
     class Return
