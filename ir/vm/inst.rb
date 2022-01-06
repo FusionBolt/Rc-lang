@@ -24,7 +24,7 @@ module Rc::VM
     end
 
     class Addr < TypeStruct.new(:seg, :offset)
-      attr_type :seg => :str
+      attr_type :offset => :int
     end
 
     class UnsetAddr < TypeStruct.new(:unset_addr)

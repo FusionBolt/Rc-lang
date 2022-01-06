@@ -20,10 +20,18 @@ class Module
   end
 end
 
+# todo:this need a type instead of str or symbol
+# auto generate a class
 module TypeCheck
-  VALID_TYPE = [:int, :str]
+  VALID_TYPE = {:int => :int, :str => :string}
   def invalid?(type)
-    VALID_TYPE.include? type
+    VALID_TYPE.keys.include? type
+  end
+end
+
+module F
+  def ff
+    123
   end
 end
 

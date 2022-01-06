@@ -1,15 +1,17 @@
 require './ir/vm/generator'
 
 module GenTest
-  class Add
+  class Label < TypeStruct.new(:name)
   end
 
-  class Label < TypeStruct.new(:name)
+  # test sort by name
+  class Add
   end
 
   class SetLocal < TypeStruct.new(:offset => :int)
   end
 end
+
 describe 'generator' do
   before do
     @classes = get_classes(GenTest)
@@ -22,6 +24,7 @@ describe 'generator' do
     end
   end
 
+  # todo:sort by const name
   context 'enum inst type' do
     it 'succeed' do
       s = <<SRC
@@ -40,28 +43,42 @@ SRC
       @add = <<SRC
 struct Add : VMInst
 {
+public:
   Add()
   {
-    type = InstType::Add
+    type = InstType::Add;
   }
+
+private:
+
 }
 SRC
       @label = <<SRC
 struct Label : VMInst
 {
+public:
   Label()
   {
-    type = InstType::Label
+    type = InstType::Label;
   }
+
+private:
+  string name;
+
 }
 SRC
       @set_local = <<SRC
 struct SetLocal : VMInst
 {
+public:
   SetLocal()
   {
-    type = InstType::SetLocal
+    type = InstType::SetLocal;
   }
+
+private:
+  int offset;
+
 }
 SRC
     end
