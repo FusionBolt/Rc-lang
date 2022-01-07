@@ -4,6 +4,7 @@ require './ir/cfg'
 require './analysis/call_graph'
 require './analysis/global_env'
 require './parser/parser'
+require './ir/vm/vm'
 
 module Rc
   class Compiler
@@ -14,7 +15,20 @@ module Rc
 
     def compile(input)
       ast = parse(input)
-      env, sym_table = Analysis::GlobalEnvVisitor.new.analysis(ast)
+      g_env = Analysis::GlobalEnvVisitor.new.analysis(ast)
+      compile_to_vm(ast, g_env)
+    end
+
+    def compile_to_vm(ast, global_env)
+      puts 'To VM Inst'
+      vm_list = VM.to_vm_inst(ast, global_env)
+      puts vm_list
+      File.open('/home/homura/Code/RCVM/cmake-build-debug/inst.rcvi', 'w') do |f|
+        f.write(vm_list.map(&:to_s).join("\n"))
+      end
+    end
+
+    def compile_to_native(ast, global_env)
       puts 'To Tac'
       tac = TAC.to_tac(ast, env)
       puts tac
@@ -30,12 +44,6 @@ module Rc
       # puts 'To roads'
       # roads = CFG.search_all_branches(cfg)
       # puts roads
-      puts 'To VM Inst'
-      vm_list = VM.to_vm_inst(tac)
-      puts vm_list
-      File.open('/home/homura/Code/RCVM/cmake-build-debug/inst.rcvi', 'w') do |f|
-        f.write(vm_list.map(&:to_s).join("\n"))
-      end
     end
   end
 end

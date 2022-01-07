@@ -32,7 +32,7 @@ enum class InstType {
 Add,
 Label,
 SetLocal,
-}
+};
 SRC
       expect(gen_enum_inst_type(@classes)).to eq s
     end
@@ -44,42 +44,31 @@ SRC
 struct Add : VMInst
 {
 public:
-  Add()
-  {
-    type = InstType::Add;
-  }
+  Add():VMInst(InstType::Add) {}
 
 private:
 
-}
+};
 SRC
       @label = <<SRC
 struct Label : VMInst
 {
 public:
-  Label()
-  {
-    type = InstType::Label;
-  }
+  Label(string name):VMInst(InstType::Label), _name(name) {}
 
 private:
-  string name;
-
-}
+string _name;
+};
 SRC
       @set_local = <<SRC
 struct SetLocal : VMInst
 {
 public:
-  SetLocal()
-  {
-    type = InstType::SetLocal;
-  }
+  SetLocal(int offset):VMInst(InstType::SetLocal), _offset(offset) {}
 
 private:
-  int offset;
-
-}
+int _offset;
+};
 SRC
     end
     context 'single class' do
