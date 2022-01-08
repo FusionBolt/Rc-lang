@@ -24,9 +24,9 @@ def gen_inst_base_class
   <<SRC
 struct VMInst
 {
-  InstType _type;
+  InstType type;
 protected:
-  VMInst(InstType type): _type(type) {};
+  VMInst(InstType t): type(t) {};
 };
 SRC
 end
@@ -83,6 +83,7 @@ def gen_all_parser(classes)
 std::unique_ptr<VMInst> get_inst(const std::vector<std::string> &list)
 {
 #{classes.generate {|x| gen_parser(x)}}
+throw std::runtime_error("Unknown inst type" + list[0]);
 }
 SRC
 end
@@ -129,6 +130,8 @@ end
 def gen_header_namespace
   <<SRC
 #include <string>
+#include <vector>
+#include <memory>
 #pragma once
 
 using std::string;

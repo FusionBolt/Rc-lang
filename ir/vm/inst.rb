@@ -30,7 +30,12 @@ module Rc::VM
     class UnsetAddr < TypeStruct.new(:unset_addr)
     end
 
-    class LocalVarOperator < TypeStruct.new(:offset)
+    class LocalVarOperator < Struct.new(:offset)
+      attr_type :offset => :int
+
+      def to_s
+        "#{self.demodulize_class} #{offset}"
+      end
     end
 
     class SetLocal < LocalVarOperator
@@ -51,7 +56,8 @@ module Rc::VM
       end
     end
 
-    class Push < TypeStruct.new(:push => :int)
+    class Push < Struct.new(:value)
+      attr_type :value => :int
       def to_s
         "Push #{value}"
       end
@@ -63,7 +69,12 @@ module Rc::VM
       end
     end
 
-    class Call < TypeStruct.new(:target)
+    class Call < Struct.new(:target)
+      attr_type :target => :str
+
+      def to_s
+        "Call #{target}"
+      end
     end
 
     class Return

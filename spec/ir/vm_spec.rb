@@ -12,6 +12,7 @@ def get_vm_inst(src)
 end
 
 include Rc::VM
+include Rc::VM::Inst
 describe 'VM inst' do
   # todo:add id test
   context 'assign' do
@@ -22,7 +23,7 @@ def foo
 end
 SRC
       inst = get_vm_inst(s)
-      expect(inst).to eq [Rc::VM::Push.new(1), Push.new(2), Mul.new, SetLocal.new(0), Return.new]
+      expect(inst).to eq [Push.new(1), Push.new(2), Mul.new, SetLocal.new(0), Return.new]
     end
   end
 

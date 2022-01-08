@@ -3,23 +3,10 @@ require './lib/visitor'
 require_relative './inst'
 
 module Rc::VM
-  include Inst
-  def translate_op(op)
-    case op.op
-    in '+'
-      Add.new
-    in '-'
-      Sub.new
-    in '*'
-      Mul.new
-    in '/'
-      Div.new
-    else
-      raise 'unsupported op'
-    end
-  end
 
   module VMInstOperand
+    include Rc::VM::Inst
+
     class Value < Struct.new(:value)
     end
 
@@ -41,6 +28,7 @@ module Rc::VM
   module ExprTranslator
     include Rc::AST::ExprVisitor
     include VMInstOperand
+    include Inst
 
     def on_binary(node)
       [
@@ -48,6 +36,21 @@ module Rc::VM
         push(visit(node.rhs)),
         translate_op(node.op),
       ]
+    end
+
+    def translate_op(op)
+      case op.op
+      in '+'
+        Add.new
+      in '-'
+        Sub.new
+      in '*'
+        Mul.new
+      in '/'
+        Div.new
+      else
+        raise 'unsupported op'
+      end
     end
 
     # value, directly push
@@ -74,6 +77,7 @@ module Rc::VM
   module StmtTranslator
     include Rc::AST::StmtVisitor
     include VMInstOperand
+    include Rc::VM::Inst
 
     def on_root(node)
       node.defines.map { |n| visit(n) }
