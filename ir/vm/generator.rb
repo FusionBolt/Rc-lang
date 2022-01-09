@@ -55,7 +55,6 @@ SRC
 end
 
 def gen_classes_define(classes)
-  # todo:direct pass fun
   gen_inst_base_class + classes.generate { |x| gen_class_define(x) }
 end
 
@@ -121,8 +120,8 @@ class Class
   def get_member_map
     instance = self.new
     # need keep same order
-    MemberMap.new(instance.methods.filter {|m| m.to_s.end_with? '_t' }.map do |m|
-      TypeDefine.new(m.pure_name, instance.send(m.to_sym))
+    MemberMap.new(instance.try(:type_map).or_else{[]}.map do |name, type|
+      TypeDefine.new(name, type)
     end)
   end
 end

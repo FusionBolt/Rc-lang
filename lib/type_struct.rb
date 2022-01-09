@@ -26,6 +26,7 @@ module TypeCheck
   module_function :check, :invalid?
 end
 
+# todo:if not spec, attr_type will not effect
 class Module
   def attr_type(*args)
     args = args_to_hash(*args)
@@ -35,12 +36,8 @@ class Module
         type
       end
     end
-  end
-end
-
-module F
-  def ff
-    123
+    @type_map ||= self.members.reduce({}) {|mem| {mem => :str}}
+    @type_map.merge!(args)
   end
 end
 
@@ -54,7 +51,6 @@ class TypeStruct
     obj.send(:initialize, *args, &block)
   end
 
-  # todo:type valid check test
   def initialize(*args)
     args = args_to_hash(*args)
     Struct.new(*args.keys).tap do |klass|
@@ -64,6 +60,10 @@ class TypeStruct
         klass.define_method "#{attr}_t" do
           type
         end
+      end
+
+      klass.define_method "type_map" do
+        args
       end
     end
   end
