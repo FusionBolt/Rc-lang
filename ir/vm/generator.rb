@@ -137,10 +137,7 @@ using std::string;
 SRC
 end
 
-classes = get_classes(Rc::VM::Inst)
-# puts gen_enum_inst_type(classes)
-# puts gen_classes_define(classes)
-# puts gen_all_parser(classes)
-
-cpp_src = gen_header_namespace + gen_enum_inst_type(classes) + gen_classes_define(classes) + gen_all_parser(classes)
-File.open('/home/homura/Code/RCVM/instructions.hpp', 'w').write(cpp_src)
+def gen_inst_src
+  classes = get_classes(Rc::VM::Inst)
+  gen_header_namespace + gen_enum_inst_type(classes) + gen_classes_define(classes) + gen_all_parser(classes)
+end
