@@ -11,6 +11,10 @@ def get_vm_inst(src)
   to_vm_inst(ast, env)
 end
 
+def get_first_fun_inst(src)
+  get_vm_inst(src)[1..-2]
+end
+
 include Rc::VM
 include Rc::VM::Inst
 describe 'VM inst' do
@@ -22,7 +26,7 @@ def foo
   a = 1 * 2
 end
 SRC
-      inst = get_vm_inst(s)
+      inst = get_first_fun_inst(s)
       expect(inst).to eq [Push.new(1), Push.new(2), Mul.new, SetLocal.new(0), Return.new]
     end
   end
@@ -34,7 +38,7 @@ def add(a, b)
   a + b
 end
 SRC
-      inst = get_vm_inst(s)
+      inst = get_first_fun_inst(s)
       expect(inst).to eq [GetLocal.new(0), GetLocal.new(1), Add.new, Return.new]
     end
   end
@@ -50,7 +54,7 @@ def f
 end
 SRC
       list = get_vm_inst(s)
-      expect(list[4..]).to eq [Push.new(3), Push.new(2), Call.new('add'), Return.new]
+      expect(list[7..-2]).to eq [Push.new(3), Push.new(2), Call.new('add'), Return.new]
     end
   end
 end

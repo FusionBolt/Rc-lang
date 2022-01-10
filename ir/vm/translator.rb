@@ -85,7 +85,8 @@ module Rc::VM
 
     def on_function(node)
       @cur_fun = node.name
-      [super(node), Return.new]
+      @global_env.define_env[node.name] = node.args
+      [FunLabel.new(node.name), super(node), Return.new, FunEnd.new]
     end
 
     def on_assign(node)

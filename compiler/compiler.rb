@@ -23,9 +23,19 @@ module Rc
       puts 'To VM Inst'
       vm_list = VM.to_vm_inst(ast, global_env)
       puts vm_list
-      File.open('/home/homura/Code/RCVM/cmake-build-debug/inst.rcvi', 'w') do |f|
+      root = '/home/homura/Code/RCVM/cmake-build-debug/'
+      File.open(File.join(root, 'inst.rcvi'), 'w') do |f|
         f.write(vm_list.map(&:to_s).join("\n"))
       end
+      File.open(File.join(root, 'fun.rcsym'), 'w') do |f|
+        f.write(gen_sym_table(global_env))
+      end
+    end
+
+    def gen_sym_table(global_env)
+      global_env.define_env.map do |name, args|
+        "#{name} #{args.size} #{global_env.fun_env[name].size}"
+      end.join("\n")
     end
 
     def compile_to_native(ast, global_env)

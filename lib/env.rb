@@ -98,6 +98,10 @@ module Rc
       end
     end
 
+    # todo:fix this, nest env maybe error
+    def map(&block)
+      @env.map(&block)
+    end
     private
 
     def method_missing(sym, *args)

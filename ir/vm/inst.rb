@@ -14,13 +14,21 @@ module Rc::VM
       end
     end
 
-    class Label < TypeStruct.new(:name)
+    class Label < Struct.new(:name)
+      attr_type :name => :str
       def to_s
         "Label #{name}"
       end
     end
 
     class FunLabel < Label
+      def to_s
+        "FunLabel #{name}"
+      end
+    end
+
+    class FunEnd
+      include InstUtil
     end
 
     class Addr < TypeStruct.new(:seg, :offset)
