@@ -8,6 +8,16 @@ module TypeStructTest
   end
 end
 
+module AttrTypeTest
+  class Label < Struct.new(:name)
+    attr_type :name => :str
+  end
+
+  class SetLocal < Struct.new(:offset)
+    attr_type :offset => :int
+  end
+end
+
 describe 'TypeStruct' do
   it "default type" do
     l = TypeStructTest::Label.new('str')
@@ -27,5 +37,14 @@ describe 'TypeStruct' do
       end
     }.to raise_error RuntimeError
   end
+
+  it 'get type_map' do
+    expect(TypeStructTest::Label.type_map).to eq ({:name => :str})
+  end
 end
 
+describe 'attr_type' do
+  it 'get type map' do
+    expect(AttrTypeTest::Label.type_map).to eq ({:name => :str})
+  end
+end

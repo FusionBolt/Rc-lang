@@ -21,9 +21,10 @@ module Rc::VM
       end
     end
 
-    class FunLabel < Label
+    class DefineFun < Struct.new(:name)
+      attr_type :name => :str
       def to_s
-        "FunLabel #{name}"
+        "DefineFun #{name}"
       end
     end
 

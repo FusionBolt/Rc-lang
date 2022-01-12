@@ -38,8 +38,8 @@ end
 def gen_class_define(klass)
   class_name = klass.demodulize_class
   member_map = klass.get_member_map
-  params = member_map.generate(', ') {|td| gen_class_member(td)}
-  init_member = "#{member_map.keys.generate(', ') {|name| "_#{name}(#{name})"}}"
+  params = member_map.generate(', ') {|td| gen_class_member(td, '_')}
+  init_member = "#{member_map.keys.generate(', ') {|name| "#{name}(_#{name})"}}"
   init_member = ", #{init_member}" unless init_member.empty?
   init_inst = "VMInst(InstType::#{class_name})"
   <<SRC
@@ -48,8 +48,7 @@ struct #{class_name} : VMInst
 public:
   #{class_name}(#{params}):#{init_inst}#{init_member} {}
 
-private:
-#{member_map.generate {|mem_ty| "#{gen_class_member(mem_ty, '_')};"}}
+#{member_map.generate {|mem_ty| "#{gen_class_member(mem_ty)};"}}
 };
 SRC
 end
@@ -118,9 +117,8 @@ end
 
 class Class
   def get_member_map
-    instance = self.new
     # need keep same order
-    MemberMap.new(instance.try(:type_map).or_else{[]}.map do |name, type|
+    MemberMap.new(self.try(:type_map).or_else{[]}.map do |name, type|
       TypeDefine.new(name, type)
     end)
   end

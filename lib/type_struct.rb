@@ -36,8 +36,14 @@ class Module
         type
       end
     end
-    @type_map ||= self.members.reduce({}) {|mem| {mem => :str}}
+    if @type_map.nil?
+      attr_reader :type_map
+      @type_map = self.members.reduce({}) {|sum, mem| sum.merge({mem => :str})}
+    end
     @type_map.merge!(args)
+    class << self
+      attr_reader :type_map
+    end
   end
 end
 
@@ -62,7 +68,7 @@ class TypeStruct
         end
       end
 
-      klass.define_method "type_map" do
+      klass.define_singleton_method 'type_map' do
         args
       end
     end

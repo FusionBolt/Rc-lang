@@ -46,7 +46,6 @@ struct Add : VMInst
 public:
   Add():VMInst(InstType::Add) {}
 
-private:
 
 };
 SRC
@@ -54,20 +53,18 @@ SRC
 struct Label : VMInst
 {
 public:
-  Label(string name):VMInst(InstType::Label), _name(name) {}
+  Label(string _name):VMInst(InstType::Label), name(_name) {}
 
-private:
-string _name;
+string name;
 };
 SRC
       @set_local = <<SRC
 struct SetLocal : VMInst
 {
 public:
-  SetLocal(int offset):VMInst(InstType::SetLocal), _offset(offset) {}
+  SetLocal(int _offset):VMInst(InstType::SetLocal), offset(_offset) {}
 
-private:
-int _offset;
+int offset;
 };
 SRC
     end
