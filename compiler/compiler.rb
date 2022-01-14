@@ -33,8 +33,8 @@ module Rc
     end
 
     def gen_sym_table(global_env)
-      global_env.define_env.map do |name, args|
-        "#{name} #{args.size} #{global_env.fun_env[name].size}"
+      global_env.define_env.map do |name, (args, offset)|
+        "#{name} #{args.size} #{global_env.fun_env[name].size} #{offset}"
       end.join("\n")
     end
 

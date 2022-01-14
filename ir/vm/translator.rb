@@ -54,15 +54,13 @@ module Rc::VM
     end
 
     # value, directly push
-    def on_bool_constant(node)
-    end
+    def on_bool_constant(node) end
 
     def on_number_constant(node)
       Value.new node.val.to_i
     end
 
-    def on_string_constant(node)
-    end
+    def on_string_constant(node) end
 
     # Get or Set, so need return a id
     def on_identifier(node)
@@ -85,7 +83,7 @@ module Rc::VM
 
     def on_function(node)
       @cur_fun = node.name
-      @global_env.define_env[node.name] = node.args
+      @global_env.define_env[node.name] = [node.args, 'undefined']
       [DefineFun.new(node.name), super(node), Return.new, FunEnd.new]
     end
 
@@ -99,9 +97,17 @@ module Rc::VM
     include ExprTranslator
     include StmtTranslator
     include Rc::Lib::Visitor
+
     def translate(ast, global_env)
       @global_env = global_env
-      visit(ast).flatten.compact
+      inst = visit(ast).flatten.compact
+      # todo:check main, add test, replace array with a struct
+      inst.each_with_index do |ins, index|
+        if ins.is_a? DefineFun
+          @global_env.define_env[ins.name][1] = index + 1
+        end
+      end
+      inst
     end
 
     def cur_fun_env
