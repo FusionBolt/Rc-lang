@@ -21,15 +21,11 @@ module Rc::VM
       end
     end
 
-    class DefineFun < Struct.new(:name)
+    class FunLabel < Struct.new(:name)
       attr_type :name => :str
       def to_s
-        "DefineFun #{name}"
+        "FunLabel #{name}"
       end
-    end
-
-    class FunEnd
-      include InstUtil
     end
 
     class Addr < TypeStruct.new(:seg, :offset)

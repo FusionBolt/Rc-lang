@@ -12,7 +12,7 @@ def get_vm_inst(src)
 end
 
 def get_first_fun_inst(src)
-  get_vm_inst(src)[1..-2]
+  get_vm_inst(src)[1..]
 end
 
 include Rc::VM
@@ -54,7 +54,7 @@ def f
 end
 SRC
       list = get_vm_inst(s)
-      expect(list[7..-2]).to eq [Push.new(3), Push.new(2), Call.new('add'), Return.new]
+      expect(list[6..]).to eq [Push.new(3), Push.new(2), Call.new('add'), Return.new]
     end
   end
 end

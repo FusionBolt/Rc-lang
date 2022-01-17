@@ -163,6 +163,14 @@ module Rc
     end
   end
 
+  class FunTable
+    attr_accessor :local_sym_table, :args, :offset
+
+    def initialize(local_sym_table, args, offset)
+      @local_sym_table, @args, @offset = local_sym_table, args, offset
+    end
+  end
+
   # todo:this maybe create by define symbol
   class EnvItemInfo < Struct.new(:id, :type)
   end

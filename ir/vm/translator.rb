@@ -1,5 +1,6 @@
 require './ir/ast/visitor'
 require './lib/visitor'
+require './lib/env'
 require_relative './inst'
 
 module Rc::VM
@@ -83,8 +84,8 @@ module Rc::VM
 
     def on_function(node)
       @cur_fun = node.name
-      @global_env.define_env[node.name] = [node.args, 'undefined']
-      [DefineFun.new(node.name), super(node), Return.new, FunEnd.new]
+      @global_env.define_env[node.name] = Rc::FunTable.new(@cur_fun, node.args, 'undefined')
+      [FunLabel.new(node.name), super(node), Return.new]
     end
 
     def on_assign(node)
@@ -103,8 +104,8 @@ module Rc::VM
       inst = visit(ast).flatten.compact
       # todo:check main, add test, replace array with a struct
       inst.each_with_index do |ins, index|
-        if ins.is_a? DefineFun
-          @global_env.define_env[ins.name][1] = index + 1
+        if ins.is_a? FunLabel
+          @global_env.define_env[ins.name].offset = index
         end
       end
       inst
