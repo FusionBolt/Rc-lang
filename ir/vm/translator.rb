@@ -84,7 +84,7 @@ module Rc::VM
 
     def on_function(node)
       @cur_fun = node.name
-      @global_env.define_env[node.name] = Rc::FunTable.new(@cur_fun, node.args, 'undefined')
+      @global_env.define_env[node.name] = Rc::FunTable.new(cur_fun_env, node.args, 'undefined')
       [FunLabel.new(node.name), super(node), Return.new]
     end
 
