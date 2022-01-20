@@ -3,6 +3,6 @@ def multi(a, b)
 end
 
 def main
-    puts('The World!')
-    v = multi(1, 2)
+    v = multi(3, 2)
+    put_i(v)
 end

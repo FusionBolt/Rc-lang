@@ -43,10 +43,20 @@ module Rc::VM
       end
     end
 
-    class SetLocal < LocalVarOperator
+    class SetLocal < Struct.new(:offset)
+      attr_type :offset => :int
+
+      def to_s
+        "#{self.demodulize_class} #{offset}"
+      end
     end
 
-    class GetLocal < LocalVarOperator
+    class GetLocal < Struct.new(:offset)
+      attr_type :offset => :int
+
+      def to_s
+        "#{self.demodulize_class} #{offset}"
+      end
     end
 
     class CondJump < TypeStruct.new(:cond, :addr => :int)
@@ -100,6 +110,10 @@ module Rc::VM
 
     class Div
       include InstUtil
+    end
+
+    class Alloc < Struct.new(:type)
+      attr_type :type => :str
     end
   end
 end

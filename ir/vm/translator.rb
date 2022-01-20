@@ -71,6 +71,10 @@ module Rc::VM
     def on_fun_call(fun_call)
       fun_call.args.map { |arg| push(visit(arg)) } + [Call.new(fun_call.name)]
     end
+
+    def on_new_expr(new)
+      Alloc.new(new.class_name)
+    end
   end
 
   module StmtTranslator

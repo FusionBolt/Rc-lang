@@ -6,10 +6,11 @@ module Rc
   module Analysis
     class GlobalEnvVisitor
       include AST::Visitor
-      attr_reader :define_env, :const_table
+      attr_reader :define_env, :const_table, :class_table
 
       def initialize
         @define_env = Env.new
+        @class_table = Env.new
         @const_table = Set[]
         @fun_env = { }
       end
@@ -20,7 +21,7 @@ module Rc
       end
 
       def on_class_define(node)
-        @define_env.define_symbol(node.name, node)
+        @class_table.define_symbol(node.name, node)
       end
 
       def on_function(node)

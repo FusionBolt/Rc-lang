@@ -1,0 +1,6 @@
+class Foo
+end
+
+def main
+    var f = Foo.new()
+end
