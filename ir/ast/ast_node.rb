@@ -33,7 +33,7 @@ module Rc::AST
     end
 
     class Function
-      attr_reader :name, :args, :stmts
+      attr_accessor :name, :args, :stmts
 
       def initialize(name, args, stmts)
         @name, @args, @stmts = name, args, stmts
@@ -70,7 +70,7 @@ module Rc::AST
     end
 
     class ClassDefine
-      attr_reader :name, :define, :parent
+      attr_reader :name, :define, :parent, :fun_list, :var_list
       # TODO:parent need double scanning?
       # TODO:Circular reference
       def initialize(name, define, parent = nil)

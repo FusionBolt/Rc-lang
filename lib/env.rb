@@ -104,8 +104,8 @@ module Rc
     end
     private
 
-    def method_missing(sym, *args)
-      @env.method(sym).try {|x| x.call(*args)}
+    def method_missing(sym, *args, &block)
+      @env.method(sym).try {|x| x.call(*args, &block)}
     end
 
     def start_subroutine(args_env = {})
@@ -173,6 +173,23 @@ module Rc
 
   # todo:this maybe create by define symbol
   class EnvItemInfo < Struct.new(:id, :type)
+  end
+
+  class ClassTable
+    attr_accessor :instance_methods, :instance_vars
+
+    def initialize
+      @instance_methods = {}
+      @instance_vars = {}
+    end
+
+    def add_instance_method(name, define)
+      @instance_methods[name] = define
+    end
+
+    def add_instance_var(name, define)
+      @instance_vars[name] = define
+    end
   end
 
   class GlobalEnv < Struct.new(:define_env, :const_table, :fun_env)

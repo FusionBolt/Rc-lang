@@ -21,7 +21,10 @@ module Rc
       end
 
       def on_class_define(node)
-        @class_table.define_symbol(node.name, node)
+        class_table = ClassTable.new
+        node.fun_list.each {|f| class_table.add_instance_method(f.name, visit(f))}
+        node.var_list.each {|v| class_table.add_instance_var(v.name, v.val)}
+        @class_table.define_symbol(node.name, class_table)
       end
 
       def on_function(node)

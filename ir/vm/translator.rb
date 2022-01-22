@@ -96,6 +96,14 @@ module Rc::VM
       res = visit(node.var_obj)
       [visit(node.expr), SetLocal.new(res.ref)]
     end
+
+    def on_class_define(node)
+      # no need to deal with var_list, it's used in runtime
+      node.fun_list.map do |f|
+        f.name = "#{node.name}@#{f.name}"
+        f
+      end.map {|f| visit(f)}
+    end
   end
 
   class VMInstTranslator
@@ -111,6 +119,9 @@ module Rc::VM
         if ins.is_a? FunLabel
           @global_env.define_env[ins.name].offset = index
         end
+      end
+      @global_env.define_env.reject! do |name, table|
+        name.include? '@' or table.is_a? Rc::AST::Function
       end
       inst
     end

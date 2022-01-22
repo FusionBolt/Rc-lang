@@ -1,4 +1,8 @@
 class Foo
+  def initialize()
+  end
+
+  var a = 1
 end
 
 def main
