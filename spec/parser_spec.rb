@@ -118,7 +118,7 @@ CLASS
         init_fun = c.define[0]
         expect(init_fun.class).to eq Rc::AST::Function
         expect(init_fun.name).to eq 'init'
-        expect(init_fun.stmts.empty?)
+        expect(init_fun.stmts.empty?).to eq true
       end
 
       it 'multi mem fun' do

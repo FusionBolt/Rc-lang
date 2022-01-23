@@ -163,6 +163,7 @@ module Rc
     end
   end
 
+  # used for vm
   class FunTable
     attr_accessor :local_sym_table, :args, :offset
 
@@ -173,6 +174,9 @@ module Rc
 
   # todo:this maybe create by define symbol
   class EnvItemInfo < Struct.new(:id, :type)
+  end
+
+  class InstanceMethodInfo < Struct.new(:define, :env)
   end
 
   class ClassTable
@@ -192,6 +196,6 @@ module Rc
     end
   end
 
-  class GlobalEnv < Struct.new(:define_env, :const_table, :fun_env)
+  class GlobalEnv < Struct.new(:define_env, :const_table, :fun_env, :class_table)
   end
 end

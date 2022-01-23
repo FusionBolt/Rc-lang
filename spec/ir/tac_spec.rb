@@ -37,9 +37,9 @@ NEW
       # todo:fun_list set a class, override['f name']
       alloc = tac.fun_list[1][1]
       call = tac.fun_list[1][2]
-      expect(alloc.is_a? Rc::TAC::Alloc)
+      expect(alloc.is_a? Rc::TAC::Alloc).to eq true
       expect(alloc.type).to eq 'Foo'
-      expect(call.is_a? Rc::TAC::Call)
+      expect(call.is_a? Rc::TAC::Call).to eq true
       expect(call.args.size).to eq 1
     end
   end

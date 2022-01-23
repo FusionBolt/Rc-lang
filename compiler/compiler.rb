@@ -24,11 +24,14 @@ module Rc
       vm_list = VM.to_vm_inst(ast, global_env)
       puts vm_list
       root = '/home/homura/Code/RCVM/cmake-build-debug/'
-      File.open(File.join(root, 'inst.rcvi'), 'w') do |f|
-        f.write(vm_list.map(&:to_s).join("\n"))
-      end
-      File.open(File.join(root, 'fun.rcsym'), 'w') do |f|
-        f.write(gen_sym_table(global_env))
+      generate(root, 'inst.rcvi', vm_list.map(&:to_s).join("\n"))
+      generate(root, 'fun.rcsym', gen_sym_table(global_env))
+      # generate(root, 'class_table', gen_class_table(global_env))
+    end
+
+    def generate(root, name, content)
+      File.open(File.join(root, name), 'w') do |f|
+        f.write(content)
       end
     end
 
