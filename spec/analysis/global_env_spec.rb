@@ -13,7 +13,7 @@ end
 
 def get_kernel_methods_from_src(src)
   env = get_global_env(src)
-  get_kernel_methods(env)
+  get_kernel_methods_info(env)
 end
 
 describe Rc::Analysis::GlobalEnvVisitor do
@@ -30,7 +30,7 @@ describe Rc::Analysis::GlobalEnvVisitor do
       env = Rc::Analysis::GlobalEnvVisitor.new.analysis(ast)
       # expect(env.define_env.keys).to eq %w[f1 f2 f3 main]
       # expect(env.const_table.empty?).to eq true
-      expect(get_kernel_methods(env).keys).to eq %w[f1 f2 f3 main]
+      expect(get_kernel_methods_info(env).keys).to eq %w[f1 f2 f3 main]
     end
   end
 
@@ -44,7 +44,7 @@ end
 STR_TABLE
       ast = parse(src)
       env = Rc::Analysis::GlobalEnvVisitor.new.analysis(ast)
-      expect(get_kernel_methods(env).keys).to eq %w[foo]
+      expect(get_kernel_methods_info(env).keys).to eq %w[foo]
       expect(env.const_table).to eq Set['str1', 'str2']
     end
   end
@@ -78,7 +78,7 @@ SRC
       env = get_global_env(s)
       # expect(env.fun_env.has_key? 'f1')
       # expect(env.fun_env.has_key? 'f2')
-      expect(get_kernel_methods(env).keys).to eq %w[f1 f2]
+      expect(get_kernel_methods_info(env).keys).to eq %w[f1 f2]
     end
   end
 

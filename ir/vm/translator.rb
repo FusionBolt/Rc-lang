@@ -88,7 +88,8 @@ module Rc::VM
 
     def on_function(node)
       @cur_fun = node.name
-      @global_env.define_env[node.name] = Rc::FunTable.new(cur_fun_env, node.args, 'undefined')
+      # @global_env.define_env[node.name] = Rc::FunTable.new(cur_fun_env, node.args, 'undefined')
+      # @cur_method_info.env = Rc::FunTable.new(cur_fun_env, node.args, 'undefined')
       [FunLabel.new(node.name), super(node), Return.new]
     end
 
@@ -111,6 +112,18 @@ module Rc::VM
     include StmtTranslator
     include Rc::Lib::Visitor
 
+    def tran(global_env)
+      global_env.class_table.update_values do |class_name, table|
+        table.instance_methods.update_values do |f_name, method_info|
+          @cur_method_info = method_info
+          method_info.define = visit(method_info.define).flatten.compact
+          method_info
+        end
+        table
+      end
+      global_env
+    end
+
     def translate(ast, global_env)
       @global_env = global_env
       inst = visit(ast).flatten.compact
@@ -127,7 +140,7 @@ module Rc::VM
     end
 
     def cur_fun_env
-      @global_env.fun_env[@cur_fun]
+      @cur_method_info.env
     end
   end
 end

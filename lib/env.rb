@@ -176,7 +176,7 @@ module Rc
   class EnvItemInfo < Struct.new(:id, :type)
   end
 
-  class InstanceMethodInfo < Struct.new(:define, :env)
+  class InstanceMethodInfo < Struct.new(:define, :env, :args, :offset)
   end
 
   class ClassTable

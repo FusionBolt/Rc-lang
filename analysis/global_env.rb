@@ -55,7 +55,7 @@ module Rc
         @cur_fun_sym.merge(node.args.map{ |arg| [arg, EnvItemInfo.new(cur_fun_var_id, '')]}.to_h)
         visit(node.stmts)
         @fun_env[node.name] = @cur_fun_sym
-        cur_class.add_instance_method(node.name, InstanceMethodInfo.new(node, @cur_fun_sym))
+        cur_class.add_instance_method(node.name, InstanceMethodInfo.new(node, @cur_fun_sym, node.args, Rc::Define::UndefinedMethod))
       end
 
       def on_string_constant(node)

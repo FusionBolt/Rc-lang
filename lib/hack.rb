@@ -36,6 +36,14 @@ class String
   end
 end
 
+class Hash
+  def update_values(&block)
+    each do |key, value|
+      self[key] = block.call(key, value)
+    end
+  end
+end
+
 class NilClass
   def try(*args)
     nil
