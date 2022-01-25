@@ -7,7 +7,7 @@ module Rc
   module VM
 
     def to_vm_inst(ast, global_env)
-      VMInstTranslator.new.translate(ast, global_env)
+      VMInstTranslator.new.tran(global_env)
     end
 
     module_function :to_vm_inst
