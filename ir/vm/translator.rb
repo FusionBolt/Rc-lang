@@ -112,7 +112,8 @@ module Rc::VM
     include StmtTranslator
     include Rc::Lib::Visitor
 
-    def tran(global_env)
+    def translate(global_env)
+      # todo:refactor
       global_env.class_table.update_values do |class_name, table|
         table.instance_methods.update_values do |f_name, method_info|
           @cur_method_info = method_info
@@ -122,21 +123,6 @@ module Rc::VM
         table
       end
       global_env
-    end
-
-    def translate(ast, global_env)
-      @global_env = global_env
-      inst = visit(ast).flatten.compact
-      # todo:check main, add test, replace array with a struct
-      inst.each_with_index do |ins, index|
-        if ins.is_a? FunLabel
-          @global_env.define_env[ins.name].offset = index
-        end
-      end
-      @global_env.define_env.reject! do |name, table|
-        name.include? '@' or table.is_a? Rc::AST::Function
-      end
-      inst
     end
 
     def cur_fun_env

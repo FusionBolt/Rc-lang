@@ -2,6 +2,9 @@ class Foo
   def initialize()
   end
 
+  def add(x, y)
+    x + y
+  end
   var a = 1
 end
 

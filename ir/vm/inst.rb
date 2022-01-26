@@ -114,6 +114,10 @@ module Rc::VM
 
     class Alloc < Struct.new(:type)
       attr_type :type => :str
+
+      def to_s
+        "Alloc #{type}"
+      end
     end
   end
 end

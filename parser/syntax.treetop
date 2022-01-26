@@ -161,7 +161,7 @@ grammar Rc
     'var' space+ name:identifier space+ '=' space* expr:expression {
       def to_ast
         begin
-        AST::Variant.new(name.to_ast, expr.to_ast)
+        AST::Assign.new(AST::Identifier.new(name.to_ast), expr.to_ast)
         rescue => e
           p 'error', e
         end

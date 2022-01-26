@@ -21,40 +21,10 @@ module Rc
 
     def compile_to_vm(ast, global_env)
       puts 'To VM Inst'
-      vm_list = VM.to_vm_inst(ast, global_env)
-      puts vm_list
-      root = '/home/homura/Code/RCVM/cmake-build-debug/'
-      generate(root, 'inst.rcvi', vm_list.map(&:to_s).join("\n"))
-      # generate(root, 'fun.rcsym', gen_sym_table(global_env))
-      generate(root, 'class_table.rckls', gen_class_table(global_env))
+      global_table = VM.to_vm_inst(global_env)
+      root = '../RCVM/cmake-build-debug/'
+      VM.generate_all(global_table, root)
     end
-
-    def gen_class_table(global_env)
-      # todo:instance_vars should not save var value
-      global_env.class_table.map do |class_name, table|
-        <<SRC
-#{class_name}
-#{table.instance_vars.keys.map(&:to_s).join(' ')}
-#{table.instance_methods.map{|name, info| gen_sym_table(name, info)}.join("\n") }
-SRC
-      end.join("\n")
-    end
-
-    def gen_sym_table(name, method_info)
-        "#{name} #{method_info.args.size} #{method_info.env.size} #{method_info.offset}"
-    end
-
-    def generate(root, name, content)
-      File.open(File.join(root, name), 'w') do |f|
-        f.write(content)
-      end
-    end
-
-    # def gen_sym_table(global_env)
-    #   global_env.define_env.map do |name, fun_table|
-    #     "#{name} #{fun_table.args.size} #{fun_table.local_sym_table.size} #{fun_table.offset}"
-    #   end.join("\n")
-    # end
 
     def compile_to_native(ast, global_env)
       puts 'To Tac'
