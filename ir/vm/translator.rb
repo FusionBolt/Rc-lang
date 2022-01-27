@@ -69,11 +69,11 @@ module Rc::VM
     end
 
     def on_fun_call(fun_call)
-      fun_call.args.map { |arg| push(visit(arg)) } + [Call.new(fun_call.name)]
+      fun_call.args.map { |arg| push(visit(arg)) } + [Call.new(@cur_class_name, fun_call.name)]
     end
 
     def on_new_expr(new)
-      Alloc.new(new.class_name)
+      [Alloc.new(new.class_name), Call.new(new.class_name, Rc::Define::ConstructorMethod)]
     end
   end
 
@@ -115,6 +115,7 @@ module Rc::VM
     def translate(global_env)
       # todo:refactor
       global_env.class_table.update_values do |class_name, table|
+        @cur_class_name = class_name
         table.instance_methods.update_values do |f_name, method_info|
           @cur_method_info = method_info
           method_info.define = visit(method_info.define).flatten.compact

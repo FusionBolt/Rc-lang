@@ -84,11 +84,12 @@ module Rc::VM
       end
     end
 
-    class Call < Struct.new(:target)
+    class Call < Struct.new(:klass, :target)
+      attr_type :klass => :str
       attr_type :target => :str
 
       def to_s
-        "Call #{target}"
+        "Call #{klass} #{target}"
       end
     end
 
