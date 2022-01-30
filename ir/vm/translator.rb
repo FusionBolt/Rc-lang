@@ -88,22 +88,12 @@ module Rc::VM
 
     def on_function(node)
       @cur_fun = node.name
-      # @global_env.define_env[node.name] = Rc::FunTable.new(cur_fun_env, node.args, 'undefined')
-      # @cur_method_info.env = Rc::FunTable.new(cur_fun_env, node.args, 'undefined')
       [FunLabel.new(node.name), super(node), Return.new]
     end
 
     def on_assign(node)
       res = visit(node.var_obj)
       [visit(node.expr), SetLocal.new(res.ref)]
-    end
-
-    def on_class_define(node)
-      # no need to deal with var_list, it's used in runtime
-      node.fun_list.map do |f|
-        f.name = "#{node.name}@#{f.name}"
-        f
-      end.map {|f| visit(f)}
     end
   end
 

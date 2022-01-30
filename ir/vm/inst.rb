@@ -113,11 +113,11 @@ module Rc::VM
       include InstUtil
     end
 
-    class Alloc < Struct.new(:type)
-      attr_type :type => :str
+    class Alloc < Struct.new(:class_type)
+      attr_type :class_type => :str
 
       def to_s
-        "Alloc #{type}"
+        "Alloc #{class_type}"
       end
     end
   end

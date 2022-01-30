@@ -5,6 +5,7 @@ require_relative 'ir_helper'
 
 describe 'CFG' do
   before do
+    pending("waiting refactor tac, because of method in kernels")
     @src = <<CFG_TEST
 def main
     if true

@@ -25,8 +25,10 @@ def gen_inst_base_class
 struct VMInst
 {
   InstType type;
+  virtual std::string to_string() { return "VMInst"; }
 protected:
   VMInst(InstType t): type(t) {};
+  virtual ~VMInst() = default;
 };
 SRC
 end
@@ -42,16 +44,23 @@ def gen_class_define(klass)
   init_member = "#{member_map.keys.generate(', ') {|name| "#{name}(_#{name})"}}"
   init_member = ", #{init_member}" unless init_member.empty?
   init_inst = "VMInst(InstType::#{class_name})"
+  to_string = member_map.keys.size == 0 ? '""' : member_map.generate(" +"){|td| td.type == :int ? "std::to_string(#{td.name})" : td.name}
   <<SRC
 struct #{class_name} : VMInst
 {
 public:
   #{class_name}(#{params}):#{init_inst}#{init_member} {}
 
+  std::string to_string() override 
+  { 
+    return #{to_string};
+  }
+
 #{member_map.generate {|mem_ty| "#{gen_class_member(mem_ty)};"}}
 };
 SRC
 end
+
 
 def gen_classes_define(classes)
   gen_inst_base_class + classes.generate { |x| gen_class_define(x) }
@@ -72,13 +81,13 @@ def gen_parser(klass)
   index = 1
   args = "#{member_map.generate(', ') {|td| type_translate(td, index).tap { index += 1 }} }"
   <<SRC
-if (list[0] == "#{class_name}") return std::make_unique<#{class_name}>(#{args});
+if (list[0] == "#{class_name}") return std::make_shared<#{class_name}>(#{args});
 SRC
 end
 
 def gen_all_parser(classes)
   <<SRC
-std::unique_ptr<VMInst> get_inst(const std::vector<std::string> &list)
+std::shared_ptr<VMInst> get_inst(const std::vector<std::string> &list)
 {
 #{classes.generate {|x| gen_parser(x)}}
 throw std::runtime_error("Unknown inst type" + list[0]);
@@ -129,6 +138,7 @@ def gen_header_namespace
 #include <string>
 #include <vector>
 #include <memory>
+#include <iostream>
 #pragma once
 
 using std::string;

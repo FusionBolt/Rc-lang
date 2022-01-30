@@ -18,7 +18,7 @@ SRC
 
     def gen_method(name, method_info)
       <<SRC
-#{name} #{method_info.args.size} #{method_info.env.size} #{method_info.offset}
+#{name} #{method_info.args.size} #{method_info.env.size}
 #{method_info.define.map(&:to_s).join("\n")}
 SRC
     end

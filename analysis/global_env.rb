@@ -28,7 +28,7 @@ module Rc
 
       def analysis(ast)
         visit(ast)
-        GlobalEnv.new(@define_env, @const_table, @fun_env, @class_table)
+        GlobalEnv.new(@const_table, @class_table)
       end
 
       def on_class_define(node)
@@ -41,6 +41,7 @@ module Rc
         # define before visit fun, because of this is a context used for visit fun
         @class_table.define_symbol(node.name, class_table)
         # visit and add value to class_table
+        # todo:dirty work, will not enter here when you visit Kernel Method
         node.fun_list.each {|f| visit(f)}
         node.var_list.each {|v| class_table.add_instance_var(v.name, v.val)}
         # restore name
@@ -55,7 +56,7 @@ module Rc
         @cur_fun_sym.merge(node.args.map{ |arg| [arg, EnvItemInfo.new(cur_fun_var_id, '')]}.to_h)
         visit(node.stmts)
         @fun_env[node.name] = @cur_fun_sym
-        cur_class.add_instance_method(node.name, InstanceMethodInfo.new(node, @cur_fun_sym, node.args, Rc::Define::UndefinedMethod))
+        cur_class.add_instance_method(node.name, InstanceMethodInfo.new(node, @cur_fun_sym, node.args))
       end
 
       def on_string_constant(node)

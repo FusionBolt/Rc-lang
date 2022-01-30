@@ -46,6 +46,11 @@ struct Add : VMInst
 public:
   Add():VMInst(InstType::Add) {}
 
+  std::string to_string() override 
+  { 
+    return "";
+  }
+
 
 };
 SRC
@@ -55,6 +60,11 @@ struct Label : VMInst
 public:
   Label(string _name):VMInst(InstType::Label), name(_name) {}
 
+  std::string to_string() override 
+  { 
+    return name;
+  }
+
 string name;
 };
 SRC
@@ -63,6 +73,11 @@ struct SetLocal : VMInst
 {
 public:
   SetLocal(int _offset):VMInst(InstType::SetLocal), offset(_offset) {}
+
+  std::string to_string() override 
+  { 
+    return std::to_string(offset);
+  }
 
 int offset;
 };

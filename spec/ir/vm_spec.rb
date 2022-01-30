@@ -32,7 +32,6 @@ SRC
       expect(f1.define.is_a? Array)
       expect(f1.env.keys).to eq %w[a b c]
       expect(f1.args).to eq %w[a b]
-      expect(f1.offset).to eq Rc::Define::UndefinedMethod
     end
   end
 end
