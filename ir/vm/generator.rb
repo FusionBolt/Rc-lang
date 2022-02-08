@@ -44,7 +44,10 @@ def gen_class_define(klass)
   init_member = "#{member_map.keys.generate(', ') {|name| "#{name}(_#{name})"}}"
   init_member = ", #{init_member}" unless init_member.empty?
   init_inst = "VMInst(InstType::#{class_name})"
-  to_string = member_map.keys.size == 0 ? '""' : member_map.generate(" +"){|td| td.type == :int ? "std::to_string(#{td.name})" : td.name}
+  to_string = "\"#{class_name}:\""
+  if member_map.keys.size != 0
+    to_string = to_string + "+" + (member_map.generate(" +"){|td| td.type == :int ? "std::to_string(#{td.name})" : td.name})
+  end
   <<SRC
 struct #{class_name} : VMInst
 {

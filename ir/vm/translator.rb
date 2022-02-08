@@ -75,6 +75,15 @@ module Rc::VM
     def on_new_expr(new)
       [Alloc.new(new.class_name), Call.new(new.class_name, Rc::Define::ConstructorMethod)]
     end
+
+    def on_class_member_access(access)
+      push_this = if access.instance_name == "self"
+        PushThis.new
+      else
+        push Ref.new cur_fun_env[access.instance_name].id
+      end
+      [push_this] + access.args.map{ |arg| push(visit(arg))} + [Call.new(@cur_class_name, access.member_name)]
+    end
   end
 
   module StmtTranslator
@@ -104,6 +113,7 @@ module Rc::VM
 
     def translate(global_env)
       # todo:refactor
+      @global_env = global_env
       global_env.class_table.update_values do |class_name, table|
         @cur_class_name = class_name
         table.instance_methods.update_values do |f_name, method_info|

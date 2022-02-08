@@ -1,5 +1,6 @@
 class Foo
   def initialize()
+    self.add(1, 2)
   end
 
   def add(x, y)
@@ -10,4 +11,6 @@ end
 
 def main
     var f = Foo.new()
+    var n = f.add(1, 2)
+    put_i(n)
 end

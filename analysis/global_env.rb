@@ -64,10 +64,11 @@ module Rc
       end
 
       def on_assign(node)
-        # todo:when member access, this error
         super
-        name = node.var_obj.name
-        @cur_fun_sym[name] = EnvItemInfo.new(cur_fun_var_id, '')
+        unless node.var_obj.is_a? Rc::AST::ClassMemberAccess
+          name = node.var_obj.name
+          @cur_fun_sym[name] = EnvItemInfo.new(cur_fun_var_id, '')
+        end
       end
 
       def cur_fun_var_id

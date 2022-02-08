@@ -78,6 +78,10 @@ module Rc::VM
       end
     end
 
+    class PushThis
+      include InstUtil
+    end
+
     class Pop < TypeStruct.new(:pos => :int)
       def to_s
         "Pop #{pos}"
