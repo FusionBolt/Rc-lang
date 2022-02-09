@@ -69,20 +69,24 @@ module Rc::VM
     end
 
     def on_fun_call(fun_call)
-      fun_call.args.map { |arg| push(visit(arg)) } + [Call.new(@cur_class_name, fun_call.name)]
+      [PushThis.new] + fun_call.args.map { |arg| push(visit(arg)) } + [Call.new(fun_call.name, fun_call.args.size)]
     end
 
     def on_new_expr(new)
-      [Alloc.new(new.class_name), Call.new(new.class_name, Rc::Define::ConstructorMethod)]
+      [Alloc.new(new.class_name), Call.new(Rc::Define::ConstructorMethod, 0)]
     end
 
+    # todo:can't process static fun
     def on_class_member_access(access)
+      argc = access.args.size
       push_this = if access.instance_name == "self"
         PushThis.new
       else
         push Ref.new cur_fun_env[access.instance_name].id
       end
-      [push_this] + access.args.map{ |arg| push(visit(arg))} + [Call.new(@cur_class_name, access.member_name)]
+      # todo: it's error when member is var
+      call = Call.new(access.member_name, argc)
+      [push_this] + access.args.map{ |arg| push(visit(arg))} + [call]
     end
   end
 
@@ -128,6 +132,10 @@ module Rc::VM
 
     def cur_fun_env
       @cur_method_info.env
+    end
+
+    def cur_class_table
+      @global_env.class_table[@cur_class_name]
     end
   end
 end

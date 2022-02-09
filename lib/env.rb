@@ -177,6 +177,9 @@ module Rc
   end
 
   class InstanceMethodInfo < Struct.new(:define, :env, :args)
+    def argc
+      args.size
+    end
   end
 
   class ClassTable

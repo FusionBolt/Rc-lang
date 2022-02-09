@@ -1,6 +1,6 @@
 class Foo
   def initialize()
-    self.add(1, 2)
+    n = self.add(3, 4)
   end
 
   def add(x, y)
