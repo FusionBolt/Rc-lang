@@ -97,6 +97,14 @@ module Rc::VM
       end
     end
 
+    class InvokeSuper < Struct.new(:argc)
+      attr_type :argc => :int
+
+      def to_s
+        "InvokeSuper #{argc}"
+      end
+    end
+
     class Return
       include InstUtil
     end

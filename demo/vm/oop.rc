@@ -1,6 +1,16 @@
-class Foo
+class Parent
+  def value
+    1
+  end
+end
+
+class Foo < Parent
   def initialize()
     n = self.add(3, 4)
+  end
+
+  def value
+    super()
   end
 
   def add(x, y)

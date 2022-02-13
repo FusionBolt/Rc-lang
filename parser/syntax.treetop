@@ -62,6 +62,14 @@ grammar Rc
     'int' space+
   end
 
+  rule invoke_super
+    'super' args:call_args {
+      def to_ast
+        AST::InvokeSuper.new(args.to_ast)
+      end
+    }
+  end
+
   rule fun_call
     &(identifier '(')
     name:identifier args:call_args {
@@ -272,7 +280,7 @@ grammar Rc
 
   rule term
     term_val:(bool_constant / num_constant / string_constant /
-    new_expr / class_member_access / fun_call / identifier_node) {
+    new_expr / invoke_super / class_member_access / fun_call / identifier_node) {
       def to_ast
         term_val.to_ast
       end

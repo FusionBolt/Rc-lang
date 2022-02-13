@@ -99,6 +99,19 @@ module Rc::AST
     end
   end
 
+
+  class InvokeSuper
+    attr_reader :args
+
+    def initialize(args)
+      @args = args
+    end
+
+    def to_s
+      "InvokeSuper#{args_to_s(@args)}"
+    end
+  end
+
   class ClassMemberAccess
     attr_reader :instance_name, :member_name, :args
 

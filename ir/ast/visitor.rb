@@ -71,6 +71,8 @@ module Rc::AST
     def on_number_constant(node) end
 
     def on_string_constant(node) end
+
+    def on_invoke_super(node) end
   end
 
   module Visitor

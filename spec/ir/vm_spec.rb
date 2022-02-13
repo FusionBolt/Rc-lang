@@ -34,4 +34,17 @@ SRC
       expect(f1.args).to eq %w[a b]
     end
   end
+
+  context 'super' do
+    it 'succeed' do
+      s = <<SRC
+def f
+  super(1, 2)
+end
+SRC
+      env = get_new_global_env(s)
+      f = get_kernel_methods_info(env)['f']
+      expect(f.define).to eq [FunLabel.new('f'), PushThis.new, Push.new(1), Push.new(2), InvokeSuper.new(2), Return.new]
+    end
+  end
 end

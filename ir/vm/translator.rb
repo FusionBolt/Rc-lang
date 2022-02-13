@@ -24,6 +24,10 @@ module Rc::VM
         raise "Unsupported node type #{node.class}"
       end
     end
+
+    def push_args(args)
+      args.map { |arg| push(visit(arg)) }
+    end
   end
 
   module ExprTranslator
@@ -69,7 +73,7 @@ module Rc::VM
     end
 
     def on_fun_call(fun_call)
-      [PushThis.new] + fun_call.args.map { |arg| push(visit(arg)) } + [Call.new(fun_call.name, fun_call.args.size)]
+      [PushThis.new] + push_args(fun_call.args) + [Call.new(fun_call.name, fun_call.args.size)]
     end
 
     def on_new_expr(new)
@@ -86,7 +90,11 @@ module Rc::VM
       end
       # todo: it's error when member is var
       call = Call.new(access.member_name, argc)
-      [push_this] + access.args.map{ |arg| push(visit(arg))} + [call]
+      [push_this] + push_args(access.args) + [call]
+    end
+
+    def on_invoke_super(node)
+      [PushThis.new] + push_args(node.args.map) + [InvokeSuper.new(node.args.size)]
     end
   end
 

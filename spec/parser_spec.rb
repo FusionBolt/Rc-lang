@@ -214,5 +214,17 @@ EXPR
 EXPR
       test_expr(c, 'd = (((1 * 2) * 3) * 4)')
     end
+
+    context 'super' do
+      it 'succeed' do
+        c = <<EXPR
+  def fun
+    super(1, 2)
+  end
+EXPR
+        fun = parse(c).defines[0]
+        expect(fun.stmts[0].stmt.to_s).to eq "InvokeSuper(1,2)"
+      end
+    end
   end
 end
