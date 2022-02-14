@@ -44,6 +44,8 @@ module Rc
         # todo:dirty work, will not enter here when you visit Kernel Method
         node.fun_list.each {|f| visit(f)}
         node.var_list.each {|v| class_table.add_instance_var(v.name, v.val)}
+        # todo:multi parents
+        class_table.add_parents(node.parent)
         # restore name
         @cur_class_name = old_class_name
       end

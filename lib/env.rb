@@ -183,11 +183,12 @@ module Rc
   end
 
   class ClassTable
-    attr_accessor :instance_methods, :instance_vars
+    attr_accessor :instance_methods, :instance_vars, :parents
 
     def initialize
       @instance_methods = {}
       @instance_vars = {}
+      @parents = []
     end
 
     def add_instance_method(name, define)
@@ -196,6 +197,10 @@ module Rc
 
     def add_instance_var(name, define)
       @instance_vars[name] = define
+    end
+
+    def add_parents(parent)
+      @parents.push parent
     end
   end
 

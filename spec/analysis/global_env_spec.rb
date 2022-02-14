@@ -88,6 +88,8 @@ SRC
       klass_table = env.class_table[klass]
       expect(klass_table.instance_methods.keys).to eq method_list
     end
+
+
     it 'single method' do
       s = <<SRC
 def main
@@ -120,6 +122,21 @@ SRC
       env = get_global_env(s)
       check_method(env, Rc::Define::GlobalObject, %w[main])
       check_method(env, 'Foo', %w[f1])
+    end
+
+    context 'inherit' do
+      it 'single' do
+        s = <<SRC
+class Parent
+end
+
+class Foo < Parent
+end
+SRC
+        env = get_global_env(s)
+        expect(Set.new(env.class_table.keys)).to eq Set.new(%w[Kernel Parent Foo])
+        expect(env.class_table['Foo'].parents).to eq %w[Parent]
+      end
     end
   end
 end

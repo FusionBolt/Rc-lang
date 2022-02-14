@@ -1,16 +1,7 @@
 require_relative 'inst'
 require './lib/type_struct'
 require './lib/helper'
-
-class Array
-  def generate(c = "\n", &f)
-    map {|a| f[a] }.join(c)
-  end
-
-  def pure_generate(&f)
-    map { |a| a.demodulize_class }.generate(&f)
-  end
-end
+require './lib/generate'
 
 def gen_enum_inst_type(classes)
   <<SRC

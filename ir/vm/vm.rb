@@ -2,6 +2,7 @@ require './ir/ast/visitor'
 require './lib/env'
 require_relative './inst'
 require_relative './translator'
+require './lib/generate'
 
 module Rc
   module VM
@@ -9,8 +10,8 @@ module Rc
       # todo:instance_vars should not save var value
       global_env.class_table.map do |class_name, table|
         <<SRC
-#{class_name}
-#{table.instance_vars.keys.map(&:to_s).join(' ')}
+#{class_name} #{table.parents.generate(' ', &:to_s)}
+#{table.instance_vars.keys.generate(' ', &:to_s)}
 #{table.instance_methods.map { |name, info| gen_method(name, info) }.join("\n") }
 SRC
       end.join("\n")
