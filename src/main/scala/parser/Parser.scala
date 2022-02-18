@@ -45,8 +45,14 @@ object RcParser extends Parsers {
       FALSE ^^ (_ => RcExpr.Bool(BoolConst.False))
   }
 
+  def args: Parser[List[RcExpr]] = positioned {
+    LEFT_PARENT_THESES ~ repsep(identifier, COMMA) ~ RIGHT_PARENT_THESES ^^ {
+      case _ ~ params ~ _ => params.map(x => RcExpr.Identifier(x.str))
+    }
+  }
+
   def method: Parser[RcDefine] = positioned {
-    DEF ~ identifier ~ END ^^ (_ => RcDefine.Method)
+    DEF ~ identifier ~ args ~ END ^^ (_, id, args, _ => RcDefine.Method)
   }
 
   private def identifier: Parser[IDENTIFIER] = positioned {

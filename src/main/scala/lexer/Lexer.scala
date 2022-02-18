@@ -2,14 +2,15 @@ package rclang
 package lexer
 
 import rclang.lexer.RcLexer
-import rclang.lexer.RcToken._
+import rclang.lexer.RcToken.*
 import rclang.RcLexerError
 import rclang.Location
+
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
 object RcLexer extends RegexParsers {
-  override def skipWhitespace = true
+  override def skipWhitespace = false
   override val whiteSpace: Regex = "[ \t\r\f]+".r
 
   def apply(code: String): Either[RcLexerError, List[RcToken]] = {
@@ -19,8 +20,14 @@ object RcLexer extends RegexParsers {
     }
   }
 
+  def keyword: Parser[RcToken] = stringLiteral | trueLiteral | falseLiteral | defStr | endStr | ifStr | whileStr;
+  def value: Parser[RcToken] = number | identifier
+
+  def operator: Regex = "[+\\-*/^%]".r
+
+  // todo: bracket can no space
   def tokens: Parser[List[RcToken]] = {
-    phrase(rep1(stringLiteral | trueLiteral | falseLiteral | number |identifier))
+    phrase(repsep(keyword | value, whiteSpace))
   }
 
   def identifier: Parser[IDENTIFIER] = positioned {
@@ -42,4 +49,16 @@ object RcLexer extends RegexParsers {
   def falseLiteral = positioned { "false" ^^ (_ => FALSE) }
   def defStr = positioned { "def" ^^ (_ => DEF) }
   def endStr = positioned { "end" ^^ (_ => END) }
+  def ifStr = positioned { "if" ^^ (_ => IF) }
+  def whileStr = positioned { "while" ^^ (_ => WHILE) }
+  def classStr = positioned { "class" ^^ (_ => WHILE) }
+  def superStr = positioned { "super" ^^ (_ => WHILE) }
+
+  def eql = positioned { "=" ^^ (_ => EQL) }
+  def comma = positioned { "," ^^ (_ => COMMA) }
+
+  def leftParentTheses = positioned { "(" ^^ (_ => LEFT_PARENT_THESES) }
+  def rightParentTheses = positioned { ")" ^^ (_ => LEFT_PARENT_THESES) }
+  def leftSquare = positioned { "[" ^^ (_ => LEFT_PARENT_THESES) }
+  def rightSquare = positioned { "]" ^^ (_ => LEFT_PARENT_THESES) }
 }

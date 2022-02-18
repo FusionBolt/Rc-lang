@@ -22,3 +22,4 @@ enum RcExpr extends Positional:
 
 enum RcDefine extends Positional:
   case Method
+  case Class
