@@ -196,7 +196,11 @@ module Rc
     end
 
     def add_instance_var(name, define)
-      @instance_vars[name] = define
+      @instance_vars[name] = @instance_vars.size
+    end
+
+    def instance_var_keys
+      @instance_vars.sort_by(&:last)
     end
 
     def add_parents(parent)

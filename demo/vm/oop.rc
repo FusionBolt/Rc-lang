@@ -1,11 +1,12 @@
 class Parent
   def value
-    1
+    1 + 1
   end
 end
 
 class Foo < Parent
   def initialize()
+    @a = 1
     n = self.add(3, 4)
   end
 
@@ -23,4 +24,6 @@ def main
     var f = Foo.new()
     var n = f.add(1, 2)
     put_i(n)
+    var m = f.value()
+    put_i(m)
 end

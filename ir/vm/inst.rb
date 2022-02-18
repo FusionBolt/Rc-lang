@@ -132,5 +132,19 @@ module Rc::VM
         "Alloc #{class_type}"
       end
     end
+
+    class GetClassMemberVar < Struct.new(:id)
+      attr_type :id => :int
+      def to_s
+        "GetClassMemberVar #{id}"
+      end
+    end
+
+    class SetClassMemberVar < Struct.new(:id)
+      attr_type :id => :int
+      def to_s
+        "SetClassMemberVar #{id}"
+      end
+    end
   end
 end

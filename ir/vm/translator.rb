@@ -1,4 +1,5 @@
 require './ir/ast/visitor'
+require './ir/ast/ast_node'
 require './lib/visitor'
 require './lib/env'
 require_relative './inst'
@@ -27,6 +28,10 @@ module Rc::VM
 
     def push_args(args)
       args.map { |arg| push(visit(arg)) }
+    end
+
+    def get_class_var(var_obj)
+      cur_class_table.instance_vars[var_obj.name]
     end
   end
 
@@ -80,7 +85,7 @@ module Rc::VM
       [Alloc.new(new.class_name), Call.new(Rc::Define::ConstructorMethod, 0)]
     end
 
-    # todo:can't process static fun
+    # todo:can't process static fun and var
     def on_class_member_access(access)
       argc = access.args.size
       push_this = if access.instance_name == "self"
@@ -95,6 +100,10 @@ module Rc::VM
 
     def on_invoke_super(node)
       [PushThis.new] + push_args(node.args.map) + [InvokeSuper.new(node.args.size)]
+    end
+
+    def on_get_class_member_var(node)
+      GetClassMemberVar.new(get_class_var(node))
     end
   end
 
@@ -113,8 +122,16 @@ module Rc::VM
     end
 
     def on_assign(node)
-      res = visit(node.var_obj)
-      [visit(node.expr), SetLocal.new(res.ref)]
+      value = visit(node.expr)
+      if value.is_a? Value or value.is_a? Ref
+        value = push(value)
+      end
+      if node.var_obj.is_a? Rc::AST::GetClassMemberVar
+        [value, SetClassMemberVar.new(get_class_var(node.var_obj))]
+      else
+        res = visit(node.var_obj)
+        [value, SetLocal.new(res.ref)]
+      end
     end
   end
 

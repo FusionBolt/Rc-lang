@@ -81,7 +81,7 @@ end
 
 def gen_all_parser(classes)
   <<SRC
-std::shared_ptr<VMInst> get_inst(const std::vector<std::string> &list)
+inline std::shared_ptr<VMInst> get_inst(const std::vector<std::string> &list)
 {
 #{classes.generate {|x| gen_parser(x)}}
 throw std::runtime_error("Unknown inst type" + list[0]);

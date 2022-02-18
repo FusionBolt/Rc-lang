@@ -154,4 +154,12 @@ module Rc::AST
         $logger.debug "class member var #{@name}:#{@val.to_s}"
       end
     end
+
+    class GetClassMemberVar
+      attr_reader :name
+
+      def initialize(name)
+        @name = name
+      end
+    end
 end

@@ -158,7 +158,7 @@ grammar Rc
   end
 
   rule assign
-    var:(identifier_node / class_member_access) white* '=' space* val:expression {
+    var:(identifier_node / call_class_member_method / get_class_member_var) white* '=' space* val:expression {
       def to_ast
         AST::Assign.new(var.to_ast, val.to_ast)
       end
@@ -280,7 +280,7 @@ grammar Rc
 
   rule term
     term_val:(bool_constant / num_constant / string_constant /
-    new_expr / invoke_super / class_member_access / fun_call / identifier_node) {
+    new_expr / invoke_super / call_class_member_method / fun_call / get_class_member_var / identifier_node) {
       def to_ast
         term_val.to_ast
       end
@@ -288,12 +288,20 @@ grammar Rc
   end
 
   # TODO:set args optional
-  rule class_member_access
-    instance_name:(identifier / self) white* '.' member_name:identifier white*
+  rule call_class_member_method
+    instance_name:(identifier / self / get_class_member_var) white* '.' member_name:identifier white*
     args:call_args? {
       def to_ast
         args_val = optional_node_exist?(args)? args.to_ast : []
         AST::ClassMemberAccess.new(instance_name.to_ast, member_name.to_ast, args_val)
+      end
+    }
+  end
+
+  rule get_class_member_var
+    '@' id:identifier {
+      def to_ast
+        AST::GetClassMemberVar.new(id.to_ast)
       end
     }
   end

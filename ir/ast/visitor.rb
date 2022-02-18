@@ -73,6 +73,8 @@ module Rc::AST
     def on_string_constant(node) end
 
     def on_invoke_super(node) end
+
+    def on_get_class_member_var(node) end
   end
 
   module Visitor
