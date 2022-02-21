@@ -8,16 +8,26 @@ enum RcToken extends Positional:
   case NUMBER(int: Int)
   case OPERATOR(op: String)
   case STRING(str: String)
+
   case COMMA
   case EQL
+
   case TRUE
   case FALSE
+
+  case VAR
+  case VAL
+
   case DEF
+  case RETURN
   case END
+
   case IF
   case WHILE
+
   case CLASS
   case SUPER
+
   case LEFT_PARENT_THESES
   case RIGHT_PARENT_THESES
   case LEFT_SQUARE

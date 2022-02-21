@@ -8,6 +8,32 @@ import rclang.lexer.RcToken._
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{NoPosition, Position, Reader}
 
+object ValueParser extends Parsers {
+  def identifier: Parser[IDENTIFIER] = positioned {
+    accept("identifier", { case id @ IDENTIFIER(name) => id })
+  }
+
+  def stringLiteral: Parser[STRING] = positioned {
+    accept("string literal", { case lit @ STRING(name) => lit })
+  }
+
+  def number: Parser[NUMBER] = positioned {
+    accept("number literal", { case num @ NUMBER(name) => num })
+  }
+}
+
+object StatementParser extends Parsers {
+  def local: Parser[Statement.Local] = positioned {
+    VAR ~ ValueParser.identifier ~ EQL ^^ {
+      case _ ~ IDENTIFIER(id) ~ _ => Statement.Local(id, Type.Nil)
+    }
+  }
+}
+
+object ExprParser extends Parsers {
+
+}
+
 object RcParser extends Parsers {
   override type Elem = RcToken
 
@@ -30,8 +56,10 @@ object RcParser extends Parsers {
   }
 
   def program: Parser[RcAST] = positioned {
-    phrase(expr) ^^ (expr => RcAST.Expr(expr))
+    phrase(define ^^ (defs => RcAST.Define(defs)) | expr ^^ (exprs => RcAST.Expr(exprs)))
   }
+
+  def define: Parser[RcItem] = method
 
   def expr: Parser[RcExpr] = positioned {
     bool
@@ -45,14 +73,16 @@ object RcParser extends Parsers {
       FALSE ^^ (_ => RcExpr.Bool(BoolConst.False))
   }
 
-  def args: Parser[List[RcExpr]] = positioned {
+  def args: Parser[Params] = positioned {
     LEFT_PARENT_THESES ~ repsep(identifier, COMMA) ~ RIGHT_PARENT_THESES ^^ {
-      case _ ~ params ~ _ => params.map(x => RcExpr.Identifier(x.str))
+      case _ ~ params ~ _ => Params(params.map(x => Param(x.str)))
     }
   }
 
-  def method: Parser[RcDefine] = positioned {
-    DEF ~ identifier ~ args ~ END ^^ (_, id, args, _ => RcDefine.Method)
+  def method: Parser[RcItem] = positioned {
+    DEF ~ identifier ~ args ~ END ^^ {
+      case _ ~ IDENTIFIER(id) ~ args ~ _ => RcItem.Method(MethodDecl(id, args, "output"), List())
+    }
   }
 
   private def identifier: Parser[IDENTIFIER] = positioned {

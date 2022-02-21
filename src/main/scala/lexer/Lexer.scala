@@ -45,20 +45,30 @@ object RcLexer extends RegexParsers {
     """(0|[1-9]\d*)""".r ^^ { i => NUMBER(i.toInt) }
   }
 
-  def trueLiteral = positioned { "true" ^^ (_ => TRUE) }
-  def falseLiteral = positioned { "false" ^^ (_ => FALSE) }
-  def defStr = positioned { "def" ^^ (_ => DEF) }
-  def endStr = positioned { "end" ^^ (_ => END) }
-  def ifStr = positioned { "if" ^^ (_ => IF) }
-  def whileStr = positioned { "while" ^^ (_ => WHILE) }
-  def classStr = positioned { "class" ^^ (_ => WHILE) }
-  def superStr = positioned { "super" ^^ (_ => WHILE) }
+  def NoValueToken(str: String, token: RcToken) = positioned {
+    str ^^ (__ => token)
+  }
 
-  def eql = positioned { "=" ^^ (_ => EQL) }
-  def comma = positioned { "," ^^ (_ => COMMA) }
+  def eql = NoValueToken("=", EQL)
+  def comma = NoValueToken(",", COMMA)
 
-  def leftParentTheses = positioned { "(" ^^ (_ => LEFT_PARENT_THESES) }
-  def rightParentTheses = positioned { ")" ^^ (_ => LEFT_PARENT_THESES) }
-  def leftSquare = positioned { "[" ^^ (_ => LEFT_PARENT_THESES) }
-  def rightSquare = positioned { "]" ^^ (_ => LEFT_PARENT_THESES) }
+  def trueLiteral = NoValueToken("true", TRUE)
+  def falseLiteral = NoValueToken("false", FALSE)
+
+  def varStr = NoValueToken("var", VAR)
+  def valStr = NoValueToken("val", VAL)
+  def defStr = NoValueToken("def", DEF)
+  def returnStr = NoValueToken("return", RETURN)
+  def endStr = NoValueToken("end", END)
+
+  def ifStr = NoValueToken("if", IF)
+  def whileStr = NoValueToken("while", WHILE)
+
+  def classStr = NoValueToken("class", WHILE)
+  def superStr = NoValueToken("super", WHILE)
+
+  def leftParentTheses = NoValueToken("(", LEFT_PARENT_THESES)
+  def rightParentTheses = NoValueToken(")", LEFT_PARENT_THESES)
+  def leftSquare = NoValueToken("[", LEFT_PARENT_THESES)
+  def rightSquare = NoValueToken("]", LEFT_PARENT_THESES)
 }

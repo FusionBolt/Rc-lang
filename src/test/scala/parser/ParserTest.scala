@@ -1,15 +1,15 @@
 package rclang
 package parser
 
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.funspec.AnyFunSpec
 import lexer.RcToken
 import lexer.RcToken.*
 
-import rclang.ast.{RcAST, RcExpr}
+import rclang.ast.{Params, RcAST, RcExpr, RcItem}
 import rclang.ast.RcAST.Expr.*
 import rclang.ast.RcExpr.*
 
-class ParserTest extends AnyFunSuite {
+class ParserTest extends AnyFunSpec {
   def expectSuccess(token: RcToken, expect: RcExpr): Unit = {
     RcParser(List(token)) match {
       case Left(value) => assert(false, value.msg)
@@ -17,15 +17,36 @@ class ParserTest extends AnyFunSuite {
     }
   }
 
-  test("number") {
-    expectSuccess(NUMBER(3), Number(3))
+  def expectSuccess(token: List[RcToken], expect: RcItem): Unit = {
+    RcParser(token) match {
+      case Left(value) => assert(false, value.msg)
+      case Right(value) =>
+    }
   }
 
-  test("identifier") {
-    expectSuccess(IDENTIFIER("foo"), Identifier("foo"))
+  describe("number") {
+    it ("succeed") {
+      expectSuccess(NUMBER(3), Number(3))
+    }
   }
 
-  test("str") {
-    expectSuccess(STRING("str"), Str("str"))
+  describe("identifier") {
+    it("succeed") {
+      expectSuccess(IDENTIFIER("foo"), Identifier("foo"))
+    }
+  }
+
+  describe("str") {
+    it("succeed") {
+      expectSuccess(STRING("str"), Str("str"))
+    }
+  }
+
+  describe("fun") {
+    it("empty") {
+//      expectSuccess(List(DEF, IDENTIFIER("foo"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, END),
+//        RcItem.Method("foo", Params(List())))
+    }
+
   }
 }
