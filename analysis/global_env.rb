@@ -43,9 +43,10 @@ module Rc
         # visit and add value to class_table
         # todo:dirty work, will not enter here when you visit Kernel Method
         node.fun_list.each {|f| visit(f)}
-        node.var_list.each {|v| class_table.add_instance_var(v.name, v.val)}
-        # todo:multi parents
-        class_table.add_parents(node.parent)
+        node.var_list.each {|v| class_table.add_instance_var(v.name)}
+        unless node.parent.nil?
+          class_table.add_parents(node.parent, @class_table[node.parent])
+        end
         # restore name
         @cur_class_name = old_class_name
       end

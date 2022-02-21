@@ -21,6 +21,8 @@ module Rc::VM
         Push.new(node.value)
       elsif node.is_a? Ref
         GetLocal.new(node.ref)
+      elsif node.is_a? GetClassMemberVar
+        node
       else
         raise "Unsupported node type #{node.class}"
       end
@@ -78,7 +80,7 @@ module Rc::VM
     end
 
     def on_fun_call(fun_call)
-      [PushThis.new] + push_args(fun_call.args) + [Call.new(fun_call.name, fun_call.args.size)]
+    [PushThis.new] + push_args(fun_call.args) + [Call.new(fun_call.name, fun_call.args.size)]
     end
 
     def on_new_expr(new)

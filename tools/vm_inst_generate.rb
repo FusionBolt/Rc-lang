@@ -1,3 +1,3 @@
 require './ir/vm/generator'
 
-File.open('../RCVM/instructions.hpp', 'w').write(gen_inst_src)
+File.open('../RCVM/include/instructions.hpp', 'w+').write(gen_inst_src)

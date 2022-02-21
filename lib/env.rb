@@ -183,28 +183,37 @@ module Rc
   end
 
   class ClassTable
-    attr_accessor :instance_methods, :instance_vars, :parents
+    attr_accessor :instance_methods, :instance_vars, :parent
 
     def initialize
       @instance_methods = {}
       @instance_vars = {}
-      @parents = []
+      @parent = ""
     end
 
     def add_instance_method(name, define)
       @instance_methods[name] = define
     end
 
-    def add_instance_var(name, define)
+    def add_instance_var(name)
       @instance_vars[name] = @instance_vars.size
     end
 
     def instance_var_keys
-      @instance_vars.sort_by(&:last)
+      @instance_vars.sort_by(&:last).map {|k, _|k}
     end
 
-    def add_parents(parent)
-      @parents.push parent
+    # todo:add test
+    def add_parents(parent_name, parent_table)
+      @parent = parent_name
+      unless parent_table.is_a? ClassTable
+        raise "parent_table should be a ClassTable"
+      end
+      parent_table.instance_vars.each do |var_name, _|
+        unless @instance_vars.include? var_name
+          add_instance_var(var_name)
+        end
+      end
     end
   end
 
