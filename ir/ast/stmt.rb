@@ -66,12 +66,13 @@ module Rc::AST
 
   class If
     # elsif_list -> [[cond, stmts]]
-    attr_reader :if_cond, :if_stmts, :elsif_list, :else_stmts
-    attr_reader :stmt_list
+    attr_reader :if_cond, :if_stmts, :elsif_list
+    attr_reader :stmt_list, :else_stmts
 
     def initialize(if_cond, if_stmts, elsif_node, else_node)
       @if_cond, @if_stmts, @elsif_list, @else_stmts =
         if_cond, if_stmts, elsif_node, else_node
+      # stmt_list: [[if_cond, stmt], [elsif_cond, stmt]*, [else, stmt]+]
       @stmt_list = [[if_cond, if_stmts]] + elsif_node
       $logger.debug "if node"
     end

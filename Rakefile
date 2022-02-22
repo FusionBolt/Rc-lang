@@ -3,5 +3,5 @@ task :gen_cpp do
 end
 
 task :rcc do
-  ruby "./interface/rcc.rb", "demo/vm/oop.rc"
+  ruby "./interface/rcc.rb", "demo/vm/if.rc"
 end

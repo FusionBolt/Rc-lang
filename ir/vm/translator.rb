@@ -60,6 +60,10 @@ module Rc::VM
         Mul.new
       in '/'
         Div.new
+      in '<'
+        LT.new
+      in '>'
+        GT.new
       else
         raise 'unsupported op'
       end
@@ -80,7 +84,7 @@ module Rc::VM
     end
 
     def on_fun_call(fun_call)
-    [PushThis.new] + push_args(fun_call.args) + [Call.new(fun_call.name, fun_call.args.size)]
+      [PushThis.new] + push_args(fun_call.args) + [Call.new(fun_call.name, fun_call.args.size)]
     end
 
     def on_new_expr(new)
@@ -91,10 +95,10 @@ module Rc::VM
     def on_class_member_access(access)
       argc = access.args.size
       push_this = if access.instance_name == "self"
-        PushThis.new
-      else
-        push Ref.new cur_fun_env[access.instance_name].id
-      end
+                    PushThis.new
+                  else
+                    push Ref.new cur_fun_env[access.instance_name].id
+                  end
       # todo: it's error when member is var
       call = Call.new(access.member_name, argc)
       [push_this] + push_args(access.args) + [call]
@@ -134,6 +138,22 @@ module Rc::VM
         res = visit(node.var_obj)
         [value, SetLocal.new(res.ref)]
       end
+    end
+
+    # todo: to if expr
+    def on_if(node)
+      list = node.stmt_list.map do |cond, stmt|
+        c = visit(cond)
+        s = [visit(stmt), JmpAfterIf.new].flatten
+        cmp_and_jmp = [Push.new(1), EQ.new, BranchJmp.new(s.flatten.size + 1)]
+        [c, cmp_and_jmp, s].flatten
+      end.flatten
+      list.each_with_index do |inst, index|
+        if inst.is_a? JmpAfterIf
+          list[index] = DirectJmp.new(list.size - index)
+        end
+      end
+      list
     end
   end
 

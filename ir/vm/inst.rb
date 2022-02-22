@@ -146,5 +146,36 @@ module Rc::VM
         "SetClassMemberVar #{id}"
       end
     end
+
+    class BranchJmp < Struct.new(:offset)
+      attr_type :offset => :int
+
+      def to_s
+        "BranchJmp #{offset}"
+      end
+    end
+
+    class JmpAfterIf
+    end
+
+    class DirectJmp < Struct.new(:offset)
+      attr_type :offset => :int
+
+      def to_s
+        "BranchJmp #{offset}"
+      end
+    end
+
+    class GT
+      include InstUtil
+    end
+
+    class LT
+      include InstUtil
+    end
+
+    class EQ
+      include InstUtil
+    end
   end
 end

@@ -189,7 +189,7 @@ module Rc::AST
     end
 
     def infix
-      infix_map = { '+' => 10, '-' => 10, '*' => 5, '/' => 5, '!' => 4 }
+      infix_map = { '+' => 10, '-' => 10, '*' => 5, '/' => 5, '!' => 4, '>' => 3, '<' => 3 }
       infix_map[@op]
     end
   end
