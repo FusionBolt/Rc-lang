@@ -9,6 +9,7 @@ enum RcToken extends Positional:
   case OPERATOR(op: String)
   case STRING(str: String)
 
+  case EOL
   case COMMA
   case EQL
 

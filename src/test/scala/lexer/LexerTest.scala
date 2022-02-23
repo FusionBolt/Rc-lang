@@ -7,21 +7,6 @@ import lexer.RcToken.*
 
 import org.scalatest.funspec.AnyFunSpec
 
-class TT extends AnyFunSpec {
-  describe("test") {
-    it("shoule be zero") {
-
-    }
-
-    describe("f") {
-
-    }
-    it ("test") {
-
-    }
-  }
-}
-
 class LexerTest extends AnyFunSuite {
   def singleToken(tokens: List[RcToken]): RcToken = {
     assert(tokens.size == 1, tokens)
@@ -85,7 +70,10 @@ class LexerTest extends AnyFunSuite {
     // todo:true error info
     expectFailed("\"test str")
   }
-  
+
+  test ("eol") {
+    expectSuccess("id \n id", List(IDENTIFIER("id"), EOL, IDENTIFIER("id")))
+  }
   test("pending")(pending)
 
   test("") {

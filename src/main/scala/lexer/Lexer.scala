@@ -20,7 +20,7 @@ object RcLexer extends RegexParsers {
     }
   }
 
-  def keyword: Parser[RcToken] = stringLiteral | trueLiteral | falseLiteral | defStr | endStr | ifStr | whileStr;
+  def keyword: Parser[RcToken] = stringLiteral | trueLiteral | falseLiteral | defStr | endStr | ifStr | whileStr | eol;
   def value: Parser[RcToken] = number | identifier
 
   def operator: Regex = "[+\\-*/^%]".r
@@ -46,9 +46,10 @@ object RcLexer extends RegexParsers {
   }
 
   def NoValueToken(str: String, token: RcToken) = positioned {
-    str ^^ (__ => token)
+    str ^^^ token
   }
 
+  def eol = NoValueToken("\n", EOL)
   def eql = NoValueToken("=", EQL)
   def comma = NoValueToken(",", COMMA)
 

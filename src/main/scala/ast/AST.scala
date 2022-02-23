@@ -29,11 +29,11 @@ enum Type extends Positional:
 case class MethodSignature() extends Positional
 case class Param(name: Id) extends Positional
 case class Params(params: List[Param]) extends Positional
-case class MethodDecl(name: Id, inputs: Params, output: String) extends Positional
+case class MethodDecl(name: Id, inputs: Params, output: Type) extends Positional
 case class Block(stmts: List[Statement]) extends Positional
 
 enum RcItem extends Positional:
-  case Method(decl: MethodDecl, body: List[Statement])
+  case Method(decl: MethodDecl, body: Block)
   case Class
 
 enum Statement extends Positional:

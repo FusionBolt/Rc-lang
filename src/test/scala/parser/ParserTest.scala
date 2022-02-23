@@ -8,17 +8,18 @@ import lexer.RcToken.*
 import rclang.ast.{Params, RcAST, RcExpr, RcItem}
 import rclang.ast.RcAST.Expr.*
 import rclang.ast.RcExpr.*
+import rclang.ast.*
 
 class ParserTest extends AnyFunSpec {
   def expectSuccess(token: RcToken, expect: RcExpr): Unit = {
-    RcParser(List(token)) match {
+    ModuleParser(List(token)) match {
       case Left(value) => assert(false, value.msg)
       case Right(value) =>
     }
   }
 
   def expectSuccess(token: List[RcToken], expect: RcItem): Unit = {
-    RcParser(token) match {
+    ModuleParser(token) match {
       case Left(value) => assert(false, value.msg)
       case Right(value) =>
     }
@@ -42,11 +43,14 @@ class ParserTest extends AnyFunSpec {
     }
   }
 
+  def makeMethod(name: String) = {
+    List(DEF, IDENTIFIER("foo"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, END)
+  }
+
   describe("fun") {
     it("empty") {
-//      expectSuccess(List(DEF, IDENTIFIER("foo"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, END),
-//        RcItem.Method("foo", Params(List())))
+      expectSuccess(makeMethod("foo"),
+        RcItem.Method(MethodDecl("foo", Params(List()), Type.Nil), Block(List())))
     }
-
   }
 }
