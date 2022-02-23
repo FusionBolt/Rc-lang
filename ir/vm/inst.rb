@@ -147,11 +147,11 @@ module Rc::VM
       end
     end
 
-    class BranchJmp < Struct.new(:offset)
+    class JmpNotEql < Struct.new(:offset)
       attr_type :offset => :int
 
       def to_s
-        "BranchJmp #{offset}"
+        "JmpNotEql #{offset}"
       end
     end
 
@@ -162,7 +162,7 @@ module Rc::VM
       attr_type :offset => :int
 
       def to_s
-        "BranchJmp #{offset}"
+        "DirectJmp #{offset}"
       end
     end
 

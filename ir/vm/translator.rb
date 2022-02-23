@@ -140,12 +140,16 @@ module Rc::VM
       end
     end
 
+    def push_eq_jmp(true_branch_size)
+      [Push.new(1), EQ.new, JmpNotEql.new(true_branch_size + 1)]
+    end
+
     # todo: to if expr
     def on_if(node)
       list = node.stmt_list.map do |cond, stmt|
         c = visit(cond)
         s = [visit(stmt), JmpAfterIf.new].flatten
-        cmp_and_jmp = [Push.new(1), EQ.new, BranchJmp.new(s.flatten.size + 1)]
+        cmp_and_jmp = push_eq_jmp(s.size)
         [c, cmp_and_jmp, s].flatten
       end.flatten
       list.each_with_index do |inst, index|
@@ -154,6 +158,14 @@ module Rc::VM
         end
       end
       list
+    end
+
+    def on_while(node)
+      cond = visit(node.cond)
+      body = visit(node.body)
+      body = [body, [DirectJump.new(body.size)]].flatten
+      cmp_and_jmp = push_eq_jmp(body.size)
+      [cond, cmp_and_jmp, body]
     end
   end
 

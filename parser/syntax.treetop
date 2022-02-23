@@ -223,9 +223,13 @@ grammar Rc
   end
 
   rule while
-    'while' white+ expression space+
-    statements
-    block_end
+    'while' white+ cond:expression space+
+    body:statements
+    block_end {
+      def to_ast
+        AST::While.new(cond.to_ast, body.to_ast)
+      end
+    }
   end
 
   rule return_stmt

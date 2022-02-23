@@ -9,3 +9,11 @@ def main
   end
   put_i(a)
 end
+
+def f
+  a = 1
+  while a < 4
+    a = a + 1
+  end
+  put_i(a)
+end

@@ -30,6 +30,8 @@ module Rc::AST
 
     def on_unless(node) end
 
+    def on_while(node) end
+
     def on_assign(node)
       visit(node.var_obj)
       visit(node.expr)

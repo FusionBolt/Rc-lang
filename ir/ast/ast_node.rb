@@ -162,4 +162,8 @@ module Rc::AST
         @name = name
       end
     end
+
+    class While < Struct.new(:cond, :body)
+
+    end
 end
