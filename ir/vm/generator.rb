@@ -16,7 +16,7 @@ def gen_inst_base_class
 struct VMInst
 {
   InstType type;
-  virtual std::string to_string() { return "VMInst"; }
+  virtual std::string to_string() const { return "VMInst"; }
 protected:
   VMInst(InstType t): type(t) {};
   virtual ~VMInst() = default;
@@ -45,7 +45,7 @@ struct #{class_name} : VMInst
 public:
   #{class_name}(#{params}):#{init_inst}#{init_member} {}
 
-  std::string to_string() override 
+  std::string to_string() const override 
   { 
     return #{to_string};
   }
@@ -136,6 +136,32 @@ def gen_header_namespace
 #pragma once
 
 using std::string;
+SRC
+end
+
+
+def gen_visit(klass)
+  <<SRC
+    case InstType::#{klass}:
+      visit(static_cast<const #{klass}&>(inst));break;
+SRC
+end
+
+def gen_visitor
+  classes = get_classes(Rc::VM::Inst)
+  <<SRC
+#include "rcvm.h"
+
+using namespace RCVM;
+void VMInstVisitor::accept(const VMInst &inst)
+{
+    switch(inst.type)
+    {
+#{classes.pure_generate{|x| gen_visit(x)}}
+      default:
+        throw std::runtime_error("not supported inst" + inst.to_string());
+    }
+}
 SRC
 end
 

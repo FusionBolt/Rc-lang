@@ -135,7 +135,7 @@ end
 SRC
         env = get_global_env(s)
         expect(Set.new(env.class_table.keys)).to eq Set.new(%w[Kernel Parent Foo])
-        expect(env.class_table['Foo'].parents).to eq %w[Parent]
+        expect(env.class_table['Foo'].parent).to eq "Parent"
       end
     end
   end

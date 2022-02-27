@@ -28,21 +28,6 @@ module Rc::VM
       end
     end
 
-    class Addr < TypeStruct.new(:seg, :offset)
-      attr_type :offset => :int
-    end
-
-    class UnsetAddr < TypeStruct.new(:unset_addr)
-    end
-
-    class LocalVarOperator < Struct.new(:offset)
-      attr_type :offset => :int
-
-      def to_s
-        "#{self.demodulize_class} #{offset}"
-      end
-    end
-
     class SetLocal < Struct.new(:offset)
       attr_type :offset => :int
 
@@ -65,7 +50,9 @@ module Rc::VM
       end
     end
 
-    class DirectJump < TypeStruct.new(:target)
+    class DirectJump < Struct.new(:target)
+      attr_type :target => :str
+
       def to_s
         "DirectJump #{target}"
       end
@@ -147,23 +134,15 @@ module Rc::VM
       end
     end
 
-    class JmpNotEql < Struct.new(:offset)
+    class JumpFalse < Struct.new(:offset)
       attr_type :offset => :int
 
       def to_s
-        "JmpNotEql #{offset}"
+        "JumpFalse #{offset}"
       end
     end
 
-    class JmpAfterIf
-    end
-
-    class DirectJmp < Struct.new(:offset)
-      attr_type :offset => :int
-
-      def to_s
-        "DirectJmp #{offset}"
-      end
+    class JumpAfterIf
     end
 
     class GT
