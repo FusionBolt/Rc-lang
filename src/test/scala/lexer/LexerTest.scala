@@ -2,40 +2,40 @@ package rclang
 package lexer
 
 import org.scalatest.funsuite.AnyFunSuite
-import lexer.RcLexer
-import lexer.RcToken.*
+import lexer.Lexer
+import lexer.Token.*
 
 import org.scalatest.funspec.AnyFunSpec
 
 class LexerTest extends AnyFunSuite {
-  def singleToken(tokens: List[RcToken]): RcToken = {
+  def singleToken(tokens: List[Token]): Token = {
     assert(tokens.size == 1, tokens)
     tokens.last
   }
 
-  def expectSuccess(str: String, token: RcToken) = {
-    RcLexer(str) match {
+  def expectSuccess(str: String, token: Token) = {
+    Lexer(str) match {
       case Left(value) => assert(false, value.msg)
       case Right(value) => assert(singleToken(value) == token)
     }
   }
 
-  def expectSuccess(str: String, tokens: List[RcToken]) = {
-    RcLexer(str) match {
+  def expectSuccess(str: String, tokens: List[Token]) = {
+    Lexer(str) match {
       case Left(value) => assert(false, value.msg)
       case Right(value) => assert(value == tokens)
     }
   }
 
   def expectFailed(str: String) = {
-    RcLexer(str) match {
+    Lexer(str) match {
       case Left(value) =>
       case Right(value) => assert(false, singleToken(value))
     }
   }
 
-  def expectNotEql(str: String, token: RcToken) = {
-    RcLexer(str) match {
+  def expectNotEql(str: String, token: Token) = {
+    Lexer(str) match {
       case Left(value) => assert(false, value.msg)
       case Right(value) => assert(singleToken(value) != token)
     }
@@ -61,7 +61,7 @@ class LexerTest extends AnyFunSuite {
   }
 
   test("keyword is not a id") {
-    val keywords = List("true", "false", "def", "end", "if", "while")
+    val keywords = List("true", "false", "def", "end", "if", "while", "class", "super")
     keywords.map(expectKeywordNotId)
   }
 
@@ -74,9 +74,13 @@ class LexerTest extends AnyFunSuite {
   test ("eol") {
     expectSuccess("id \n id", List(IDENTIFIER("id"), EOL, IDENTIFIER("id")))
   }
-  test("pending")(pending)
 
   test("") {
     expectSuccess("true false", List(TRUE, FALSE))
+  }
+
+  test("operator") {
+    def expectOp(op: Char) = expectSuccess(op.toString, OPERATOR(op.toString))
+    "+-*/%^~!".foreach(expectOp)
   }
 }

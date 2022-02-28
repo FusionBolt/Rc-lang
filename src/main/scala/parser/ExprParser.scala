@@ -2,9 +2,9 @@ package rclang
 package parser
 
 import rclang.ast.*
-import rclang.lexer.RcToken.*
+import rclang.lexer.Token.*
 
-trait ExprParser extends RcParser {
+trait ExprParser extends RcBaseParser {
   def expr: Parser[RcExpr] = positioned {
     bool
       | identifier ^^ { case IDENTIFIER(id) => RcExpr.Identifier(id) }

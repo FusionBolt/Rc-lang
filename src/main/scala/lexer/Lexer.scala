@@ -1,33 +1,36 @@
 package rclang
 package lexer
 
-import rclang.lexer.RcLexer
-import rclang.lexer.RcToken.*
+import rclang.lexer.Lexer
+import rclang.lexer.Token.*
 import rclang.RcLexerError
 import rclang.Location
 
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
-object RcLexer extends RegexParsers {
+object Lexer extends RegexParsers {
   override def skipWhitespace = false
   override val whiteSpace: Regex = "[ \t\r\f]+".r
 
-  def apply(code: String): Either[RcLexerError, List[RcToken]] = {
+  def apply(code: String): Either[RcLexerError, List[Token]] = {
     parse(tokens, code) match {
       case NoSuccess(msg, next) => Left(RcLexerError(Location(next.pos.line, next.pos.column), msg))
       case Success(result, next) => Right(result)
     }
   }
 
-  def keyword: Parser[RcToken] = stringLiteral | trueLiteral | falseLiteral | defStr | endStr | ifStr | whileStr | eol;
-  def value: Parser[RcToken] = number | identifier
+  def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral | defStr | endStr | ifStr | whileStr | eol;
+  def value: Parser[Token] = number | identifier
 
-  def operator: Regex = "[+\\-*/^%]".r
+  def ops = "[+\\-*/%^~!]".r
+  def operator: Parser[Token] = positioned {
+    ops ^^ OPERATOR
+  }
 
   // todo: bracket can no space
-  def tokens: Parser[List[RcToken]] = {
-    phrase(repsep(keyword | value, whiteSpace))
+  def tokens: Parser[List[Token]] = {
+    phrase(repsep(keyword | operator | value, whiteSpace))
   }
 
   def identifier: Parser[IDENTIFIER] = positioned {
@@ -45,7 +48,7 @@ object RcLexer extends RegexParsers {
     """(0|[1-9]\d*)""".r ^^ { i => NUMBER(i.toInt) }
   }
 
-  def NoValueToken(str: String, token: RcToken) = positioned {
+  def NoValueToken(str: String, token: Token) = positioned {
     str ^^^ token
   }
 
@@ -66,7 +69,7 @@ object RcLexer extends RegexParsers {
   def whileStr = NoValueToken("while", WHILE)
 
   def classStr = NoValueToken("class", WHILE)
-  def superStr = NoValueToken("super", WHILE)
+  def superStr = NoValueToken("super", SUPER)
 
   def leftParentTheses = NoValueToken("(", LEFT_PARENT_THESES)
   def rightParentTheses = NoValueToken(")", LEFT_PARENT_THESES)

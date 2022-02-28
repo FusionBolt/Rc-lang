@@ -3,12 +3,12 @@ package lexer
 
 import scala.util.parsing.input.Positional
 
-enum RcToken extends Positional:
+enum Token extends Positional:
   case IDENTIFIER(str: String)
   case NUMBER(int: Int)
   case OPERATOR(op: String)
   case STRING(str: String)
-
+  
   case EOL
   case COMMA
   case EQL
