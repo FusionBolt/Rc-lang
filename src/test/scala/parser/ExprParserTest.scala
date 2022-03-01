@@ -2,13 +2,14 @@ package rclang
 package parser
 
 import org.scalatest.funspec.AnyFunSpec
-import ast.{RcExpr, RcModule}
-import ast.RcExpr.{Identifier, Number, Str}
+import ast.{Expr, RcModule}
+import ast.Expr.{Identifier, Number, Str}
+import ast.BoolConst
 import lexer.Token
-import lexer.Token.{IDENTIFIER, NUMBER, STRING}
+import lexer.Token.{IDENTIFIER, NUMBER, STRING, TRUE, FALSE, RETURN}
 
 class ExprParserTest extends AnyFunSpec with ExprParser {
-  def apply(tokens: Seq[Token]): Either[RcParserError, RcExpr] = {
+  def apply(tokens: Seq[Token]): Either[RcParserError, Expr] = {
     val reader = new RcTokenReader(tokens)
     expr(reader) match {
       case NoSuccess(msg, next) => Left(RcParserError(Location(next.pos.line, next.pos.column), msg))
@@ -16,8 +17,12 @@ class ExprParserTest extends AnyFunSpec with ExprParser {
     }
   }
 
-  def expectSuccess(token: Token, expect: RcExpr): Unit = {
-    apply(List(token)) match {
+  def expectSuccess(token: Token, expect: Expr): Unit = {
+    expectSuccess(List(token), expect)
+  }
+
+  def expectSuccess(tokens: Seq[Token], expect: Expr): Unit = {
+    apply(tokens) match {
       case Left(value) => assert(false, value.msg)
       case Right(value) =>
     }
@@ -32,6 +37,13 @@ class ExprParserTest extends AnyFunSpec with ExprParser {
   describe("identifier") {
     it("succeed") {
       expectSuccess(IDENTIFIER("foo"), Identifier("foo"))
+    }
+  }
+
+  describe("bool") {
+    it("succeed") {
+      expectSuccess(TRUE, Expr.Bool(BoolConst.True))
+      expectSuccess(FALSE, Expr.Bool(BoolConst.False))
     }
   }
 

@@ -9,7 +9,7 @@ import parser.RcParser
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{NoPosition, Position, Reader}
 
-trait ModuleParser extends RcBaseParser with ExprParser with BlockParser {
+trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
   def define: Parser[Item] = method
 
   def args: Parser[Params] = positioned {
@@ -24,6 +24,10 @@ trait ModuleParser extends RcBaseParser with ExprParser with BlockParser {
     }
   }
 
+  def block: Parser[Block] = positioned {
+    repsep(statement, EOL) ^^ (stmts => Block(stmts))
+  }
+  
   def module: Parser[RcModule] = positioned {
     rep(method) ^^ RcModule
   }

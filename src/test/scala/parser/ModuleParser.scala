@@ -5,8 +5,8 @@ import org.scalatest.funspec.AnyFunSpec
 import lexer.Token
 import lexer.Token.*
 
-import ast.{Params, AST, RcExpr, Item}
-import ast.RcExpr.*
+import ast.{Params, AST, Expr, Item}
+import ast.Expr.*
 import ast.*
 
 class ModuleParserTest extends AnyFunSpec with ModuleParser {

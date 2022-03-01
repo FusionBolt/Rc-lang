@@ -66,6 +66,7 @@ object Lexer extends RegexParsers {
   def endStr = NoValueToken("end", END)
 
   def ifStr = NoValueToken("if", IF)
+  def elseStr = NoValueToken("else", IF)
   def whileStr = NoValueToken("while", WHILE)
 
   def classStr = NoValueToken("class", WHILE)
