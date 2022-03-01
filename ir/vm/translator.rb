@@ -124,7 +124,12 @@ module Rc::VM
 
     def on_function(node)
       @cur_fun = node.name
-      [FunLabel.new(node.name), super(node), Return.new]
+      # when last stmt is a value without return
+      body = super(node)
+      if body[-1].is_a? Value or body[-1].is_a? Ref
+        body[-1] = push body[-1]
+      end
+      [FunLabel.new(node.name), body, Return.new]
     end
 
     def on_assign(node)
@@ -152,9 +157,11 @@ module Rc::VM
         cmp_and_jmp = push_eq_jmp(s.size)
         [c, cmp_and_jmp, s].flatten
       end.flatten
+      els = visit(node.else_stmts)
+      list = list + els
       list.each_with_index do |inst, index|
         if inst.is_a? JumpAfterIf
-          list[index] = DirectJump.new(list.size - index)
+          list[index] = RelativeJump.new(list.size - index + 1)
         end
       end
       list
@@ -162,10 +169,10 @@ module Rc::VM
 
     def on_while(node)
       cond = visit(node.cond)
-      body = visit(node.body)
-      body = [body, [DirectJump.new(body.size)]].flatten
-      cmp_and_jmp = push_eq_jmp(body.size)
-      [cond, cmp_and_jmp, body]
+      body = visit(node.body).flatten
+      cmp_and_jmp = push_eq_jmp(body.size + 1)
+      while_inst = [cond, cmp_and_jmp, body].flatten
+      while_inst + [RelativeJump.new(-while_inst.size)]
     end
   end
 

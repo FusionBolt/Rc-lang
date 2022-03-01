@@ -1,5 +1,5 @@
 def main
-  a = 1
+  var a = 1
   if a < 3
     a = 2
   elsif a < 5
@@ -7,7 +7,10 @@ def main
   else
     a = 4
   end
+
   put_i(a)
+  var b = f()
+  put_i(b)
 end
 
 def f
@@ -15,5 +18,6 @@ def f
   while a < 4
     a = a + 1
   end
-  put_i(a)
+  a
 end
+

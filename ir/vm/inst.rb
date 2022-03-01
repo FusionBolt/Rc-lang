@@ -58,6 +58,14 @@ module Rc::VM
       end
     end
 
+    class RelativeJump < Struct.new(:offset)
+      attr_type :offset => :int
+
+      def to_s
+        "RelativeJump #{offset}"
+      end
+    end
+
     class Push < Struct.new(:value)
       attr_type :value => :int
       def to_s
