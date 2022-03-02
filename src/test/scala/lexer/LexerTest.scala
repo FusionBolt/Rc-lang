@@ -61,7 +61,7 @@ class LexerTest extends AnyFunSuite {
   }
 
   test("keyword is not a id") {
-    val keywords = List("true", "false", "def", "end", "if", "while", "class", "super")
+    val keywords = List("true", "false", "def", "end", "if", "elsif", "else", "while", "class", "super")
     keywords.map(expectKeywordNotId)
   }
 

@@ -35,4 +35,10 @@ class StmtParserTest extends AnyFunSpec with StmtParser {
       expectSuccess(List(RETURN, NUMBER(1)), Stmt.Return(Expr.Number(1)))
     }
   }
+
+  describe("assign") {
+    it("succeed") {
+      expectSuccess(List(IDENTIFIER("a"), EQL, NUMBER(1)), Stmt.Assign("a", Expr.Number(1)))
+    }
+  }
 }

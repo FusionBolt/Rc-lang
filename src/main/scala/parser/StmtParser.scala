@@ -11,9 +11,10 @@ import scala.util.parsing.combinator.Parsers
 
 trait StmtParser extends RcBaseParser with ExprParser {
   def statement: Parser[Stmt] = positioned {
-    expr ^^ Stmt.Expr
+      assign
       | local
       | ret
+      | expr ^^ Stmt.Expr
   }
 
   def local: Parser[Stmt] = positioned {
@@ -24,5 +25,11 @@ trait StmtParser extends RcBaseParser with ExprParser {
 
   def ret: Parser[Stmt.Return] = positioned {
     RETURN ~> expr ^^ Stmt.Return
+  }
+
+  def assign: Parser[Stmt.Assign] = positioned {
+    (identifier <~ EQL) ~ expr ^^ {
+      case IDENTIFIER(id) ~ expr => Stmt.Assign(id, expr)
+    }
   }
 }

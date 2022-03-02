@@ -10,6 +10,6 @@ object RcParser extends ModuleParser {
   }
 
   def program: Parser[AST] = positioned {
-    phrase(rep(module) ^^ (mods => AST.Modules(mods)))
+    phrase(module.* ^^ (mods => AST.Modules(mods)))
   }
 }

@@ -20,7 +20,9 @@ object Lexer extends RegexParsers {
     }
   }
 
-  def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral | defStr | endStr | ifStr | whileStr | eol;
+  def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral |
+    defStr | endStr | ifStr | elsifStr | elseStr | whileStr |
+    classStr | superStr | eol
   def value: Parser[Token] = number | identifier
 
   def ops = "[+\\-*/%^~!]".r
@@ -66,6 +68,7 @@ object Lexer extends RegexParsers {
   def endStr = NoValueToken("end", END)
 
   def ifStr = NoValueToken("if", IF)
+  def elsifStr = NoValueToken("elsif", IF)
   def elseStr = NoValueToken("else", IF)
   def whileStr = NoValueToken("while", WHILE)
 
@@ -73,7 +76,7 @@ object Lexer extends RegexParsers {
   def superStr = NoValueToken("super", SUPER)
 
   def leftParentTheses = NoValueToken("(", LEFT_PARENT_THESES)
-  def rightParentTheses = NoValueToken(")", LEFT_PARENT_THESES)
-  def leftSquare = NoValueToken("[", LEFT_PARENT_THESES)
-  def rightSquare = NoValueToken("]", LEFT_PARENT_THESES)
+  def rightParentTheses = NoValueToken(")", RIGHT_PARENT_THESES)
+  def leftSquare = NoValueToken("[", LEFT_SQUARE)
+  def rightSquare = NoValueToken("]", RIGHT_SQUARE)
 }

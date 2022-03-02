@@ -33,6 +33,6 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
   }
 
   def module: Parser[RcModule] = positioned {
-    rep(item) ^^ RcModule
+    item.* ^^ RcModule
   }
 }

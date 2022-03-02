@@ -3,15 +3,13 @@ package ast
 
 import scala.util.parsing.input.Positional
 
-enum BoolConst extends Positional:
-  case True
-  case False
+case class Elsif(cond: Expr, branch: Expr) extends Positional
 
 enum Expr extends Positional:
   case Number(v: Int)
   case Identifier(id: Id)
-  case Bool(b: BoolConst)
+  case Bool(b: Boolean)
   case Str(str: String)
-  case If(cond: Expr, true_branch: Expr, else_branch: Expr)
-  case While(cond: Expr, stmts: List[Expr])
+  case If(cond: Expr, true_branch: Expr, elsif_list: List[Elsif], else_branch: Option[Expr])
   case Lambda(args: List[Expr], stmts: List[Expr])
+  case Call(id: Id, args: List[Expr])
