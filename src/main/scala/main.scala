@@ -1,3 +1,5 @@
 package rclang
 
-@main def main = println("The World!")
+import Interface.*
+
+@main def main = Compile(CompileOption("demo/if.rc"))
