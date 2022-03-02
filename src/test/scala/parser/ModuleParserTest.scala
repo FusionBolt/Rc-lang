@@ -10,18 +10,14 @@ import ast.Expr.*
 import ast.*
 
 class ModuleParserTest extends AnyFunSpec with ModuleParser {
-  def apply(tokens: Seq[Token]): Either[RcParserError, RcModule] = {
-    val reader = new RcTokenReader(tokens)
-    module(reader) match {
-      case NoSuccess(msg, next) => Left(RcParserError(Location(next.pos.line, next.pos.column), msg))
-      case Success(result, next) => Right(result)
-    }
+  def apply(tokens: Seq[Token]): Either[RcParserError, Item] = {
+    doParser(tokens, item)
   }
 
   def expectSuccess(token: Seq[Token], expect: Item): Unit = {
     apply(token) match {
       case Left(value) => assert(false, value.msg)
-      case Right(value) =>
+      case Right(value) => assert(value == expect)
     }
   }
 

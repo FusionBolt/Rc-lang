@@ -8,17 +8,13 @@ import rclang.lexer.Token
 
 class StmtParserTest extends AnyFunSpec with StmtParser {
   def apply(tokens: Seq[Token]): Either[RcParserError, Stmt] = {
-    val reader = new RcTokenReader(tokens)
-    statement(reader) match {
-      case NoSuccess(msg, next) => Left(RcParserError(Location(next.pos.line, next.pos.column), msg))
-      case Success(result, next) => Right(result)
-    }
+    doParser(tokens, statement)
   }
 
   def expectSuccess(token: Seq[Token], expect: Stmt): Unit = {
     apply(token) match {
       case Left(value) => assert(false, value.msg)
-      case Right(value) =>
+      case Right(value) => assert(value == expect)
     }
   }
 

@@ -10,11 +10,7 @@ import lexer.Token.{IDENTIFIER, NUMBER, STRING, TRUE, FALSE, RETURN}
 
 class ExprParserTest extends AnyFunSpec with ExprParser {
   def apply(tokens: Seq[Token]): Either[RcParserError, Expr] = {
-    val reader = new RcTokenReader(tokens)
-    expr(reader) match {
-      case NoSuccess(msg, next) => Left(RcParserError(Location(next.pos.line, next.pos.column), msg))
-      case Success(result, next) => Right(result)
-    }
+    doParser(tokens, expr)
   }
 
   def expectSuccess(token: Token, expect: Expr): Unit = {
