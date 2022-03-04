@@ -9,6 +9,7 @@ enum Expr extends Positional:
   case Number(v: Int)
   case Identifier(id: Id)
   case Bool(b: Boolean)
+  case Binary(op: String, lhs: Expr, rhs: Expr)
   case Str(str: String)
   case If(cond: Expr, true_branch: Expr, elsif_list: List[Elsif], else_branch: Option[Expr])
   case Lambda(args: List[Expr], stmts: List[Expr])

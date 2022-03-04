@@ -4,15 +4,33 @@ package parser
 import rclang.ast.*
 import rclang.lexer.Token.*
 
+import scala.collection.immutable.HashMap
+import scala.collection.mutable
+
 trait ExprParser extends RcBaseParser {
   def expr: Parser[Expr] = positioned {
-    bool
-      | ifExpr
-      | call
-      | identifier ^^ { case IDENTIFIER(id) => Expr.Identifier(id) }
-      | stringLiteral ^^ { case STRING(str) => Expr.Str(str) }
-      | number ^^ { case NUMBER(int) => Expr.Number(int) }
+    term
   }
+
+  def string = stringLiteral ^^ { case STRING(str) => Expr.Str(str) }
+  def num = number ^^ { case NUMBER(int) => Expr.Number(int) }
+  def id = identifier ^^ { case IDENTIFIER(id) => Expr.Identifier(id) }
+
+  def term: Parser[Expr] = positioned {
+    bool | num | string | ifExpr |call | id
+  }
+
+  def evalExpr: Parser[Expr] = term ~ (operator ~ term).* ^^ {
+    case term ~ terms => term
+  }
+
+  private val opDefaultInfix = HashMap("+"->10, "-"->10, "*"->10, "/"->10, ">"->5, "<"->5)
+
+  private def findMaxInfixIndex(ops: List[String]) = ops.max(op => opDefaultInfix[op])
+
+  private def termsToBinary(terms: List[(OPERATOR, Expr)]) =
+  // 1. find highest op
+  // 2. merge
 
   def bool: Parser[Expr] = positioned {
     TRUE ^^ (_ => Expr.Bool(true)) |
@@ -36,4 +54,5 @@ trait ExprParser extends RcBaseParser {
       case IDENTIFIER(id) ~ args => Expr.Call(id, args)
     }
   }
+
 }

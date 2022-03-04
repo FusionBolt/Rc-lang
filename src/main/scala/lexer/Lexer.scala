@@ -22,18 +22,26 @@ object Lexer extends RegexParsers {
 
   def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral |
     defStr | endStr | ifStr | elsifStr | elseStr | whileStr |
-    classStr | superStr | eol
+    classStr | superStr
+  def symbol = comma | eol | leftParentTheses | rightParentTheses | leftSquare | rightSquare
+
   def value: Parser[Token] = number | identifier
 
-  def ops = "[+\\-*/%^~!]".r
+  def ops = "[+\\-*/%^~!><]".r
   def operator: Parser[Token] = positioned {
     ops ^^ OPERATOR
   }
 
+  def skipWhite[T](p: Parser[T]): Parser[T] = (whiteSpace.* ~> p) <~ whiteSpace.*
+
   // todo: bracket can no space
   def tokens: Parser[List[Token]] = {
-    phrase(repsep(keyword | operator | value, whiteSpace))
+    phrase(skipWhite(log(splitWithSpace | canNoSpace)("token")))
   }
+
+  def splitWithSpace = repsep(keyword | value | eol, whiteSpace.+)
+
+  def canNoSpace = repsep(symbol | operator, whiteSpace.?)
 
   def identifier: Parser[IDENTIFIER] = positioned {
     "[a-zA-Z_][a-zA-Z0-9_]*".r ^^ { str => IDENTIFIER(str) }

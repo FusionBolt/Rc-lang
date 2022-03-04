@@ -1,7 +1,7 @@
 package rclang
 package parser
 
-import lexer.Token.{IDENTIFIER, NUMBER, STRING}
+import lexer.Token.*
 
 import rclang.lexer.Token
 
@@ -16,11 +16,15 @@ trait RcBaseParser extends Parsers {
   }
 
   protected def stringLiteral: Parser[STRING] = positioned {
-    accept("string literal", { case lit @ STRING(name) => lit })
+    accept("string literal", { case lit @ STRING(str) => lit })
   }
 
   protected def number: Parser[NUMBER] = positioned {
-    accept("number literal", { case num @ NUMBER(name) => num })
+    accept("number literal", { case num @ NUMBER(n) => num })
+  }
+
+  protected def operator: Parser[OPERATOR] = positioned {
+    accept("operator", { case op @ OPERATOR(_) => op })
   }
 
   protected def makeParserError(next: Input, msg: String) = RcParserError(Location(next.pos.line, next.pos.column), msg)

@@ -10,7 +10,12 @@ object Compile {
     val f = Source fromFile option.srcPath
     val src = f.getLines.mkString
     println(src)
-    val ast = RcParser(Lexer(src).getOrElse(List()))
+    val tokens = Lexer(src) match {
+      case Left(value) => throw RuntimeException(value.msg)
+      case Right(value) => value
+    }
+    println(tokens)
+    val ast = RcParser(tokens)
     println(ast)
     f.close()
   }

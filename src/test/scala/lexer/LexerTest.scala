@@ -1,13 +1,13 @@
 package rclang
 package lexer
 
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.funspec.AnyFunSpec
 import lexer.Lexer
 import lexer.Token.*
 
 import org.scalatest.funspec.AnyFunSpec
 
-class LexerTest extends AnyFunSuite {
+class LexerTest extends AnyFunSpec {
   def singleToken(tokens: List[Token]): Token = {
     assert(tokens.size == 1, tokens)
     tokens.last
@@ -41,46 +41,76 @@ class LexerTest extends AnyFunSuite {
     }
   }
 
-  test("number") {
-    expectSuccess("123", NUMBER(123))
+  describe("number") {
+    it("succeed") {
+      expectSuccess("123", NUMBER(123))
+    }
   }
 
-  test("bool") {
-    expectSuccess("true", TRUE)
-    expectSuccess("false", FALSE)
+  describe("bool") {
+    it("succeed") {
+      expectSuccess("true", TRUE)
+      expectSuccess("false", FALSE)
+    }
   }
 
-  test("identifier") {
-    expectSuccess("foo", IDENTIFIER("foo"))
-    expectSuccess("foo1", IDENTIFIER("foo1"))
-    expectFailed("1foo")
+  describe("identifier") {
+    it("succeed") {
+      expectSuccess("foo", IDENTIFIER("foo"))
+      expectSuccess("foo1", IDENTIFIER("foo1"))
+      expectFailed("1foo")
+    }
   }
 
   def expectKeywordNotId(str: String): Unit = {
     expectNotEql(str, IDENTIFIER(str))
   }
 
-  test("keyword is not a id") {
-    val keywords = List("true", "false", "def", "end", "if", "elsif", "else", "while", "class", "super")
-    keywords.map(expectKeywordNotId)
+  describe("keyword is not a id") {
+    it("succeed") {
+      val keywords = List("true", "false", "def", "end", "if", "elsif", "else", "while", "class", "super")
+      keywords.map(expectKeywordNotId)
+    }
   }
 
-  test("string") {
-    expectSuccess("\"test str\"", STRING("test str"))
-    // todo:true error info
-    expectFailed("\"test str")
+  describe("string") {
+    it("succeed") {
+      expectSuccess("\"describe str\"", STRING("describe str"))
+      // todo:true error info
+      expectFailed("\"describe str")
+    }
   }
 
-  test ("eol") {
-    expectSuccess("id \n id", List(IDENTIFIER("id"), EOL, IDENTIFIER("id")))
+  describe ("eol") {
+    it("succeed") {
+      expectSuccess("id \n id", List(IDENTIFIER("id"), EOL, IDENTIFIER("id")))
+    }
   }
 
-  test("") {
-    expectSuccess("true false", List(TRUE, FALSE))
+  describe("") {
+    it("succeed") {
+      expectSuccess("true false", List(TRUE, FALSE))
+    }
   }
 
-  test("operator") {
-    def expectOp(op: Char) = expectSuccess(op.toString, OPERATOR(op.toString))
-    "+-*/%^~!".foreach(expectOp)
+  describe("operator") {
+    it("succeed") {
+      def expectOp(op: Char) = expectSuccess(op.toString, OPERATOR(op.toString))
+
+      "+-*/%^~!<>".foreach(expectOp)
+    }
+  }
+
+  describe("fun") {
+    it("succeed") {
+      val src = """def main end"""
+      expectSuccess(src, List(DEF, IDENTIFIER("main"), END))
+    }
+  }
+
+  describe("space") {
+    it("succeed") {
+      expectSuccess(""" def """, List(DEF))
+    }
   }
 }
