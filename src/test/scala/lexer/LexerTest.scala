@@ -23,7 +23,7 @@ class LexerTest extends AnyFunSpec {
   def expectSuccess(str: String, tokens: List[Token]) = {
     Lexer(str) match {
       case Left(value) => assert(false, value.msg)
-      case Right(value) => assert(value == tokens)
+      case Right(value) =>assert(value == tokens, if value.isEmpty then "" else value.last.pos)
     }
   }
 
@@ -81,18 +81,6 @@ class LexerTest extends AnyFunSpec {
     }
   }
 
-  describe ("eol") {
-    it("succeed") {
-      expectSuccess("id \n id", List(IDENTIFIER("id"), EOL, IDENTIFIER("id")))
-    }
-  }
-
-  describe("") {
-    it("succeed") {
-      expectSuccess("true false", List(TRUE, FALSE))
-    }
-  }
-
   describe("operator") {
     it("succeed") {
       def expectOp(op: Char) = expectSuccess(op.toString, OPERATOR(op.toString))
@@ -101,16 +89,58 @@ class LexerTest extends AnyFunSpec {
     }
   }
 
-  describe("fun") {
-    it("succeed") {
-      val src = """def main end"""
-      expectSuccess(src, List(DEF, IDENTIFIER("main"), END))
+  describe("space split") {
+    // a is splitWithSpace, b is canNoSpace
+    it("ABA") {
+      expectSuccess("id id", List(IDENTIFIER("id"), IDENTIFIER("id")))
+    }
+
+    it("BAB") {
+      expectSuccess(" id ", List(IDENTIFIER("id")))
+    }
+
+    it("ABABB space and eol") {
+      expectSuccess("def f \n", List(DEF, IDENTIFIER("f"), EOL))
+    }
+
+    it("BABA") {
+      expectSuccess(" def f", List(DEF, IDENTIFIER("f")))
+    }
+
+    it("only space") {
+      expectSuccess(" ", List())
+    }
+
+    it("local") {
+      val v = List(IDENTIFIER("a"), EQL, NUMBER(1))
+      expectSuccess("a = 1", v)
+      expectSuccess("a = 1 ", v)
+      expectSuccess("a =1", v)
+      expectSuccess("a=1", v)
     }
   }
 
-  describe("space") {
+  describe ("eol") {
+    it("basic succeed") {
+      expectSuccess("id \n id", List(IDENTIFIER("id"), EOL, IDENTIFIER("id")))
+    }
+
     it("succeed") {
-      expectSuccess(""" def """, List(DEF))
+      expectSuccess("def main \n end", List(DEF, IDENTIFIER("main"), EOL, END))
+    }
+  }
+
+  describe("fun") {
+    it("empty") {
+      val src = """def main end"""
+      expectSuccess(src, List(DEF, IDENTIFIER("main"), END))
+    }
+
+    it("with local") {
+      val src = """def main
+  var a = 1
+end"""
+      expectSuccess(src, List(DEF, IDENTIFIER("main"), EOL, VAR, IDENTIFIER("a"), EQL, NUMBER(1), EOL, END))
     }
   }
 }

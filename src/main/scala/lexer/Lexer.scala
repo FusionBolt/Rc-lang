@@ -22,8 +22,8 @@ object Lexer extends RegexParsers {
 
   def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral |
     defStr | endStr | ifStr | elsifStr | elseStr | whileStr |
-    classStr | superStr
-  def symbol = comma | eol | leftParentTheses | rightParentTheses | leftSquare | rightSquare
+    classStr | superStr | varStr | valStr
+  def symbol: Parser[Token] = comma | eol | leftParentTheses | rightParentTheses | leftSquare | rightSquare
 
   def value: Parser[Token] = number | identifier
 
@@ -32,16 +32,36 @@ object Lexer extends RegexParsers {
     ops ^^ OPERATOR
   }
 
-  def skipWhite[T](p: Parser[T]): Parser[T] = (whiteSpace.* ~> p) <~ whiteSpace.*
-
-  // todo: bracket can no space
   def tokens: Parser[List[Token]] = {
-    phrase(skipWhite(log(splitWithSpace | canNoSpace)("token")))
+    phrase(log(allTokens)("token"))
   }
 
-  def splitWithSpace = repsep(keyword | value | eol, whiteSpace.+)
+  def rep1sepNoDis[T](p : => Parser[T], q : => Parser[Any]): Parser[List[T]] =
+    p ~ rep(q ~ p) ^^ {case x~y => x::y.map(x => List(x._1.asInstanceOf[T], x._2)).fold(List())(_.concat(_))}
 
-  def canNoSpace = repsep(symbol | operator, whiteSpace.?)
+  def allTokens: Parser[List[Token]] = {
+    ((rep1sepNoDis(repN(1, splitWithSpace), canNoSpace.+) ~ canNoSpace.*) |
+      // BAA is imposible
+      (rep1sepNoDis(canNoSpace.+, repN(1, splitWithSpace)) ~ splitWithSpace.?)) ^^ {
+      case list ~ t =>
+        list
+          .fold(List())(_.concat(_))
+          .concat(t match {
+            case Some(v) => List(v)
+            case None => List()
+            case _ => t
+          })
+          .filter(_ != SPACE)
+    }
+  }
+
+  def space: Parser[Token] = positioned {
+    whiteSpace.+ ^^^ SPACE
+  }
+
+  def splitWithSpace: Parser[Token] = log(keyword | value | eol)("splitWithSpace")
+
+  def canNoSpace: Parser[Token] = log(symbol | operator | eql | space)("canNoSpace")
 
   def identifier: Parser[IDENTIFIER] = positioned {
     "[a-zA-Z_][a-zA-Z0-9_]*".r ^^ { str => IDENTIFIER(str) }
@@ -58,7 +78,7 @@ object Lexer extends RegexParsers {
     """(0|[1-9]\d*)""".r ^^ { i => NUMBER(i.toInt) }
   }
 
-  def NoValueToken(str: String, token: Token) = positioned {
+  def NoValueToken(str: String, token: Token): Parser[Token] = positioned {
     str ^^^ token
   }
 

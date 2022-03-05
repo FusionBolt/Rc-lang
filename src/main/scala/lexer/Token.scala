@@ -12,6 +12,7 @@ enum Token extends Positional:
   case EOL
   case COMMA
   case EQL
+  case SPACE
 
   case TRUE
   case FALSE
