@@ -6,7 +6,7 @@ import lexer.Token.*
 import rclang.lexer.Token
 
 import scala.util.parsing.combinator.Parsers
-import scala.util.parsing.input.{NoPosition, Position, Reader}
+import scala.util.parsing.input.{NoPosition, Position, Positional, Reader}
 
 trait RcBaseParser extends Parsers {
   override type Elem = Token
@@ -26,6 +26,10 @@ trait RcBaseParser extends Parsers {
   protected def operator: Parser[OPERATOR] = positioned {
     accept("operator", { case op @ OPERATOR(_) => op })
   }
+
+  protected def oneline[T](p: Parser[T]): Parser[T] = log(p <~ EOL.*)("oneline")
+
+  protected def nextline[T](p: Parser[T]): Parser[T] = log(EOL.* ~> p)("nextline")
 
   protected def makeParserError(next: Input, msg: String) = RcParserError(Location(next.pos.line, next.pos.column), msg)
 

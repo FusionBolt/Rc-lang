@@ -21,7 +21,7 @@ object Lexer extends RegexParsers {
   }
 
   def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral |
-    defStr | endStr | ifStr | elsifStr | elseStr | whileStr |
+    defStr | endStr | ifStr | thenStr | elsifStr | elseStr | whileStr |
     classStr | superStr | varStr | valStr
   def symbol: Parser[Token] = comma | eol | leftParentTheses | rightParentTheses | leftSquare | rightSquare
 
@@ -96,8 +96,9 @@ object Lexer extends RegexParsers {
   def endStr = NoValueToken("end", END)
 
   def ifStr = NoValueToken("if", IF)
-  def elsifStr = NoValueToken("elsif", IF)
-  def elseStr = NoValueToken("else", IF)
+  def thenStr = NoValueToken("then", THEN)
+  def elsifStr = NoValueToken("elsif", ELSIF)
+  def elseStr = NoValueToken("else", ELSE)
   def whileStr = NoValueToken("while", WHILE)
 
   def classStr = NoValueToken("class", WHILE)

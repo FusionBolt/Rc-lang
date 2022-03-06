@@ -142,5 +142,29 @@ class LexerTest extends AnyFunSpec {
 end"""
       expectSuccess(src, List(DEF, IDENTIFIER("main"), EOL, VAR, IDENTIFIER("a"), EQL, NUMBER(1), EOL, END))
     }
+
+    it("with if") {
+      val src = """def main
+  if a < 3
+    a = 1
+  else
+    a = 2
+end"""
+      expectSuccess(src, List(DEF, IDENTIFIER("main"), EOL,
+        IF, IDENTIFIER("a"), OPERATOR("<"), NUMBER(3), EOL,
+        IDENTIFIER("a"), EQL, NUMBER(1), EOL,
+        ELSE, EOL,
+        IDENTIFIER("a"), EQL, NUMBER(2), EOL,
+        END))
+    }
+
+    it("with call") {
+      val src = """def main
+  put_i(a)
+end"""
+      expectSuccess(src, List(DEF, IDENTIFIER("main"), EOL,
+        IDENTIFIER("put_i"), LEFT_PARENT_THESES, IDENTIFIER("a"), RIGHT_PARENT_THESES, EOL,
+        END))
+    }
   }
 }

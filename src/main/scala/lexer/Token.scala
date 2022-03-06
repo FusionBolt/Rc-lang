@@ -25,6 +25,7 @@ enum Token extends Positional:
   case END
 
   case IF
+  case THEN
   case ELSIF
   case ELSE
   case WHILE

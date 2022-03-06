@@ -12,13 +12,13 @@ import scala.util.parsing.combinator.Parsers
 trait StmtParser extends RcBaseParser with ExprParser {
   def statement: Parser[Stmt] = positioned {
       assign
-      | local
+      | log(local)("local")
       | ret
       | expr ^^ Stmt.Expr
   }
 
   def local: Parser[Stmt] = positioned {
-    (VAR ~> identifier) ~ (EQL ~> expr) ^^ {
+    oneline((VAR ~> identifier) ~ (EQL ~> expr)) ^^ {
       case IDENTIFIER(id) ~ expr => Stmt.Local(id, Type.Nil, expr)
     }
   }

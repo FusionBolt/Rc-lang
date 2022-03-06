@@ -20,25 +20,25 @@ class StmtParserTest extends AnyFunSpec with StmtParser {
 
   describe("local") {
     it("succeed") {
-      expectSuccess(List(VAR, IDENTIFIER("a"), EQL, NUMBER(1)), Stmt.Local("a", Type.Nil, Expr.Number(1)))
+      expectSuccess(List(VAR, IDENTIFIER("a"), EQL, NUMBER(1), EOL), Stmt.Local("a", Type.Nil, Expr.Number(1)))
     }
   }
 
   describe("expr") {
     it("succeed") {
-      expectSuccess(List(NUMBER(1)), Stmt.Expr(Expr.Number(1)))
+      expectSuccess(List(NUMBER(1), EOL), Stmt.Expr(Expr.Number(1)))
     }
   }
 
   describe("return") {
     it("succeed") {
-      expectSuccess(List(RETURN, NUMBER(1)), Stmt.Return(Expr.Number(1)))
+      expectSuccess(List(RETURN, NUMBER(1), EOL), Stmt.Return(Expr.Number(1)))
     }
   }
 
   describe("assign") {
     it("succeed") {
-      expectSuccess(List(IDENTIFIER("a"), EQL, NUMBER(1)), Stmt.Assign("a", Expr.Number(1)))
+      expectSuccess(List(IDENTIFIER("a"), EQL, NUMBER(1), EOL), Stmt.Assign("a", Expr.Number(1)))
     }
   }
 }
