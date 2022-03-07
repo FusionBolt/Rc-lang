@@ -21,9 +21,14 @@ class ModuleParserTest extends AnyFunSpec with ModuleParser {
     }
   }
 
-  def makeTokenMethod(name: String): Seq[Token] = {
-    List(DEF, IDENTIFIER("foo"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, END)
+  def makeTokenMethod(name: String, stmts: List[Token] = List()): Seq[Token] = {
+    List(DEF, IDENTIFIER("foo"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, EOL).concat(stmts).appended(END)
   }
+
+  def makeLocal(name: String, value: Token) = {
+    List(VAR, IDENTIFIER(name), EQL, value, EOL)
+  }
+  def makeLocal(name: String, value: Expr) = Stmt.Local(name, Type.Nil, value)
 
   def makeASTMethod(name: String,
                     params: List[Param] = List(),
@@ -36,6 +41,35 @@ class ModuleParserTest extends AnyFunSpec with ModuleParser {
     it("empty") {
       expectSuccess(makeTokenMethod("foo"),
         makeASTMethod("foo"))
+    }
+
+    it("with one line") {
+      expectSuccess(
+        makeTokenMethod("foo", makeLocal("a", NUMBER(1))),
+        makeASTMethod("foo", block = List(Stmt.Local("a", Type.Nil, Number(1)))))
+    }
+
+    it("with multi line") {
+      expectSuccess(
+        makeTokenMethod("foo",
+          makeLocal("a", NUMBER(1))
+            .concat(makeLocal("a", NUMBER(1)))),
+        makeASTMethod("foo",
+          block = List(
+            makeLocal("a", Number(1)),
+            makeLocal("a", Number(1)))))
+    }
+
+    it("multi line with multi eol") {
+      expectSuccess(
+        makeTokenMethod("foo",
+          makeLocal("a", NUMBER(1))
+            .concat(EOL::EOL::List())
+            .concat(makeLocal("a", NUMBER(1)))),
+        makeASTMethod("foo",
+          block = List(
+            makeLocal("a", Number(1)),
+            makeLocal("a", Number(1)))))
     }
   }
 }

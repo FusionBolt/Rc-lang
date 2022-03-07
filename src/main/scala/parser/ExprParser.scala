@@ -46,11 +46,15 @@ trait BinaryTranslator {
 }
 
 trait ExprParser extends RcBaseParser with BinaryTranslator {
-  def expr: Parser[Expr] = positioned {
+  def termExpr: Parser[Expr] = positioned {
     term ~ (operator ~ term).* ^^ {
           // todo:don't known how to write type
       case term ~ terms => termsToBinary(term, terms.map(a => List(a._1, a._2)))
     }
+  }
+
+  def expr: Parser[Expr] = positioned {
+    termExpr
   }
 
   def string = stringLiteral ^^ { case STRING(str) => Expr.Str(str) }
@@ -58,7 +62,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   def id = identifier ^^ { case IDENTIFIER(id) => Expr.Identifier(id) }
 
   def term: Parser[Expr] = positioned {
-    bool | num | string | ifExpr | call | id
+    bool | num | string | call | id
   }
 
   def evalExpr: Parser[Expr] = term ~ (operator ~ term).* ^^ {
@@ -70,24 +74,14 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
       FALSE ^^ (_ => Expr.Bool(false))
   }
 
-  def ifExpr: Parser[Expr.If] = positioned {
-    // last no eol
-    // 1. only if
-    // 2. has elsif
-    // 3. has else
-    oneline(IF ~> expr) ~ expr ~ nextline(elsif).* ~ nextline(ELSE ~> expr).? ^^ {
-      case cond ~ if_branch ~ elsif_list ~ else_branch => Expr.If(cond, if_branch, elsif_list, else_branch)
-    }
-  }
-
   def elsif: Parser[Elsif] = positioned {
-    oneline(ELSIF ~> expr) ~ expr ^^ {
+    oneline(ELSIF ~> termExpr) ~ termExpr ^^ {
       case cond ~ branch => Elsif(cond, branch)
     }
   }
 
   def call: Parser[Expr.Call] = positioned {
-    identifier ~ (LEFT_PARENT_THESES ~> repsep(expr, COMMA) <~ RIGHT_PARENT_THESES) ^^ {
+    identifier ~ (LEFT_PARENT_THESES ~> repsep(termExpr, COMMA) <~ RIGHT_PARENT_THESES) ^^ {
       case IDENTIFIER(id) ~ args => Expr.Call(id, args)
     }
   }

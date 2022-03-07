@@ -6,7 +6,7 @@ import lexer.Token.*
 import rclang.lexer.Token
 
 import scala.util.parsing.combinator.Parsers
-import scala.util.parsing.input.{NoPosition, Position, Positional, Reader}
+import scala.util.parsing.input.{CharSequenceReader, NoPosition, Position, Positional, Reader}
 
 trait RcBaseParser extends Parsers {
   override type Elem = Token
@@ -49,5 +49,10 @@ trait RcBaseParser extends Parsers {
     override def pos: Position = tokens.headOption.map(_.pos).getOrElse(NoPosition)
 
     override def rest: Reader[Token] = new RcTokenReader(tokens.tail)
+
+    override def toString: String = {
+      val c = if (atEnd) "" else s"'$first', ..."
+      s"RcTokenReader($c)"
+    }
   }
 }

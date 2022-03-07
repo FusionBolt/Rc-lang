@@ -8,7 +8,7 @@ import parser.RcParser
 object Compile {
   def apply(option: CompileOption): Unit = {
     val f = Source fromFile option.srcPath
-    val src = f.getLines.mkString
+    val src = f.getLines.mkString("\n")
     println(src)
     val tokens = Lexer(src) match {
       case Left(value) => throw RuntimeException(value.msg)

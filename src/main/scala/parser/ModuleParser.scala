@@ -19,20 +19,20 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
   }
 
   def method: Parser[Item] = positioned {
-    DEF ~ identifier ~ args ~ block ~ END ^^ {
+    oneline(DEF ~ identifier ~ args) ~ block ~ END ^^ {
       case _ ~ IDENTIFIER(id) ~ args ~ block ~ _ => Item.Method(MethodDecl(id, args, Type.Nil), block)
     }
   }
 
   def block: Parser[Block] = positioned {
-    repsep(log(statement)("stmt"), EOL) ^^ (stmts => Block(stmts))
+    repsep(log(statement)("stmt"), EOL.*) ^^ (stmts => Block(stmts))
   }
 
   def item: Parser[Item] = positioned {
-    method
+    log(method)("method")
   }
 
   def module: Parser[RcModule] = positioned {
-    item.* ^^ RcModule
+    (item.* <~ EOL.*) ^^ RcModule
   }
 }
