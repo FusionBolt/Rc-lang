@@ -2,8 +2,7 @@ package rclang
 package ast
 
 import scala.util.parsing.input.Positional
-
-case class Elsif(cond: Expr, branch: Expr) extends Positional
+import ast.Stmt
 
 enum Expr extends Positional:
   case Number(v: Int)
@@ -11,6 +10,9 @@ enum Expr extends Positional:
   case Bool(b: Boolean)
   case Binary(op: String, lhs: Expr, rhs: Expr)
   case Str(str: String)
-  case If(cond: Expr, true_branch: Expr, elsif_list: List[Elsif], else_branch: Option[Expr])
+  // false -> elsif | else
+  case If(cond: Expr, true_branch: Block, false_branch: Option[Expr])
   case Lambda(args: List[Expr], stmts: List[Expr])
   case Call(id: Id, args: List[Expr])
+  case Block(stmts: List[Stmt])
+  case Return(expr: ast.Expr)

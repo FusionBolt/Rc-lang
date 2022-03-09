@@ -24,10 +24,6 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
     }
   }
 
-  def block: Parser[Block] = positioned {
-    repsep(log(statement)("stmt"), EOL.*) ^^ (stmts => Block(stmts))
-  }
-
   def item: Parser[Item] = positioned {
     log(method)("method")
   }

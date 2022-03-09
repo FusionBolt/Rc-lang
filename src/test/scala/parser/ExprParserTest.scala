@@ -4,7 +4,7 @@ package parser
 import org.scalatest.funspec.AnyFunSpec
 
 import ast.*
-import ast.Expr.{Identifier, Number, Str, Binary}
+import ast.Expr.{Identifier, Number, Str, Binary, If, Block}
 import lexer.Token
 import lexer.Token.*
 import scala.language.postfixOps
@@ -73,6 +73,53 @@ class ExprParserTest extends ExprParser with BaseParserTest {
   describe("binary") {
     it("single add") {
       expectSuccess(List(NUMBER(1), OPERATOR("+"), NUMBER(2)), Expr.Binary("+", Number(1), Number(2)))
+    }
+  }
+
+  describe("return") {
+    it("succeed") {
+      expectSuccess(List(RETURN, NUMBER(1), EOL), Expr.Return(Expr.Number(1)))
+    }
+  }
+
+  def trueExpr = Expr.Bool(true)
+  def falseExpr = Expr.Bool(false)
+  def makeElsif(lists: List[(Token, Token)]): List[Token] = lists.map((x, y) => ELSIF::x::EOL::y::EOL::List()).reduce(_.concat(_))
+  def makeIf(cond: List[Token], thenTokens: List[Token], elsifTokens: List[Token] = List(), elseTokens:List[Token] = List()): List[Token] =
+    IF::cond
+      .concat(EOL::thenTokens)
+      .concat(noEmptyEval(elsifTokens, EOL::_))
+      .concat(noEmptyEval(elseTokens, EOL::ELSE::_))
+  def makeIf(cond: Token, thenToken: Token, elsifTokens: List[Token], elseToken: Token): List[Token] = makeIf(List(cond), List(thenToken), elsifTokens, List(elseToken))
+  def makeIf(cond: List[Token], thenToken: Token, elsifTokens: List[Token], elseToken: Token): List[Token] = makeIf(cond, List(thenToken), elsifTokens, List(elseToken))
+  def makeIf(cond: Token, thenToken: Token, elsifTokens: List[Token]): List[Token] = makeIf(List(cond), List(thenToken), elsifTokens, List())
+  def makeIf(cond: Token, thenToken: Token, elseToken: Token): List[Token] = makeIf(List(cond), List(thenToken), List(), List(elseToken))
+
+  def makeExprBlock(cond: Expr): Block = Block(List(Stmt.Expr(cond)))
+  def makeIf(cond: Expr, thenExpr: Expr, elseExpr: Expr) = If(cond, makeExprBlock(thenExpr), Some(elseExpr))
+  def makeIf(cond: Expr, thenExpr: Expr, elseExpr: Option[Expr]) = If(cond, makeExprBlock(thenExpr), elseExpr)
+
+  describe("if") {
+    it("full succeed") {
+      expectSuccess(
+        makeIf(TRUE, NUMBER(1), makeElsif(List((FALSE, NUMBER(2)))), NUMBER(3)),
+        makeIf(trueExpr, Number(1), makeIf(falseExpr, Number(2), Number(3))))
+    }
+
+    it("full with multi EOL") {
+      expectSuccess(
+        makeIf(List(TRUE, EOL, EOL), NUMBER(1), makeElsif(List((FALSE, NUMBER(2)))), NUMBER(3)),
+        makeIf(trueExpr, Number(1), makeIf(falseExpr, Number(2), Number(3))))
+    }
+
+    it("no elsif") {
+      expectSuccess(makeIf(TRUE, NUMBER(1), NUMBER(3)),
+        makeIf(trueExpr, Number(1), Number(3)))
+    }
+
+    it("no else") {
+      expectSuccess(makeIf(TRUE, NUMBER(1), makeElsif(List((FALSE, NUMBER(2))))),
+        makeIf(trueExpr, Number(1), makeIf(falseExpr, Number(2), None)))
     }
   }
 }

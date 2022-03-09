@@ -41,6 +41,8 @@ trait RcBaseParser extends Parsers {
     }
   }
 
+  def noEmptyEval[T](l: List[T], f: List[T] => List[T], els: List[T] = List()) = if l.isEmpty then els else f(l)
+
   class RcTokenReader(tokens: Seq[Token]) extends Reader[Token] {
     override def first: Token = tokens.head
 

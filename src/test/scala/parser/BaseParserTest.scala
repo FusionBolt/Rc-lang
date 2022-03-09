@@ -12,5 +12,4 @@ trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers {
 //      case Right(value) => assert(value == expect)
 //    }
 //  }
-  def noEmptyEval[T](l: List[T], f: List[T] => List[T], els: List[T] = List()) = if l.isEmpty then els else f(l)
 }

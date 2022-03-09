@@ -4,6 +4,8 @@ package parser
 import ast.*
 import lexer.Token.*
 
+import ast.Expr.{Block, If, Return}
+
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
 import scala.language.postfixOps
@@ -54,7 +56,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def expr: Parser[Expr] = positioned {
-    termExpr
+    multiLineIf | termExpr | ret
   }
 
   def string = stringLiteral ^^ { case STRING(str) => Expr.Str(str) }
@@ -74,16 +76,60 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
       FALSE ^^ (_ => Expr.Bool(false))
   }
 
-  def elsif: Parser[Elsif] = positioned {
-    oneline(ELSIF ~> termExpr) ~ termExpr ^^ {
-      case cond ~ branch => Elsif(cond, branch)
-    }
-  }
-
   def call: Parser[Expr.Call] = positioned {
     identifier ~ (LEFT_PARENT_THESES ~> repsep(termExpr, COMMA) <~ RIGHT_PARENT_THESES) ^^ {
       case IDENTIFIER(id) ~ args => Expr.Call(id, args)
     }
   }
 
+  def block: Parser[Block] = positioned {
+    repsep(log(statement)("stmt"), EOL.*) ^^ (stmts => Block(stmts))
+  }
+
+  def multiLineIf: Parser[If] = positioned {
+    // last no eol
+    // 1. only if
+    // 2. has elsif
+    // 3. has else
+    // todo:termExpr => expr | stmt
+    oneline(IF ~> expr) ~ block ~ elsifs ~ nextline(ELSE ~> block).? ^^ {
+      case cond ~ if_branch ~ elsif ~ else_branch => If(cond, if_branch, else_branch)
+    }
+  }
+
+  def elsif: Parser[If] = positioned {
+    oneline(ELSIF ~> termExpr) ~ block ^^ {
+      case cond ~ branch => If(cond, branch, None)
+    }
+  }
+
+  def elsifs: Parser[Option[If]] = positioned {
+    // todo:monad?
+    nextline(elsif).* ^^ {
+      case elsif => if elsif.isEmpty then None else Some(elsif.reduce((l, r) => If(l.cond, l.true_branch, Some(r))))
+//      case elsif => elsif.reduce((l, r) => If(l.cond, l.true_branch, Some(r)))
+    }
+  }
+
+  def statement: Parser[Stmt] = positioned {
+    assign
+      | log(local)("local")
+      | expr ^^ Stmt.Expr
+  }
+
+  def local: Parser[Stmt] = positioned {
+    oneline((VAR ~> identifier) ~ (EQL ~> termExpr)) ^^ {
+      case IDENTIFIER(id) ~ expr => Stmt.Local(id, Type.Nil, expr)
+    }
+  }
+
+  def ret: Parser[Return] = positioned {
+    RETURN ~> termExpr ^^ Return
+  }
+
+  def assign: Parser[Stmt.Assign] = positioned {
+    (identifier <~ EQL) ~ termExpr ^^ {
+      case IDENTIFIER(id) ~ expr => Stmt.Assign(id, expr)
+    }
+  }
 }

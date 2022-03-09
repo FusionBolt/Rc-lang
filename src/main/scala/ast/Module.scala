@@ -2,6 +2,7 @@ package rclang
 package ast
 
 import scala.util.parsing.input.Positional
+import ast.Expr.Block
 
 case class RcModule(methods: List[Item]) extends Positional
 
