@@ -97,24 +97,25 @@ class ExprParserTest extends ExprParser with BaseParserTest {
 
   def makeExprBlock(cond: Expr): Block = Block(List(Stmt.Expr(cond)))
   def makeIf(cond: Expr, thenExpr: Expr, elseExpr: Expr) = If(cond, makeExprBlock(thenExpr), Some(elseExpr))
+  def makeLastIf(cond: Expr, thenExpr: Expr, elseExpr: Expr) = If(cond, makeExprBlock(thenExpr), Some(makeExprBlock(elseExpr)))
   def makeIf(cond: Expr, thenExpr: Expr, elseExpr: Option[Expr]) = If(cond, makeExprBlock(thenExpr), elseExpr)
 
   describe("if") {
     it("full succeed") {
       expectSuccess(
         makeIf(TRUE, NUMBER(1), makeElsif(List((FALSE, NUMBER(2)))), NUMBER(3)),
-        makeIf(trueExpr, Number(1), makeIf(falseExpr, Number(2), Number(3))))
+        makeIf(trueExpr, Number(1), makeLastIf(falseExpr, Number(2), Number(3))))
     }
 
     it("full with multi EOL") {
       expectSuccess(
         makeIf(List(TRUE, EOL, EOL), NUMBER(1), makeElsif(List((FALSE, NUMBER(2)))), NUMBER(3)),
-        makeIf(trueExpr, Number(1), makeIf(falseExpr, Number(2), Number(3))))
+        makeIf(trueExpr, Number(1), makeLastIf(falseExpr, Number(2), Number(3))))
     }
 
     it("no elsif") {
       expectSuccess(makeIf(TRUE, NUMBER(1), NUMBER(3)),
-        makeIf(trueExpr, Number(1), Number(3)))
+        makeLastIf(trueExpr, Number(1), Number(3)))
     }
 
     it("no else") {
