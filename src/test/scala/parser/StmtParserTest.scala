@@ -8,8 +8,8 @@ import rclang.lexer.Token.*
 import rclang.lexer.Token
 
 class StmtParserTest extends BaseParserTest with ExprParser {
-  def apply(tokens: Seq[Token]): Either[RcParserError, Stmt] = {
-    doParser(tokens, statement)
+  def apply(tokens: Seq[Token]): Either[RcParserError, (Stmt, Input)] = {
+    doParserImpl(tokens, statement)
   }
 
   describe("expr") {
@@ -21,7 +21,7 @@ class StmtParserTest extends BaseParserTest with ExprParser {
   def expectSuccess(token: Seq[Token], expect: Stmt): Unit = {
     apply(token) match {
       case Left(value) => assert(false, value.msg)
-      case Right(value) => assert(value == expect)
+      case Right((ast, reader)) => assert(ast == expect); assert(reader.atEnd, reader)
     }
   }
 

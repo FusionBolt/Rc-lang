@@ -91,7 +91,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     // 1. only if
     // 2. has elsif
     // 3. has else
-    oneline(IF ~> expr) ~ block ~ nextline(elsif).* ~ nextline(ELSE ~> block).? ^^ {
+    oneline(IF ~> expr) ~ block ~ nextline(elsif).* ~ nextline(ELSE ~> block).? <~ nextline(oneline(END)) ^^ {
       case cond ~ if_branch ~ elsif ~ else_branch
       => If(cond, if_branch, elsif.foldRight(else_branch.asInstanceOf[Option[Expr]])(
         (next, acc) => Some(If(next.cond, next.true_branch, acc))))
@@ -105,9 +105,9 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def statement: Parser[Stmt] = positioned {
-    assign
+    oneline(assign
       | log(local)("local")
-      | expr ^^ Stmt.Expr
+      | expr ^^ Stmt.Expr)
   }
 
   def local: Parser[Stmt] = positioned {

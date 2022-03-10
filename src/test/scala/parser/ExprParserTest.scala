@@ -13,8 +13,8 @@ import org.scalatest._
 import org.scalactic.TimesOnInt.convertIntToRepeater
 
 class ExprParserTest extends ExprParser with BaseParserTest {
-  def apply(tokens: Seq[Token]): Either[RcParserError, Expr] = {
-    doParser(tokens, expr)
+  def apply(tokens: Seq[Token]): Either[RcParserError, (Expr, Input)] = {
+    doParserImpl(tokens, expr)
   }
 
   def expectSuccess(token: Token, expect: Expr): Unit = {
@@ -24,7 +24,7 @@ class ExprParserTest extends ExprParser with BaseParserTest {
   def expectSuccess(tokens: Seq[Token], expect: Expr): Unit = {
     apply(tokens) match {
       case Left(value) => assert(false, value.msg)
-      case Right(value) => (value should equal (expect))
+      case Right((ast, reader)) => assert(ast == expect);assert(reader.atEnd, reader)
     }
   }
 
@@ -78,7 +78,7 @@ class ExprParserTest extends ExprParser with BaseParserTest {
 
   describe("return") {
     it("succeed") {
-      expectSuccess(List(RETURN, NUMBER(1), EOL), Expr.Return(Expr.Number(1)))
+      expectSuccess(List(RETURN, NUMBER(1)), Expr.Return(Expr.Number(1)))
     }
   }
 
@@ -90,6 +90,8 @@ class ExprParserTest extends ExprParser with BaseParserTest {
       .concat(EOL::thenTokens)
       .concat(noEmptyEval(elsifTokens, EOL::_))
       .concat(noEmptyEval(elseTokens, EOL::ELSE::_))
+      .appended(EOL)
+      .appended(END)
   def makeIf(cond: Token, thenToken: Token, elsifTokens: List[Token], elseToken: Token): List[Token] = makeIf(List(cond), List(thenToken), elsifTokens, List(elseToken))
   def makeIf(cond: List[Token], thenToken: Token, elsifTokens: List[Token], elseToken: Token): List[Token] = makeIf(cond, List(thenToken), elsifTokens, List(elseToken))
   def makeIf(cond: Token, thenToken: Token, elsifTokens: List[Token]): List[Token] = makeIf(List(cond), List(thenToken), elsifTokens, List())
