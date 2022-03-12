@@ -22,7 +22,7 @@ class ModuleParserTest extends AnyFunSpec with ModuleParser {
   }
 
   def makeTokenMethod(name: String, stmts: List[Token] = List()): Seq[Token] = {
-    List(DEF, IDENTIFIER("foo"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, EOL).concat(stmts).appended(END)
+    List(DEF, IDENTIFIER("foo"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, EOL):::(stmts).appended(END).appended(EOL)
   }
 
   def makeLocal(name: String, value: Token) = {
@@ -64,8 +64,8 @@ class ModuleParserTest extends AnyFunSpec with ModuleParser {
       expectSuccess(
         makeTokenMethod("foo",
           makeLocal("a", NUMBER(1))
-            .concat(EOL::EOL::List())
-            .concat(makeLocal("a", NUMBER(1)))),
+            :::(EOL::EOL::List())
+            :::(makeLocal("a", NUMBER(1)))),
         makeASTMethod("foo",
           block = List(
             makeLocal("a", Number(1)),

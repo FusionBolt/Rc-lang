@@ -29,12 +29,12 @@ trait BinaryTranslator {
       terms(index - 1).asInstanceOf[Expr],
       terms(index + 1).asInstanceOf[Expr])
     val rights = terms.slice(index + 2, terms.size)
-    left.appended(bn).concat(rights)
+    left.appended(bn):::(rights)
   }
 
   def termsToBinary(term: Expr, terms: List[List[Positional]]): Expr = {
     if terms.isEmpty then return term
-    termsToBinary(term :: terms.reduce(_.concat(_)))
+    termsToBinary(term :: terms.reduce(_:::_))
   }
 
   def termsToBinary(terms: List[Positional]): Expr = {
@@ -83,7 +83,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def block: Parser[Block] = positioned {
-    repsep(log(statement)("stmt"), EOL.*) ^^ (stmts => Block(stmts))
+    rep(log(statement)("stmt")) ^^ (stmts => Block(stmts))
   }
 
   def multiLineIf: Parser[If] = positioned {
@@ -91,7 +91,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     // 1. only if
     // 2. has elsif
     // 3. has else
-    oneline(IF ~> expr) ~ block ~ nextline(elsif).* ~ nextline(ELSE ~> block).? <~ nextline(oneline(END)) ^^ {
+    oneline(IF ~> expr) ~ block ~ log(elsif.*)("elsif") ~ (oneline(ELSE) ~> log(block)("else block")).? <~ log(END)("end") ^^ {
       case cond ~ if_branch ~ elsif ~ else_branch
       => If(cond, if_branch, elsif.foldRight(else_branch.asInstanceOf[Option[Expr]])(
         (next, acc) => Some(If(next.cond, next.true_branch, acc))))
@@ -111,7 +111,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def local: Parser[Stmt] = positioned {
-    oneline((VAR ~> identifier) ~ (EQL ~> termExpr)) ^^ {
+    (VAR ~> identifier) ~ (EQL ~> termExpr) ^^ {
       case IDENTIFIER(id) ~ expr => Stmt.Local(id, Type.Nil, expr)
     }
   }

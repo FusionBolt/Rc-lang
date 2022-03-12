@@ -37,7 +37,7 @@ object Lexer extends RegexParsers {
   }
 
   def rep1sepNoDis[T](p : => Parser[T], q : => Parser[Any]): Parser[List[T]] =
-    p ~ rep(q ~ p) ^^ {case x~y => x::y.map(x => List(x._1.asInstanceOf[T], x._2)).fold(List())(_.concat(_))}
+    p ~ rep(q ~ p) ^^ {case x~y => x::y.map(x => List(x._1.asInstanceOf[T], x._2)).fold(List())(_:::_)}
 
   def allTokens: Parser[List[Token]] = {
     ((rep1sepNoDis(repN(1, splitWithSpace), canNoSpace.+) ~ canNoSpace.*) |
@@ -45,7 +45,7 @@ object Lexer extends RegexParsers {
       (rep1sepNoDis(canNoSpace.+, repN(1, splitWithSpace)) ~ splitWithSpace.?)) ^^ {
       case list ~ t =>
         list
-          .fold(List())(_.concat(_))
+          .fold(List())(_:::_)
           .concat(t match {
             case Some(v) => List(v)
             case None => List()

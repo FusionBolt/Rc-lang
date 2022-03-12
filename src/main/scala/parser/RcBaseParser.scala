@@ -26,9 +26,10 @@ trait RcBaseParser extends Parsers {
     accept("operator", { case op @ OPERATOR(_) => op })
   }
 
-  protected def oneline[T](p: Parser[T]): Parser[T] = log(p <~ EOL.*)("oneline")
+  protected def oneline[T](p: Parser[T]): Parser[T] = log(p <~ EOL.+)("oneline")
+  protected def onelineOpt[T](p: Parser[T]): Parser[T] = log(p <~ EOL.*)("oneline")
 
-  protected def nextline[T](p: Parser[T]): Parser[T] = log(EOL.* ~> p)("nextline")
+  protected def nextline[T](p: Parser[T]): Parser[T] = log(EOL.+ ~> p)("nextline")
 
   protected def makeParserError(next: Input, msg: String) = RcParserError(Location(next.pos.line, next.pos.column), msg)
 
