@@ -106,6 +106,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
 
   def statement: Parser[Stmt] = positioned {
     oneline(assign
+      | whileStmt
       | log(local)("local")
       | expr ^^ Stmt.Expr)
   }
@@ -123,6 +124,12 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   def assign: Parser[Stmt.Assign] = positioned {
     (identifier <~ EQL) ~ termExpr ^^ {
       case IDENTIFIER(id) ~ expr => Stmt.Assign(id, expr)
+    }
+  }
+
+  def whileStmt: Parser[Stmt.While] = positioned {
+    oneline(WHILE ~> parSround(termExpr)) ~ block <~ END ^^ {
+      case cond ~ body => Stmt.While(cond, body)
     }
   }
 }

@@ -27,13 +27,21 @@ class StmtParserTest extends BaseParserTest with ExprParser {
 
   describe("local") {
     it("succeed") {
-      expectSuccess(List(VAR, IDENTIFIER("a"), EQL, NUMBER(1), EOL), Stmt.Local("a", Type.Nil, Expr.Number(1)))
+      expectSuccess(mkLocalStmt("a", NUMBER(1)), Stmt.Local("a", Type.Nil, Expr.Number(1)))
     }
   }
 
   describe("assign") {
     it("succeed") {
-      expectSuccess(List(IDENTIFIER("a"), EQL, NUMBER(1), EOL), Stmt.Assign("a", Expr.Number(1)))
+      expectSuccess(mkAssStmt("a", NUMBER(1)), Stmt.Assign("a", Expr.Number(1)))
+    }
+  }
+
+  describe("while") {
+    it("succeed") {
+      expectSuccess(
+        makeWhile(TRUE, mkAssStmt("a", NUMBER(1))),
+        Stmt.While(trueExpr, makeStmtBlock(Stmt.Assign("a", Expr.Number(1)))))
     }
   }
 }

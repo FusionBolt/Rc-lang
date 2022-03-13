@@ -89,8 +89,12 @@ class LexerTest extends AnyFunSpec {
     }
   }
 
-  describe("space split") {
-    // a is splitWithSpace, b is canNoSpace
+  describe("spacer") {
+    // a is notSpacer, b is spacer
+    it("AB") {
+      expectSuccess("id", List(IDENTIFIER("id")))
+    }
+
     it("ABA") {
       expectSuccess("id id", List(IDENTIFIER("id"), IDENTIFIER("id")))
     }

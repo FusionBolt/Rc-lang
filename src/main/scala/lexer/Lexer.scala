@@ -40,9 +40,9 @@ object Lexer extends RegexParsers {
     p ~ rep(q ~ p) ^^ {case x~y => x::y.map(x => List(x._1.asInstanceOf[T], x._2)).fold(List())(_:::_)}
 
   def allTokens: Parser[List[Token]] = {
-    ((rep1sepNoDis(repN(1, splitWithSpace), canNoSpace.+) ~ canNoSpace.*) |
+    ((rep1sepNoDis(repN(1, notSpacer), spacer.+) ~ spacer.*) |
       // BAA is imposible
-      (rep1sepNoDis(canNoSpace.+, repN(1, splitWithSpace)) ~ splitWithSpace.?)) ^^ {
+      (rep1sepNoDis(spacer.+, repN(1, notSpacer)) ~ notSpacer.?)) ^^ {
       case list ~ t =>
         list
           .fold(List())(_:::_)
@@ -59,9 +59,9 @@ object Lexer extends RegexParsers {
     whiteSpace.+ ^^^ SPACE
   }
 
-  def splitWithSpace: Parser[Token] = log(keyword | value | eol)("splitWithSpace")
+  def notSpacer: Parser[Token] = log(keyword | value | eol)("notSpacer")
 
-  def canNoSpace: Parser[Token] = log(symbol | operator | eql | space)("canNoSpace")
+  def spacer: Parser[Token] = log(symbol | operator | eql | space)("Spacer")
 
   def identifier: Parser[IDENTIFIER] = positioned {
     "[a-zA-Z_][a-zA-Z0-9_]*".r ^^ { str => IDENTIFIER(str) }

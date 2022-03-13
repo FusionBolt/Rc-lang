@@ -13,8 +13,8 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
   def define: Parser[Item] = method
 
   def args: Parser[Params] = positioned {
-    LEFT_PARENT_THESES ~ repsep(identifier, COMMA) ~ RIGHT_PARENT_THESES ^^ {
-      case _ ~ params ~ _ => Params(params.map(x => Param(x.str)))
+    parSround(repsep(identifier, COMMA)) ^^ {
+      case params => Params(params.map(x => Param(x.str)))
     }
   }
 
