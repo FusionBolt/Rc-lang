@@ -9,7 +9,7 @@ import ast.{Params, AST, Expr, Item}
 import ast.Expr.*
 import ast.*
 
-class ModuleParserTest extends AnyFunSpec with ModuleParser {
+class ModuleParserTest extends BaseParserTest with ModuleParser {
   def apply(tokens: Seq[Token]): Either[RcParserError, Item] = {
     doParser(tokens, item)
   }
@@ -21,20 +21,12 @@ class ModuleParserTest extends AnyFunSpec with ModuleParser {
     }
   }
 
-  def makeTokenMethod(name: String, stmts: List[Token] = List()): Seq[Token] = {
-    List(DEF, IDENTIFIER("foo"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, EOL):::(stmts).appended(END).appended(EOL)
-  }
-
-  def makeLocal(name: String, value: Token) = {
-    List(VAR, IDENTIFIER(name), EQL, value, EOL)
-  }
-  def makeLocal(name: String, value: Expr) = Stmt.Local(name, Type.Nil, value)
-
-  def makeASTMethod(name: String,
-                    params: List[Param] = List(),
-                    ret_type:Type = Type.Nil,
-                    block: List[Stmt] = List()): Item = {
-    Item.Method(MethodDecl(name, Params(params), ret_type), Block(block))
+  def expectFailed(token: Seq[Token]): Unit = {
+    apply(token) match {
+    // todo:check failed pos
+      case Left(value) => assert(true)
+      case Right(value) => assert(false, s"expect failed, value: $value")
+    }
   }
 
   describe("fun") {
@@ -70,6 +62,24 @@ class ModuleParserTest extends AnyFunSpec with ModuleParser {
           block = List(
             makeLocal("a", Number(1)),
             makeLocal("a", Number(1)))))
+    }
+  }
+
+  describe("class") {
+    it("empty class") {
+      expectSuccess(makeTokenClass("Foo"), makeAstClass("Foo"))
+    }
+
+    it("class with method") {
+      expectSuccess(makeTokenClass("Foo", makeTokenMethod("a")), makeAstClass("Foo", makeASTMethod("a")))
+    }
+
+    it("must uppercase") {
+      expectFailed(List(CLASS, IDENTIFIER("foo"), EOL, END, EOL))
+    }
+
+    it("not supported oneline class") {
+      expectFailed(List(CLASS, IDENTIFIER("Foo"), END))
     }
   }
 }

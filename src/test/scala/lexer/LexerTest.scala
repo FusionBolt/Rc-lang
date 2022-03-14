@@ -62,6 +62,13 @@ class LexerTest extends AnyFunSpec {
     }
   }
 
+  describe("upperIdentifier") {
+    it("succeed") {
+      expectSuccess("Foo", UPPER_IDENTIFIER("Foo"))
+      expectSuccess("Foo1", UPPER_IDENTIFIER("Foo1"))
+    }
+  }
+
   def expectKeywordNotId(str: String): Unit = {
     expectNotEql(str, IDENTIFIER(str))
   }

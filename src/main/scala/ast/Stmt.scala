@@ -1,8 +1,8 @@
 package rclang
 package ast
 
-import rclang.ast.Expr.Block
-
+import ast.Expr.Block
+import ast.Id
 import scala.util.parsing.input.Positional
 
 enum Stmt extends Positional:

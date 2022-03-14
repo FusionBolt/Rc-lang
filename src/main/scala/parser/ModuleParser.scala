@@ -13,22 +13,26 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
   def define: Parser[Item] = method
 
   def args: Parser[Params] = positioned {
-    parSround(repsep(identifier, COMMA)) ^^ {
-      case params => Params(params.map(x => Param(x.str)))
-    }
+    parSround(repsep(id, COMMA)) ^^ (params => Params(params.map(Param)))
   }
 
   def method: Parser[Item] = positioned {
-    oneline(DEF ~ identifier ~ args) ~ block ~ onelineOpt(END) ^^ {
-      case _ ~ IDENTIFIER(id) ~ args ~ block ~ _ => Item.Method(MethodDecl(id, args, Type.Nil), block)
+    oneline(DEF ~ id ~ args) ~ block ~ END ^^ {
+      case _ ~ id ~ args ~ block ~ _ => Item.Method(MethodDecl(id, args, Type.Nil), block)
     }
   }
 
   def item: Parser[Item] = positioned {
-    log(method)("method")
+    oneline(method | classDefine)
   }
 
   def module: Parser[RcModule] = positioned {
     item.* ^^ RcModule
+  }
+
+  def classDefine: Parser[Item.Class] = positioned {
+    oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ item.* <~ END ^^ {
+      case klass ~ parent ~ defines => Item.Class(klass, parent, defines)
+    }
   }
 }

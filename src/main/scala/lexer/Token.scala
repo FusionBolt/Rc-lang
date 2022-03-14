@@ -5,6 +5,7 @@ import scala.util.parsing.input.Positional
 
 enum Token extends Positional:
   case IDENTIFIER(str: String)
+  case UPPER_IDENTIFIER(str: String)
   case NUMBER(int: Int)
   case OPERATOR(op: String)
   case STRING(str: String)

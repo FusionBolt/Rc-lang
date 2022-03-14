@@ -3,15 +3,28 @@ package parser
 
 import lexer.Token.*
 
-import rclang.lexer.Token
+import lexer.Token
+import ast.Id
 
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{CharSequenceReader, NoPosition, Position, Positional, Reader}
 
 trait RcBaseParser extends Parsers {
   override type Elem = Token
-  protected def identifier: Parser[IDENTIFIER] = positioned {
+  private def identifier: Parser[IDENTIFIER] = positioned {
     accept("identifier", { case id @ IDENTIFIER(name) => id })
+  }
+
+  private def upperIdentifier: Parser[UPPER_IDENTIFIER] = positioned {
+    accept("upper_identifier", { case id @ UPPER_IDENTIFIER(name) => id })
+  }
+
+  protected def id: Parser[Id] = positioned {
+    identifier ^^ { case IDENTIFIER(id) => Id(id) }
+  }
+
+  protected def sym: Parser[Id] = positioned {
+    upperIdentifier ^^ { case UPPER_IDENTIFIER(id) => Id(id) }
   }
 
   protected def stringLiteral: Parser[STRING] = positioned {

@@ -61,10 +61,10 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
 
   def string = stringLiteral ^^ { case STRING(str) => Expr.Str(str) }
   def num = number ^^ { case NUMBER(int) => Expr.Number(int) }
-  def id = identifier ^^ { case IDENTIFIER(id) => Expr.Identifier(id) }
+  def idExpr = id ^^ Expr.Identifier
 
   def term: Parser[Expr] = positioned {
-    bool | num | string | call | id
+    bool | num | string | call | idExpr
   }
 
   def evalExpr: Parser[Expr] = term ~ (operator ~ term).* ^^ {
@@ -77,8 +77,8 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def call: Parser[Expr.Call] = positioned {
-    identifier ~ (LEFT_PARENT_THESES ~> repsep(termExpr, COMMA) <~ RIGHT_PARENT_THESES) ^^ {
-      case IDENTIFIER(id) ~ args => Expr.Call(id, args)
+    id ~ (LEFT_PARENT_THESES ~> repsep(termExpr, COMMA) <~ RIGHT_PARENT_THESES) ^^ {
+      case id ~ args => Expr.Call(id, args)
     }
   }
 
@@ -112,8 +112,8 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def local: Parser[Stmt] = positioned {
-    (VAR ~> identifier) ~ (EQL ~> termExpr) ^^ {
-      case IDENTIFIER(id) ~ expr => Stmt.Local(id, Type.Nil, expr)
+    (VAR ~> id) ~ (EQL ~> termExpr) ^^ {
+      case id ~ expr => Stmt.Local(id, Type.Nil, expr)
     }
   }
 
@@ -122,8 +122,8 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def assign: Parser[Stmt.Assign] = positioned {
-    (identifier <~ EQL) ~ termExpr ^^ {
-      case IDENTIFIER(id) ~ expr => Stmt.Assign(id, expr)
+    (id <~ EQL) ~ termExpr ^^ {
+      case id ~ expr => Stmt.Assign(id, expr)
     }
   }
 

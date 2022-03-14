@@ -3,6 +3,7 @@ package ast
 
 import scala.util.parsing.input.Positional
 import ast.Stmt
+import ast.Id
 
 enum Expr extends Positional:
   case Number(v: Int)

@@ -25,7 +25,7 @@ object Lexer extends RegexParsers {
     classStr | superStr | varStr | valStr
   def symbol: Parser[Token] = comma | eol | leftParentTheses | rightParentTheses | leftSquare | rightSquare
 
-  def value: Parser[Token] = number | identifier
+  def value: Parser[Token] = number | upperIdentifier | identifier
 
   def ops = "[+\\-*/%^~!><]".r
   def operator: Parser[Token] = positioned {
@@ -62,6 +62,10 @@ object Lexer extends RegexParsers {
   def notSpacer: Parser[Token] = log(keyword | value | eol)("notSpacer")
 
   def spacer: Parser[Token] = log(symbol | operator | eql | space)("Spacer")
+
+  def upperIdentifier: Parser[UPPER_IDENTIFIER] = positioned {
+    "[A-Z_][a-zA-Z0-9_]*".r ^^ { str => UPPER_IDENTIFIER(str) }
+  }
 
   def identifier: Parser[IDENTIFIER] = positioned {
     "[a-zA-Z_][a-zA-Z0-9_]*".r ^^ { str => IDENTIFIER(str) }
