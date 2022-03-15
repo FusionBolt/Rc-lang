@@ -16,6 +16,7 @@ enum Token extends Positional:
   case SPACE
   case DOT
   case COLON
+  case AT
 
   case TRUE
   case FALSE

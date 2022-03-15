@@ -81,6 +81,23 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
       case id ~ args => Expr.Call(id, args)
     }
   }
+
+//  def selfField: Parser[Expr.Field] = positioned {
+//    AT ~ id
+//  }
+// todo:add memField and memCall test
+
+  def memField: Parser[Expr.Field] = positioned {
+    (termExpr <~ DOT) ~ id ^^ {
+      case obj ~ name => Expr.Field(obj, name)
+    }
+  }
+
+  def memCall: Parser[Expr.MethodCall] = positioned {
+    (termExpr <~ DOT) ~ id ~ parSround(repsep(termExpr, COMMA)) ^^ {
+      case obj ~ id ~ args => Expr.MethodCall(obj, id, args)
+    }
+  }
   
   def block: Parser[Block] = positioned {
     rep(log(statement)("stmt")) ^^ (stmts => Block(stmts))

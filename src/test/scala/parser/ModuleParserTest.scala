@@ -67,11 +67,15 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
 
   describe("class") {
     it("empty class") {
-      expectSuccess(makeTokenClass("Foo"), makeAstClass("Foo"))
+      expectSuccess(mkTokenClass("Foo"), mkASTClass("Foo"))
+    }
+
+    it("class with var") {
+      expectSuccess(mkTokenClass("Foo", mkTokenField("a", "Int")), mkASTClass("Foo", mkASTField("a", "Int")))
     }
 
     it("class with method") {
-      expectSuccess(makeTokenClass("Foo", makeTokenMethod("a")), makeAstClass("Foo", makeASTMethod("a")))
+      expectSuccess(mkTokenClass("Foo", makeTokenMethod("a")), mkASTClass("Foo", makeASTMethod("a")))
     }
 
     it("must uppercase") {
@@ -80,6 +84,10 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
 
     it("not supported oneline class") {
       expectFailed(List(CLASS, IDENTIFIER("Foo"), END))
+    }
+
+    it("inherit") {
+      expectSuccess(mkTokenClass("Foo", "Parent"), mkASTClass("Foo", "Parent"))
     }
   }
 }

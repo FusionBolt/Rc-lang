@@ -14,7 +14,9 @@ enum Expr extends Positional:
   // false -> elsif | else
   case If(cond: Expr, true_branch: Block, false_branch: Option[Expr])
   case Lambda(args: List[Expr], stmts: List[Expr])
-  case Call(id: Id, args: List[Expr])
+  case Call(target: Id, args: List[Expr])
+  case MethodCall(obj: Expr, target: Id, args: List[Expr])
   case Block(stmts: List[Stmt])
   case Return(expr: ast.Expr)
   case Field(expr: Expr, id: Id)
+

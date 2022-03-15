@@ -5,10 +5,8 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.*
 import lexer.Token
 import lexer.Token.*
-
-import ast.{Expr, Item, MethodDecl, Param, Params, Stmt, Type}
+import ast.{Expr, Field, Item, MethodDecl, Param, Params, Stmt, Type, strToId}
 import ast.Expr.{Block, If}
-import ast.strToId
 
 trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers {
   def parSround(tokens: List[Token]): List[Token] = LEFT_PARENT_THESES::tokens:::RIGHT_PARENT_THESES::List()
@@ -53,7 +51,13 @@ trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers {
                     block: List[Stmt] = List()): Item.Method = {
     Item.Method(MethodDecl(name, Params(params), ret_type), Block(block))
   }
-  def makeTokenClass(name: String, tokens: List[Token] = List()) = List(CLASS, UPPER_IDENTIFIER(name), EOL):::tokens:::END::EOL::Nil
-  def makeAstClass(name: String) = Item.Class(name, None, List())
-  def makeAstClass(name: String, method: Item.Method) = Item.Class(name, None, List(method))
+
+  def mkTokenField(name: String, ty: String) = List(VAR, IDENTIFIER(name), COLON, UPPER_IDENTIFIER(ty), EOL)
+  def mkASTField(name: String, ty: String) = Field(name, Type.Spec(ty), None)
+  def mkTokenClass(name: String, tokens: List[Token] = List()) = List(CLASS, UPPER_IDENTIFIER(name), EOL):::tokens:::END::EOL::Nil
+  def mkTokenClass(name: String, parent: String) = List(CLASS, UPPER_IDENTIFIER(name), OPERATOR("<"), UPPER_IDENTIFIER(parent), EOL):::END::EOL::Nil
+  def mkASTClass(name: String) = Item.Class(name, None, List(), List())
+  def mkASTClass(name: String, parent: String) = Item.Class(name, Some(parent), List(), List())
+  def mkASTClass(name: String, method: Item.Method) = Item.Class(name, None, List(), List(method))
+  def mkASTClass(name: String, field: Field) = Item.Class(name, None, List(field), List())
 }

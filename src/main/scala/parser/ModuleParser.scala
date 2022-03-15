@@ -31,14 +31,17 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
   }
 
   def field: Parser[Field] = positioned {
-    (id <~ COLON) ~ sym ~ (EQL ~> expr).? ^^ {
-      case id ~ ty ~ value => Field(id, Type.Nil, value)
+    VAR ~> (id <~ COLON) ~ sym ~ (EQL ~> expr).? <~ EOL ^^ {
+      case id ~ ty ~ value => Field(id, Type.Spec(ty), value)
     }
   }
 
   def classDefine: Parser[Item.Class] = positioned {
-    oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ item.* <~ END ^^ {
-      case klass ~ parent ~ defines => Item.Class(klass, parent, defines)
+    oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ (item | field).* <~ END ^^ {
+      case klass ~ parent ~ defines =>
+        Item.Class(klass, parent,
+          defines.filter(_.isInstanceOf[Field]).map(_.asInstanceOf[Field]),
+          defines.filter(_.isInstanceOf[Item.Method]).map(_.asInstanceOf[Item.Method]))
     }
   }
 }
