@@ -14,6 +14,8 @@ enum Token extends Positional:
   case COMMA
   case EQL
   case SPACE
+  case DOT
+  case COLON
 
   case TRUE
   case FALSE
@@ -33,6 +35,9 @@ enum Token extends Positional:
 
   case CLASS
   case SUPER
+  case SELF
+  case METHODS
+  case VARS
 
   case LEFT_PARENT_THESES
   case RIGHT_PARENT_THESES

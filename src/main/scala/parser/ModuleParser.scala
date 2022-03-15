@@ -17,8 +17,8 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
   }
 
   def method: Parser[Item] = positioned {
-    oneline(DEF ~ id ~ args) ~ block ~ END ^^ {
-      case _ ~ id ~ args ~ block ~ _ => Item.Method(MethodDecl(id, args, Type.Nil), block)
+    oneline(DEF ~> id ~ args) ~ block <~ END ^^ {
+      case id ~ args ~ block => Item.Method(MethodDecl(id, args, Type.Nil), block)
     }
   }
 
@@ -28,6 +28,12 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
 
   def module: Parser[RcModule] = positioned {
     item.* ^^ RcModule
+  }
+
+  def field: Parser[Field] = positioned {
+    (id <~ COLON) ~ sym ~ (EQL ~> expr).? ^^ {
+      case id ~ ty ~ value => Field(id, Type.Nil, value)
+    }
   }
 
   def classDefine: Parser[Item.Class] = positioned {

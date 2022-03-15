@@ -77,11 +77,11 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def call: Parser[Expr.Call] = positioned {
-    id ~ (LEFT_PARENT_THESES ~> repsep(termExpr, COMMA) <~ RIGHT_PARENT_THESES) ^^ {
+    id ~ parSround(repsep(termExpr, COMMA)) ^^ {
       case id ~ args => Expr.Call(id, args)
     }
   }
-
+  
   def block: Parser[Block] = positioned {
     rep(log(statement)("stmt")) ^^ (stmts => Block(stmts))
   }

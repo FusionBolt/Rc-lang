@@ -47,6 +47,8 @@ trait RcBaseParser extends Parsers {
   // parenthesesSround
   protected def parSround[T](p: Parser[T]) = LEFT_PARENT_THESES ~> p <~ RIGHT_PARENT_THESES
 
+  protected def noOrder[T](p1: Parser[T], p2: Parser[T]): Parser[T ~ T] = p1 ~ p2 | p2 ~ p1
+
   protected def makeParserError(next: Input, msg: String) = RcParserError(Location(next.pos.line, next.pos.column), msg)
 
   protected def doParser[T](tokens: Seq[Token], parser: Parser[T]): Either[RcParserError, T] = {
