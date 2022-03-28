@@ -100,7 +100,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
   
   def block: Parser[Block] = positioned {
-    rep(log(statement)("stmt")) ^^ (stmts => Block(stmts))
+    rep(log(statement)("stmt")) ^^ (stmts => Block(stmts.filter(_ != Stmt.None)))
   }
 
   def multiLineIf: Parser[If] = positioned {
@@ -125,7 +125,11 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     oneline(assign
       | whileStmt
       | log(local)("local")
-      | expr ^^ Stmt.Expr)
+      | expr ^^ Stmt.Expr) | none
+  }
+
+  def none: Parser[Stmt] = positioned {
+    EOL ^^^ Stmt.None
   }
 
   def local: Parser[Stmt] = positioned {
@@ -145,7 +149,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def whileStmt: Parser[Stmt.While] = positioned {
-    oneline(WHILE ~> parSround(termExpr)) ~ block <~ END ^^ {
+    oneline(WHILE ~> parSround(termExpr)) ~ block <~ log(END)("end while") ^^ {
       case cond ~ body => Stmt.While(cond, body)
     }
   }

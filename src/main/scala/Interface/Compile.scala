@@ -14,8 +14,12 @@ object Compile {
       case Left(value) => throw RuntimeException(value.msg)
       case Right(value) => value
     }
+    println("Lexer Finish")
+    // todo:dump tokens
     println(tokens)
     val ast = RcParser(tokens)
+    println("Parser Finish")
+    // todo:dump ast
     println(ast)
     f.close()
   }

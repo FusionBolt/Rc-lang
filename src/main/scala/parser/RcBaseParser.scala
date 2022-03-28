@@ -5,6 +5,7 @@ import lexer.Token.*
 
 import lexer.Token
 import ast.Id
+import ast.Type
 
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{CharSequenceReader, NoPosition, Position, Positional, Reader}
@@ -39,10 +40,20 @@ trait RcBaseParser extends Parsers {
     accept("operator", { case op @ OPERATOR(_) => op })
   }
 
-  protected def oneline[T](p: Parser[T]): Parser[T] = log(p <~ EOL.+)("oneline")
-  protected def onelineOpt[T](p: Parser[T]): Parser[T] = log(p <~ EOL.*)("oneline")
+  protected def idWithTy: Parser[(Id, Type)] = {
+    id ~ (COLON ~> ty).? ^^ {
+      case id ~ ty => (id, ty.getOrElse(Type.Infer))
+    }
+  }
 
-  protected def nextline[T](p: Parser[T]): Parser[T] = log(EOL.+ ~> p)("nextline")
+  protected def ty: Parser[Type] = positioned {
+    sym ^^ Type.Spec
+  }
+
+  protected def oneline[T](p: Parser[T]): Parser[T] = log(p <~ EOL)("oneline")
+  protected def onelineOpt[T](p: Parser[T]): Parser[T] = log(p <~ EOL.?)("oneline")
+
+  protected def nextline[T](p: Parser[T]): Parser[T] = log(EOL ~> p)("nextline")
 
   // parenthesesSround
   protected def parSround[T](p: Parser[T]) = LEFT_PARENT_THESES ~> p <~ RIGHT_PARENT_THESES
@@ -75,7 +86,7 @@ trait RcBaseParser extends Parsers {
     override def rest: Reader[Token] = new RcTokenReader(tokens.tail)
 
     override def toString: String = {
-      val c = if (atEnd) "" else s"'$first', ..."
+      val c = if (atEnd) "" else s"${tokens.slice(0, 3)} ..."
       s"RcTokenReader($c)"
     }
   }

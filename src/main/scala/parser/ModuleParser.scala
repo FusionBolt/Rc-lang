@@ -12,13 +12,13 @@ import scala.util.parsing.input.{NoPosition, Position, Reader}
 trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
   def define: Parser[Item] = method
 
-  def args: Parser[Params] = positioned {
-    parSround(repsep(id, COMMA)) ^^ (params => Params(params.map(Param)))
+  def params: Parser[Params] = positioned {
+    parSround(repsep(idWithTy, COMMA)) ^^ (params => Params(params.map(Param(_,_))))
   }
 
   def method: Parser[Item] = positioned {
-    oneline(DEF ~> id ~ args) ~ block <~ END ^^ {
-      case id ~ args ~ block => Item.Method(MethodDecl(id, args, Type.Nil), block)
+    oneline(DEF ~> id ~ params) ~ block <~ END ^^ {
+      case id ~ params ~ block => Item.Method(MethodDecl(id, params, Type.Nil), block)
     }
   }
 
@@ -31,13 +31,15 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
   }
 
   def field: Parser[Field] = positioned {
-    VAR ~> (id <~ COLON) ~ sym ~ (EQL ~> expr).? <~ EOL ^^ {
+    oneline(VAR ~> (id <~ COLON) ~ sym ~ (EQL ~> expr).?) ^^ {
       case id ~ ty ~ value => Field(id, Type.Spec(ty), value)
     }
   }
 
+  // todo:make a EOL filter
+  // todo:make eol test and fix module parser eol problem
   def classDefine: Parser[Item.Class] = positioned {
-    oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ (item | field).* <~ END ^^ {
+    oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ log(item | field | EOL)("class member").* <~ log(END)("class end") ^^ {
       case klass ~ parent ~ defines =>
         Item.Class(klass, parent,
           defines.filter(_.isInstanceOf[Field]).map(_.asInstanceOf[Field]),

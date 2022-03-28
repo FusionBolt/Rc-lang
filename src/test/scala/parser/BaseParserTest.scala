@@ -39,10 +39,22 @@ trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers {
   def makeTokenMethod(name: String, stmts: List[Token] = List()): List[Token] = {
     List(DEF, IDENTIFIER(name), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, EOL):::(stmts).appended(END).appended(EOL)
   }
+  def mkEmptyTokenMethod(name: String, params: List[Token] = List()): List[Token] = {
+    List(DEF, IDENTIFIER(name), LEFT_PARENT_THESES):::params:::List(RIGHT_PARENT_THESES, EOL, END, EOL)
+  }
+
+  def sepWithComma(tokens: List[Token]): List[Token] = {
+    sepListWithComma(tokens.map(List(_)))
+  }
+
+  def sepListWithComma(tokens: List[List[Token]]): List[Token] = {
+    tokens.flatMap(_.appended(COMMA)).init
+  }
 
   def makeLocal(name: String, value: Token) = {
     List(VAR, IDENTIFIER(name), EQL, value, EOL)
   }
+
   def makeLocal(name: String, value: Expr) = Stmt.Local(name, Type.Nil, value)
 
   def makeASTMethod(name: String,

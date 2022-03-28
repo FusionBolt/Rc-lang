@@ -1,0 +1,9 @@
+class Point
+  var x:Int
+  var y:Int
+
+  def move_x(offset: Int)
+    x = x + offset
+  end
+end
+

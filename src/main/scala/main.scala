@@ -2,4 +2,4 @@ package rclang
 
 import Interface.*
 
-@main def main = Compile(CompileOption("demo/if.rc"))
+@main def main = Compile(CompileOption("demo/oop.rc"))

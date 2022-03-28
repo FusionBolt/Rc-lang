@@ -143,8 +143,8 @@ class LexerTest extends AnyFunSpec {
 
   describe("fun") {
     it("empty") {
-      val src = """def main end"""
-      expectSuccess(src, List(DEF, IDENTIFIER("main"), END))
+      val src = """def main() end"""
+      expectSuccess(src, List(DEF, IDENTIFIER("main"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, END))
     }
 
     it("with local") {

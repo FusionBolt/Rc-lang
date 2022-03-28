@@ -44,4 +44,12 @@ class StmtParserTest extends BaseParserTest with ExprParser {
         Stmt.While(trueExpr, makeStmtBlock(Stmt.Assign("a", Expr.Number(1)))))
     }
   }
+
+  describe("none") {
+    it("succeed") {
+      expectSuccess(
+        List(EOL), Stmt.None
+      )
+    }
+  }
 }

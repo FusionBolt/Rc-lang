@@ -23,7 +23,7 @@ object Lexer extends RegexParsers {
   def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral |
     defStr | endStr | ifStr | thenStr | elsifStr | elseStr | whileStr |
     classStr | superStr | selfStr | varStr | valStr
-  def symbol: Parser[Token] = comma | eol | dot | at |
+  def symbol: Parser[Token] = comma | eol | dot | at | colon |
     leftParentTheses | rightParentTheses | leftSquare | rightSquare
 
   def value: Parser[Token] = number | upperIdentifier | identifier
@@ -109,7 +109,7 @@ object Lexer extends RegexParsers {
   def elseStr = NoValueToken("else", ELSE)
   def whileStr = NoValueToken("while", WHILE)
 
-  def classStr = NoValueToken("class", WHILE)
+  def classStr = NoValueToken("class", CLASS)
   def superStr = NoValueToken("super", SUPER)
   def selfStr = NoValueToken("self", SELF)
   def varsStr = NoValueToken("vars", VARS)

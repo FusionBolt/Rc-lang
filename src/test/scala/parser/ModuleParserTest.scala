@@ -30,38 +30,64 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
   }
 
   describe("fun") {
-    it("empty") {
-      expectSuccess(makeTokenMethod("foo"),
-        makeASTMethod("foo"))
+    describe("params") {
+      it("not spec type") {
+        expectSuccess(
+          mkEmptyTokenMethod("f",
+            sepWithComma(List(IDENTIFIER("a"), IDENTIFIER("b")))),
+          makeASTMethod("f",
+            List(Param("a", Type.Infer),
+              Param("b", Type.Infer))))
+      }
+
+      it("spec type") {
+        expectSuccess(
+          mkEmptyTokenMethod("f",
+            sepListWithComma(List(
+              List(IDENTIFIER("a"), COLON, UPPER_IDENTIFIER("Int")),
+              List(IDENTIFIER("a"), COLON, UPPER_IDENTIFIER("Int"))))),
+          makeASTMethod("f",
+            List(
+              Param("a", Type.Spec("Int")),
+              Param("a", Type.Spec("Int"))
+            )))
+      }
     }
 
-    it("with one line") {
-      expectSuccess(
-        makeTokenMethod("foo", makeLocal("a", NUMBER(1))),
-        makeASTMethod("foo", block = List(Stmt.Local("a", Type.Nil, Number(1)))))
-    }
+    describe("body") {
+      it("empty") {
+        expectSuccess(makeTokenMethod("foo"),
+          makeASTMethod("foo"))
+      }
 
-    it("with multi line") {
-      expectSuccess(
-        makeTokenMethod("foo",
-          makeLocal("a", NUMBER(1))
-            .concat(makeLocal("a", NUMBER(1)))),
-        makeASTMethod("foo",
-          block = List(
-            makeLocal("a", Number(1)),
-            makeLocal("a", Number(1)))))
-    }
+      it("with one line") {
+        expectSuccess(
+          makeTokenMethod("foo", makeLocal("a", NUMBER(1))),
+          makeASTMethod("foo", block = List(Stmt.Local("a", Type.Nil, Number(1)))))
+      }
 
-    it("multi line with multi eol") {
-      expectSuccess(
-        makeTokenMethod("foo",
-          makeLocal("a", NUMBER(1))
-            :::(EOL::EOL::List())
-            :::(makeLocal("a", NUMBER(1)))),
-        makeASTMethod("foo",
-          block = List(
-            makeLocal("a", Number(1)),
-            makeLocal("a", Number(1)))))
+      it("with multi line") {
+        expectSuccess(
+          makeTokenMethod("foo",
+            makeLocal("a", NUMBER(1))
+              .concat(makeLocal("a", NUMBER(1)))),
+          makeASTMethod("foo",
+            block = List(
+              makeLocal("a", Number(1)),
+              makeLocal("a", Number(1)))))
+      }
+
+      it("multi line with multi eol") {
+        expectSuccess(
+          makeTokenMethod("foo",
+            makeLocal("a", NUMBER(1))
+              ::: (EOL :: EOL :: List())
+              ::: (makeLocal("a", NUMBER(1)))),
+          makeASTMethod("foo",
+            block = List(
+              makeLocal("a", Number(1)),
+              makeLocal("a", Number(1)))))
+      }
     }
   }
 
