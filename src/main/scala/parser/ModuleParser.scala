@@ -36,10 +36,14 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
     }
   }
 
+  def noneItem: Parser[Item] = positioned {
+    EOL ^^^ Item.None
+  }
+
   // todo:make a EOL filter
   // todo:make eol test and fix module parser eol problem
   def classDefine: Parser[Item.Class] = positioned {
-    oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ log(item | field | EOL)("class member").* <~ log(END)("class end") ^^ {
+    oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ log(item | field | noneItem)("class member").* <~ log(END)("class end") ^^ {
       case klass ~ parent ~ defines =>
         Item.Class(klass, parent,
           defines.filter(_.isInstanceOf[Field]).map(_.asInstanceOf[Field]),
