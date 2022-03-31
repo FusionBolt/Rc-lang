@@ -104,6 +104,20 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
       expectSuccess(mkTokenClass("Foo", makeTokenMethod("a")), mkASTClass("Foo", makeASTMethod("a")))
     }
 
+    describe("class with method and var") {
+      it("normal succeed") {
+        expectSuccess(
+          mkTokenClass("Foo", makeTokenMethod("f1") ::: mkTokenField("a", "Int")),
+          mkASTClass("Foo", mkASTField("a", "Int"), makeASTMethod("f1")))
+      }
+
+      it("include eol") {
+        expectSuccess(
+          mkTokenClass("Foo", makeTokenMethod("f1") ::: EOL :: mkTokenField("a", "Int")):::EOL::Nil,
+          mkASTClass("Foo", mkASTField("a", "Int"), makeASTMethod("f1")))
+      }
+    }
+
     it("must uppercase") {
       expectFailed(List(CLASS, IDENTIFIER("foo"), EOL, END, EOL))
     }

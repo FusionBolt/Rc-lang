@@ -72,4 +72,5 @@ trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers {
   def mkASTClass(name: String, parent: String) = Item.Class(name, Some(parent), List(), List())
   def mkASTClass(name: String, method: Item.Method) = Item.Class(name, None, List(), List(method))
   def mkASTClass(name: String, field: Field) = Item.Class(name, None, List(field), List())
+  def mkASTClass(name: String, field: Field, method: Item.Method) = Item.Class(name, None, List(field), List(method))
 }
