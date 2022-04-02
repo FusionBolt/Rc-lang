@@ -63,8 +63,15 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   def num = number ^^ { case NUMBER(int) => Expr.Number(int) }
   def idExpr = id ^^ Expr.Identifier
 
+  // call: term(
+  // memField: term.x
+  // memCall: term.x(
+  lazy val beginWithId: PackratParser[Expr] = positioned {
+    call | memCall | memField
+  }
+
   def term: Parser[Expr] = positioned {
-    bool | num | string | call | idExpr
+    bool | num | string | log(beginWithId)("beginWithId") | idExpr
   }
 
   def evalExpr: Parser[Expr] = term ~ (operator ~ term).* ^^ {
@@ -76,6 +83,8 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
       FALSE ^^ (_ => Expr.Bool(false))
   }
 
+  // todo:call begin with term
+  // todo:process Call / MethodCall
   def call: Parser[Expr.Call] = positioned {
     id ~ parSround(repsep(termExpr, COMMA)) ^^ {
       case id ~ args => Expr.Call(id, args)
@@ -88,13 +97,13 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
 // todo:add memField and memCall test
 
   def memField: Parser[Expr.Field] = positioned {
-    (termExpr <~ DOT) ~ id ^^ {
+    log(term <~ DOT)("MemberLog") ~ log(id)("FieldLog") ^^ {
       case obj ~ name => Expr.Field(obj, name)
     }
   }
 
   def memCall: Parser[Expr.MethodCall] = positioned {
-    (termExpr <~ DOT) ~ id ~ parSround(repsep(termExpr, COMMA)) ^^ {
+    (term <~ DOT) ~ id ~ parSround(repsep(term, COMMA)) ^^ {
       case obj ~ id ~ args => Expr.MethodCall(obj, id, args)
     }
   }
@@ -104,10 +113,6 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def multiLineIf: Parser[If] = positioned {
-    // last no eol
-    // 1. only if
-    // 2. has elsif
-    // 3. has else
     oneline(IF ~> expr) ~ block ~ log(elsif.*)("elsif") ~ (oneline(ELSE) ~> log(block)("else block")).? <~ log(END)("end") ^^ {
       case cond ~ if_branch ~ elsif ~ else_branch
       => If(cond, if_branch, elsif.foldRight(else_branch.asInstanceOf[Option[Expr]])(

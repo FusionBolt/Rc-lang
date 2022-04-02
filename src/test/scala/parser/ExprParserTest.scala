@@ -53,13 +53,6 @@ class ExprParserTest extends ExprParser with BaseParserTest {
     }
   }
 
-  def makeCall(name: String, args: List[Token]): List[Token] =
-    IDENTIFIER(name)::LEFT_PARENT_THESES::
-      noEmptyEval(args, _ =>
-        args.zip(List.fill(args.length - 1)(COMMA).appended(RIGHT_PARENT_THESES))
-          .flatten{ case (a, b) => List(a, b) },
-        List(RIGHT_PARENT_THESES))
-
   describe("call") {
     it("empty args") {
       expectSuccess(makeCall("foo", List()), Expr.Call("foo", List()))
@@ -67,6 +60,18 @@ class ExprParserTest extends ExprParser with BaseParserTest {
 
     it("multi args") {
       expectSuccess(makeCall("foo", List(NUMBER(1), NUMBER(2))), Expr.Call("foo", List(Number(1), Number(2))))
+    }
+  }
+
+  describe("memField") {
+    it("succeed") {
+     expectSuccess(mkTkMemField("homura", "shield"), mkASTMemField("homura", "shield"))
+    }
+  }
+
+  describe("memCall") {
+    it("succeed") {
+      expectSuccess(mkTkMemCall("homura", "shot"), mkASTMemCall("homura", "shot"))
     }
   }
 

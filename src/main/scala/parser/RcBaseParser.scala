@@ -7,10 +7,10 @@ import lexer.Token
 import ast.Id
 import ast.Type
 
-import scala.util.parsing.combinator.Parsers
+import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.input.{CharSequenceReader, NoPosition, Position, Positional, Reader}
 
-trait RcBaseParser extends Parsers {
+trait RcBaseParser extends PackratParsers {
   override type Elem = Token
   private def identifier: Parser[IDENTIFIER] = positioned {
     accept("identifier", { case id @ IDENTIFIER(name) => id })
@@ -67,7 +67,7 @@ trait RcBaseParser extends Parsers {
   }
 
   protected def doParserImpl[T](tokens: Seq[Token], parser: Parser[T]): Either[RcParserError, (T, Input)] = {
-    val reader = new RcTokenReader(tokens)
+    val reader = new RcPackratReader(new RcTokenReader(tokens))
     parser(reader) match {
       case NoSuccess(msg, next) => Left(makeParserError(next, msg))
       case Success(result, next) => Right(result, next)
@@ -88,6 +88,12 @@ trait RcBaseParser extends Parsers {
     override def toString: String = {
       val c = if (atEnd) "" else s"${tokens.slice(0, 3)} ..."
       s"RcTokenReader($c)"
+    }
+  }
+
+  class RcPackratReader(reader: Reader[Token])  extends PackratReader[Token](reader) {
+    override def toString: String = {
+      reader.toString
     }
   }
 }

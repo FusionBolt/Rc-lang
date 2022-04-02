@@ -15,6 +15,13 @@ trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers {
   def mkAssStmt(name: String, expr: Token): List[Token] = List(IDENTIFIER(name), EQL, expr, EOL)
   def mkLocalStmt(name: String, expr: Token): List[Token] = List(VAR, IDENTIFIER(name), EQL, expr, EOL)
 
+  def makeCall(name: String, args: List[Token]): List[Token] =
+    IDENTIFIER(name)::LEFT_PARENT_THESES::
+      noEmptyEval(args, _ =>
+        args.zip(List.fill(args.length - 1)(COMMA).appended(RIGHT_PARENT_THESES))
+          .flatten{ case (a, b) => List(a, b) },
+        List(RIGHT_PARENT_THESES))
+
   def trueExpr = Expr.Bool(true)
   def falseExpr = Expr.Bool(false)
   def makeElsif(lists: List[(Token, Token)]): List[Token] = lists.map((x, y) => ELSIF::x::EOL::y::EOL::List()).reduce(_:::_)
@@ -35,6 +42,16 @@ trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers {
   def makeIf(cond: Expr, thenExpr: Expr, elseExpr: Expr) = If(cond, makeExprBlock(thenExpr), Some(elseExpr))
   def makeLastIf(cond: Expr, thenExpr: Expr, elseExpr: Expr) = If(cond, makeExprBlock(thenExpr), Some(makeExprBlock(elseExpr)))
   def makeIf(cond: Expr, thenExpr: Expr, elseExpr: Option[Expr]) = If(cond, makeExprBlock(thenExpr), elseExpr)
+
+  def mkTkMemField(name: String, field: String) = List(IDENTIFIER(name), DOT, IDENTIFIER(field))
+  def mkASTMemField(name: String, field: String) = Expr.Field(Expr.Identifier(name), field)
+
+  def mkTkMemCall(name: String, field: String, args: List[Token] = List()): List[Token] =
+    List(IDENTIFIER(name), DOT, IDENTIFIER(field),
+      LEFT_PARENT_THESES):::args:::RIGHT_PARENT_THESES::Nil
+
+  def mkASTMemCall(name: String, field: String, args: List[Expr] = List()) =
+    Expr.MethodCall(Expr.Identifier(name), field, List())
 
   def makeTokenMethod(name: String, stmts: List[Token] = List()): List[Token] = {
     List(DEF, IDENTIFIER(name), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, EOL):::(stmts).appended(END).appended(EOL)
