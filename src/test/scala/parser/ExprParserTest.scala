@@ -4,7 +4,7 @@ package parser
 import org.scalatest.funspec.AnyFunSpec
 
 import ast.*
-import ast.Expr.{Identifier, Number, Str, Binary, If, Block}
+import ast.Expr.*
 import lexer.Token
 import lexer.Token.*
 import scala.language.postfixOps
@@ -40,6 +40,12 @@ class ExprParserTest extends ExprParser with BaseParserTest {
     }
   }
 
+  describe("const") {
+    it("succeed") {
+      expectSuccess(UPPER_IDENTIFIER("Foo"), Expr.Constant("Foo"))
+    }
+  }
+
   describe("bool") {
     it("succeed") {
       expectSuccess(TRUE, Expr.Bool(true))
@@ -55,23 +61,48 @@ class ExprParserTest extends ExprParser with BaseParserTest {
 
   describe("call") {
     it("empty args") {
-      expectSuccess(makeCall("foo", List()), Expr.Call("foo", List()))
+      expectSuccess(makeCall("foo", List()), Call("foo", List()))
     }
 
     it("multi args") {
-      expectSuccess(makeCall("foo", List(NUMBER(1), NUMBER(2))), Expr.Call("foo", List(Number(1), Number(2))))
+      expectSuccess(makeCall("foo", List(NUMBER(1), NUMBER(2))), Call("foo", List(Number(1), Number(2))))
     }
   }
 
   describe("memField") {
-    it("succeed") {
+    it("normalField") {
      expectSuccess(mkTkMemField("homura", "shield"), mkASTMemField("homura", "shield"))
+    }
+
+    it("selfField") {
+      expectSuccess(List(AT, IDENTIFIER("homura")), Expr.Field(Self, "homura"))
     }
   }
 
   describe("memCall") {
     it("succeed") {
       expectSuccess(mkTkMemCall("homura", "shot"), mkASTMemCall("homura", "shot"))
+    }
+
+    it("new") {
+      expectSuccess(
+        List(UPPER_IDENTIFIER("Foo"), DOT, IDENTIFIER("new"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES),
+        MethodCall(Constant("Foo"), "new", List()))
+    }
+  }
+
+  describe("arrayIndex") {
+    it("normal number") {
+      expectSuccess(
+        List(IDENTIFIER("a"), LEFT_SQUARE, NUMBER(1), RIGHT_SQUARE),
+        Index(Identifier("a"), Number(1)))
+    }
+
+    // todo:binary op is enum
+    it("index is termExpr") {
+        expectSuccess(
+          List(IDENTIFIER("a"), LEFT_SQUARE, NUMBER(1), OPERATOR("+"), NUMBER(2), RIGHT_SQUARE),
+          Index(Identifier("a"), Binary("+", Number(1), Number(2))))
     }
   }
 

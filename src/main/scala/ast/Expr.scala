@@ -19,4 +19,6 @@ enum Expr extends Positional:
   case Block(stmts: List[Stmt])
   case Return(expr: ast.Expr)
   case Field(expr: Expr, id: Id)
-
+  case Self
+  case Constant(id: Id)
+  case Index(expr: Expr, i: Expr)

@@ -12,12 +12,13 @@ import scala.util.parsing.input.{CharSequenceReader, NoPosition, Position, Posit
 
 trait RcBaseParser extends PackratParsers {
   override type Elem = Token
+
   private def identifier: Parser[IDENTIFIER] = positioned {
-    accept("identifier", { case id @ IDENTIFIER(name) => id })
+    accept("identifier", { case id@IDENTIFIER(name) => id })
   }
 
   private def upperIdentifier: Parser[UPPER_IDENTIFIER] = positioned {
-    accept("upper_identifier", { case id @ UPPER_IDENTIFIER(name) => id })
+    accept("upper_identifier", { case id@UPPER_IDENTIFIER(name) => id })
   }
 
   protected def id: Parser[Id] = positioned {
@@ -29,15 +30,15 @@ trait RcBaseParser extends PackratParsers {
   }
 
   protected def stringLiteral: Parser[STRING] = positioned {
-    accept("string literal", { case lit @ STRING(str) => lit })
+    accept("string literal", { case lit@STRING(str) => lit })
   }
 
   protected def number: Parser[NUMBER] = positioned {
-    accept("number literal", { case num @ NUMBER(n) => num })
+    accept("number literal", { case num@NUMBER(n) => num })
   }
 
   protected def operator: Parser[OPERATOR] = positioned {
-    accept("operator", { case op @ OPERATOR(_) => op })
+    accept("operator", { case op@OPERATOR(_) => op })
   }
 
   protected def idWithTy: Parser[(Id, Type)] = {
@@ -51,6 +52,7 @@ trait RcBaseParser extends PackratParsers {
   }
 
   protected def oneline[T](p: Parser[T]): Parser[T] = log(p <~ EOL)("oneline")
+
   protected def onelineOpt[T](p: Parser[T]): Parser[T] = log(p <~ EOL.?)("oneline")
 
   protected def nextline[T](p: Parser[T]): Parser[T] = log(EOL ~> p)("nextline")
@@ -58,8 +60,10 @@ trait RcBaseParser extends PackratParsers {
   // parenthesesSround
   protected def parSround[T](p: Parser[T]) = LEFT_PARENT_THESES ~> p <~ RIGHT_PARENT_THESES
 
+  protected def squareSround[T](p: Parser[T]) = LEFT_SQUARE ~> p <~ RIGHT_SQUARE
+
   protected def noOrder[T](p1: Parser[T], p2: Parser[T]): Parser[T ~ T] = p1 ~ p2 | p2 ~ p1
-  
+
   protected def makeParserError(next: Input, msg: String) = RcParserError(Location(next.pos.line, next.pos.column), msg)
 
   protected def doParser[T](tokens: Seq[Token], parser: Parser[T]): Either[RcParserError, T] = {
