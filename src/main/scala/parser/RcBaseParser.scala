@@ -13,6 +13,23 @@ import scala.util.parsing.input.{CharSequenceReader, NoPosition, Position, Posit
 trait RcBaseParser extends PackratParsers {
   override type Elem = Token
 
+  private def take[T](p: Reader[T], n: Int): List[T] = {
+    if (n > 0 && !p.atEnd) then p.first::take(p.rest, n - 1) else Nil
+  }
+
+  override def log[T](p: => Parser[T])(name: String): Parser[T] = Parser{ in =>
+    in match {
+      case reader: PackratReader[Token] =>
+        println(s"trying ${name} at (${take(reader, 3).mkString(", ")})")
+      case _ =>
+        println("trying " + name + " at " + in)
+    }
+
+    val r = p(in)
+    println(name +" --> "+ r)
+    r
+  }
+
   private def identifier: Parser[IDENTIFIER] = positioned {
     accept("identifier", { case id@IDENTIFIER(name) => id })
   }
