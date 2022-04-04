@@ -6,3 +6,7 @@ class Point
     x = x + offset
   end
 end
+
+def main()
+    var a = Point.new()
+end

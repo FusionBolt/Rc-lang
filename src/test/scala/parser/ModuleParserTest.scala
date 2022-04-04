@@ -129,5 +129,25 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
     it("inherit") {
       expectSuccess(mkTokenClass("Foo", "Parent"), mkASTClass("Foo", "Parent"))
     }
+
+    describe("multiModuleItem") {
+      def apply(tokens: Seq[Token]): Either[RcParserError, RcModule] = {
+        doParser(tokens, module)
+      }
+      def expectSuccess(token: Seq[Token], expect: RcModule): Unit = {
+        apply(token) match {
+          case Left(value) => assert(false, value.msg)
+          case Right(value) => assert(value == expect)
+        }
+      }
+
+      // 1. parse ok
+      // 2. filter None
+      it("splitWithEol") {
+        expectSuccess(
+          mkTokenClass("Foo"):::EOL::mkEmptyTokenMethod("f"),
+          RcModule(List(mkASTClass("Foo"), makeASTMethod("f"))))
+      }
+    }
   }
 }

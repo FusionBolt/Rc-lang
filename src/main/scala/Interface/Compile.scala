@@ -20,7 +20,10 @@ object Compile {
     println("Lexer Finish")
     // todo:dump tokens
     dumpTokens(tokens)
-    val ast = RcParser(tokens)
+    val ast = RcParser(tokens) match {
+      case Left(value) => throw RuntimeException(value.msg)
+      case Right(value) => value
+    }
     println("Parser Finish")
     // todo:dump ast
     println(ast)

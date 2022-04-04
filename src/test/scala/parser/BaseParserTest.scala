@@ -8,6 +8,8 @@ import lexer.Token.*
 import ast.{Expr, Field, Item, MethodDecl, Param, Params, Stmt, Type, strToId}
 import ast.Expr.{Block, If}
 
+import scala.util.parsing.input.Positional
+
 trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers {
   def parSround(tokens: List[Token]): List[Token] = LEFT_PARENT_THESES::tokens:::RIGHT_PARENT_THESES::List()
   def makeWhile(cond: Token, body: List[Token]): List[Token] = WHILE::parSround(List(cond)):::EOL::body:::EOL::END::EOL::List()

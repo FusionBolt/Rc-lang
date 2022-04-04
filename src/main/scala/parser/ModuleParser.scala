@@ -22,12 +22,14 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
     }
   }
 
+  // noneItem should be same level as oneline item
+  // todo: add test
   def item: Parser[Item] = positioned {
     oneline(method | classDefine)
   }
 
   def module: Parser[RcModule] = positioned {
-    item.* ^^ RcModule
+    (item | noneItem).* ^^ { items => RcModule(items.filter(_ != Item.None)) }
   }
 
   def field: Parser[Field] = positioned {
@@ -40,6 +42,7 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
     EOL ^^^ Item.None
   }
 
+  // todo:refactor
   // todo:make a EOL filter
   def classDefine: Parser[Item.Class] = positioned {
     oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ log(item | field | noneItem)("class member").* <~ log(END)("class end") ^^ {

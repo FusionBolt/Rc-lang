@@ -64,20 +64,15 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   def idExpr = id ^^ Expr.Identifier
 
   // todo:test begin with TermExpr
-  // call: term(
   // memField: term.x
   // memCall: term.x(
   // arrayIndex: term[
-  lazy val beginWithId: PackratParser[Expr] = positioned {
-    call | memCall | memField | arrayIndex
+  lazy val beginWithTerm: PackratParser[Expr] = positioned {
+    memCall | memField | arrayIndex
   }
 
   def term: Parser[Expr] = positioned {
-    bool | num | string | selfField | log(beginWithId)("beginWithId") | sym ^^ Expr.Constant | idExpr
-  }
-
-  def evalExpr: Parser[Expr] = term ~ (operator ~ term).* ^^ {
-    case term ~ terms => term
+    bool | num | string | selfField | call | log(beginWithTerm)("beginWithId") | sym ^^ Expr.Constant | idExpr
   }
 
   def bool: Parser[Expr] = positioned {
@@ -98,19 +93,19 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def memField: Parser[Expr.Field] = positioned {
-    log(term <~ DOT)("MemberLog") ~ log(id)("FieldLog") ^^ {
+    log(termExpr <~ DOT)("MemberLog") ~ log(id)("FieldLog") ^^ {
       case obj ~ name => Expr.Field(obj, name)
     }
   }
 
   def memCall: Parser[Expr.MethodCall] = positioned {
-    (term <~ DOT) ~ id ~ parSround(repsep(term, COMMA)) ^^ {
+    (termExpr <~ DOT) ~ id ~ parSround(repsep(termExpr, COMMA)) ^^ {
       case obj ~ id ~ args => Expr.MethodCall(obj, id, args)
     }
   }
 
   def arrayIndex: Parser[Expr.Index] = positioned {
-    term ~ squareSround(termExpr) ^^ {
+    termExpr ~ squareSround(termExpr) ^^ {
       case expr ~ index => Expr.Index(expr, index)
     }
   }
