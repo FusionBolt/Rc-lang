@@ -32,9 +32,9 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
     (item | noneItem).* ^^ { items => RcModule(items.filter(_ != Item.None)) }
   }
 
-  def field: Parser[Field] = positioned {
+  def field: Parser[FieldDef] = positioned {
     oneline(VAR ~> (id <~ COLON) ~ sym ~ (EQL ~> expr).?) ^^ {
-      case id ~ ty ~ value => Field(id, Type.Spec(ty), value)
+      case id ~ ty ~ value => FieldDef(id, Type.Spec(ty), value)
     }
   }
 
@@ -48,7 +48,7 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
     oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ log(item | field | noneItem)("class member").* <~ log(END)("class end") ^^ {
       case klass ~ parent ~ defines =>
         Item.Class(klass, parent,
-          defines.filter(_.isInstanceOf[Field]).map(_.asInstanceOf[Field]),
+          defines.filter(_.isInstanceOf[FieldDef]).map(_.asInstanceOf[FieldDef]),
           defines.filter(_.isInstanceOf[Item.Method]).map(_.asInstanceOf[Item.Method]))
     }
   }

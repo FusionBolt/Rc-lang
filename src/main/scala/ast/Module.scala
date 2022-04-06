@@ -9,11 +9,11 @@ case class RcModule(methods: List[Item]) extends Positional
 
 enum Item extends Positional:
   case Method(decl: MethodDecl, body: Block)
-  case Class(name: Id, parent: Option[Id], vars: List[Field], methods:List[Method])
+  case Class(name: Id, parent: Option[Id], vars: List[FieldDef], methods:List[Method])
   case None
 
-case class Field(name: Id, ty: Type, initValue: Option[Expr]) extends Positional
+case class FieldDef(name: Id, ty: Type, initValue: Option[Expr]) extends Positional
 case class MethodSignature() extends Positional
 case class Param(name: Id, ty: Type) extends Positional
 case class Params(params: List[Param]) extends Positional
-case class MethodDecl(name: Id, inputs: Params, output: Type) extends Positional
+case class MethodDecl(name: Id, inputs: Params, outType: Type) extends Positional
