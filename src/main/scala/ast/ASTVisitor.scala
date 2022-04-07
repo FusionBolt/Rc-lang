@@ -1,12 +1,13 @@
 package rclang
 package ast
+import ast.{ASTNode, Modules}
 import ast.Expr.*
 import Stmt.{Local, While, Assign}
 
 trait ASTVisitor {
   type R = Unit
-  
-  def visit(root: AST): R = visitRecursive(root)
+
+  def visit(modules: Modules): R = visitRecursive(modules)
   def visit(module: RcModule): R = visitRecursive(module)
   def visit(item: Item): R = visitRecursive(item)
   def visit(expr: Expr): R = visitRecursive(expr)
@@ -16,12 +17,10 @@ trait ASTVisitor {
   def visit(id: Id): R = {}
   def visit(param: Param): R = visitRecursive(param)
   def visit(field: FieldDef): R = visitRecursive(field)
-  def visitRecursive(root: AST): R = root match {
-    case AST.Modules(modules) => modules.foreach(visit)
-  }
+  def visitRecursive(modules: Modules): R = modules.modules.foreach(visit)
 
   def visitRecursive(module: RcModule): R = {
-    module.methods.foreach(visit)
+    module.items.foreach(visit)
   }
 
   def visitRecursive(item: Item): R = {

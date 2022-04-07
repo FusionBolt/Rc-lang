@@ -2,8 +2,11 @@ package rclang
 package parser
 
 import ast.*
-import lexer.Token.*
-
+import lexer.Keyword.*
+import lexer.Punctuation.*
+import lexer.Literal.*
+import lexer.Delimiter.*
+import lexer.Ident.*
 import ast.Expr.{Block, If, Return}
 
 import scala.collection.immutable.HashMap
@@ -111,7 +114,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
   
   def block: Parser[Block] = positioned {
-    rep(log(statement)("stmt")) ^^ (stmts => Block(stmts.filter(_ != Stmt.None)))
+    rep(log(statement | none)("stmt")) ^^ (stmts => Block(stmts.filter(_ != Empty()).map(_.asInstanceOf[Stmt])))
   }
 
   def multiLineIf: Parser[If] = positioned {
@@ -132,11 +135,11 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     oneline(assign
       | whileStmt
       | log(local)("local")
-      | expr ^^ Stmt.Expr) | none
+      | expr ^^ Stmt.Expr)
   }
 
-  def none: Parser[Stmt] = positioned {
-    EOL ^^^ Stmt.None
+  def none: Parser[ASTNode] = positioned {
+    EOL ^^^ Empty()
   }
 
   def local: Parser[Stmt] = positioned {

@@ -2,10 +2,14 @@ package rclang
 package parser
 
 import org.scalatest.funspec.AnyFunSpec
-import rclang.ast.*
-import rclang.ast.Expr.Number
-import rclang.lexer.Token.*
-import rclang.lexer.Token
+import lexer.Keyword.*
+import lexer.Punctuation.*
+import lexer.Literal.*
+import lexer.Delimiter.*
+import lexer.Ident.*
+import ast.*
+import ast.Expr.Number
+import lexer.Token
 
 class StmtParserTest extends BaseParserTest with ExprParser {
   def apply(tokens: Seq[Token]): Either[RcParserError, (Stmt, Input)] = {
@@ -42,14 +46,6 @@ class StmtParserTest extends BaseParserTest with ExprParser {
       expectSuccess(
         makeWhile(TRUE, mkAssStmt("a", NUMBER(1))),
         Stmt.While(trueExpr, makeStmtBlock(Stmt.Assign("a", Expr.Number(1)))))
-    }
-  }
-
-  describe("none") {
-    it("succeed") {
-      expectSuccess(
-        List(EOL), Stmt.None
-      )
     }
   }
 }

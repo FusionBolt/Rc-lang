@@ -4,7 +4,11 @@ package parser
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.*
 import lexer.Token
-import lexer.Token.*
+import lexer.Keyword.*
+import lexer.Punctuation.*
+import lexer.Literal.*
+import lexer.Delimiter.*
+import lexer.Ident.*
 import ast.{Expr, FieldDef, Item, MethodDecl, Param, Params, Stmt, Type, strToId}
 import ast.Expr.{Block, If}
 

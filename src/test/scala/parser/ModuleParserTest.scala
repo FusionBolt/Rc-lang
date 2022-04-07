@@ -3,9 +3,13 @@ package parser
 
 import org.scalatest.funspec.AnyFunSpec
 import lexer.Token
-import lexer.Token.*
+import lexer.Keyword.*
+import lexer.Punctuation.*
+import lexer.Literal.*
+import lexer.Delimiter.*
+import lexer.Ident.*
 
-import ast.{Params, AST, Expr, Item}
+import ast.{Params, Expr, Item}
 import ast.Expr.*
 import ast.*
 

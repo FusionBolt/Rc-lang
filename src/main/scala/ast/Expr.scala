@@ -5,7 +5,7 @@ import scala.util.parsing.input.Positional
 import ast.Stmt
 import ast.Id
 
-enum Expr extends Positional:
+enum Expr extends ASTNode:
   case Number(v: Int)
   case Identifier(id: Id)
   case Bool(b: Boolean)

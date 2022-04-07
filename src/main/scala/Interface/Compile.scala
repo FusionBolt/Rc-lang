@@ -2,12 +2,13 @@ package rclang
 package Interface
 
 import scala.io.Source
-import lexer.{Lexer, Token}
+import lexer.*
 import parser.RcParser
 
 import java.io.{PrintWriter, File}
 
 object Compile {
+  // todo:should not in interface
   def apply(option: CompileOption): Unit = {
     val f = Source fromFile option.srcPath
     // avoid last line is end and lost last empty line

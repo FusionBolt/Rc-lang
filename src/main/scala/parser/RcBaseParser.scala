@@ -1,9 +1,13 @@
 package rclang
 package parser
 
-import lexer.Token.*
-
+import lexer.*
 import lexer.Token
+import lexer.Keyword.*
+import lexer.Punctuation.*
+import lexer.Literal.*
+import lexer.Delimiter.*
+import lexer.Ident.*
 import ast.Id
 import ast.Type
 

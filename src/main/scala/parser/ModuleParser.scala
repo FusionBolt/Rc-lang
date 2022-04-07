@@ -1,15 +1,18 @@
 package rclang
 package parser
 
-import ast.*
-import lexer.*
-import lexer.Token.*
+import lexer.Keyword.*
+import lexer.Punctuation.*
+import lexer.Literal.*
+import lexer.Delimiter.*
+import lexer.Ident.*
 import parser.RcParser
+import ast.*
 
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{NoPosition, Position, Reader}
 
-trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
+trait ModuleParser extends RcBaseParser with ExprParser {
   def define: Parser[Item] = method
 
   def params: Parser[Params] = positioned {
@@ -29,7 +32,7 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
   }
 
   def module: Parser[RcModule] = positioned {
-    (item | noneItem).* ^^ { items => RcModule(items.filter(_ != Item.None)) }
+    (item | noneItem).* ^^ { items => RcModule(items.filter(_ != Empty()).map(_.asInstanceOf[Item])) }
   }
 
   def field: Parser[FieldDef] = positioned {
@@ -38,8 +41,8 @@ trait ModuleParser extends RcBaseParser with ExprParser with StmtParser {
     }
   }
 
-  def noneItem: Parser[Item] = positioned {
-    EOL ^^^ Item.None
+  def noneItem: Parser[ASTNode] = positioned {
+    EOL ^^^ Empty()
   }
 
   // todo:refactor

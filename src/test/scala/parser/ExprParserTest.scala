@@ -6,7 +6,11 @@ import org.scalatest.funspec.AnyFunSpec
 import ast.*
 import ast.Expr.*
 import lexer.Token
-import lexer.Token.*
+import lexer.Keyword.*
+import lexer.Punctuation.*
+import lexer.Literal.*
+import lexer.Delimiter.*
+import lexer.Ident.*
 import scala.language.postfixOps
 import parser.RcBaseParser
 import org.scalatest._

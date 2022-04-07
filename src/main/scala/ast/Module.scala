@@ -5,12 +5,11 @@ import scala.util.parsing.input.Positional
 import ast.Expr.Block
 import ast.Id
 
-case class RcModule(methods: List[Item]) extends Positional
+case class RcModule(items: List[Item]) extends Positional
 
 enum Item extends Positional:
   case Method(decl: MethodDecl, body: Block)
   case Class(name: Id, parent: Option[Id], vars: List[FieldDef], methods:List[Method])
-  case None
 
 case class FieldDef(name: Id, ty: Type, initValue: Option[Expr]) extends Positional
 case class MethodSignature() extends Positional

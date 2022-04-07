@@ -3,7 +3,11 @@ package lexer
 
 import org.scalatest.funspec.AnyFunSpec
 import lexer.Lexer
-import lexer.Token.*
+import lexer.Keyword.*
+import lexer.Punctuation.*
+import lexer.Literal.*
+import lexer.Delimiter.*
+import lexer.Ident.*
 
 import org.scalatest.funspec.AnyFunSpec
 

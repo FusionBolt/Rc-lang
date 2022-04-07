@@ -1,8 +1,12 @@
 package rclang
 package lexer
 
-import rclang.lexer.Lexer
-import rclang.lexer.Token.*
+import lexer.*
+import lexer.Keyword.*
+import lexer.Punctuation.*
+import lexer.Literal.*
+import lexer.Delimiter.*
+import lexer.Ident.*
 import rclang.RcLexerError
 import rclang.Location
 
