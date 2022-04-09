@@ -1,15 +1,15 @@
 package rclang
 package parser
 
-import ast.{ASTNode, Modules}
+import ast.{ASTNode, Modules, RcModule}
 import lexer.Token
 
 object RcParser extends ModuleParser {
-  def apply(tokens: Seq[Token]): Either[RcParserError, ASTNode] = {
+  def apply(tokens: Seq[Token]): Either[RcParserError, RcModule] = {
     doParser(tokens, program)
   }
 
-  def program: Parser[ASTNode] = positioned {
-    phrase(log(module)("module") ^^ (mods => Modules(List(mods))))
+  def program: Parser[RcModule] = positioned {
+    phrase(log(module)("module"))
   }
 }

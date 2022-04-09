@@ -9,6 +9,7 @@ import lexer.Delimiter.*
 import lexer.Ident.*
 import ast.*
 import ast.Expr.Number
+import ast.ImplicitConversions.*
 import lexer.Token
 
 class StmtParserTest extends BaseParserTest with ExprParser {

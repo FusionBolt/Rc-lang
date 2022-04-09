@@ -5,6 +5,8 @@ import org.scalatest.funspec.AnyFunSpec
 
 import ast.*
 import ast.Expr.*
+import ast.BinaryOp.*
+import ast.ImplicitConversions.*
 import lexer.Token
 import lexer.Keyword.*
 import lexer.Punctuation.*
@@ -106,13 +108,13 @@ class ExprParserTest extends ExprParser with BaseParserTest {
     it("index is termExpr") {
         expectSuccess(
           List(IDENTIFIER("a"), LEFT_SQUARE, NUMBER(1), OPERATOR("+"), NUMBER(2), RIGHT_SQUARE),
-          Index(Identifier("a"), Binary("+", Number(1), Number(2))))
+          Index(Identifier("a"), Binary(Add, Number(1), Number(2))))
     }
   }
 
   describe("binary") {
     it("single add") {
-      expectSuccess(List(NUMBER(1), OPERATOR("+"), NUMBER(2)), Expr.Binary("+", Number(1), Number(2)))
+      expectSuccess(List(NUMBER(1), OPERATOR("+"), NUMBER(2)), Expr.Binary(Add, Number(1), Number(2)))
     }
   }
 
@@ -172,13 +174,13 @@ class BinaryTranslatorTest extends BaseParserTest with BinaryTranslator {
 
   describe("replaceBinaryOp") {
     it("succeed") {
-      assert(replaceBinaryOp(oneBn, 1) == List(Binary("+", Number(1), Number(2))))
+      assert(replaceBinaryOp(oneBn, 1) == List(Binary(Add, Number(1), Number(2))))
     }
   }
 
   describe("compose") {
     it("succeed") {
-      assert(termsToBinary(addAndLT) == Binary("+", Number(1), Binary("<", Number(2), Number(3))))
+      assert(termsToBinary(addAndLT) == Binary(Add, Number(1), Binary(LT, Number(2), Number(3))))
     }
   }
 }

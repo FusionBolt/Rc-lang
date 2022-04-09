@@ -4,6 +4,7 @@ package Interface
 import scala.io.Source
 import lexer.*
 import parser.RcParser
+import analysis.SymScanner
 
 import java.io.{PrintWriter, File}
 
@@ -13,6 +14,7 @@ object Compile {
     val f = Source fromFile option.srcPath
     // avoid last line is end and lost last empty line
     val src = f.getLines.mkString("\n") + "\n"
+    f.close()
     println(src)
     val tokens = Lexer(src) match {
       case Left(value) => throw RuntimeException(value.msg)
@@ -28,7 +30,7 @@ object Compile {
     println("Parser Finish")
     // todo:dump ast
     println(ast)
-    f.close()
+    var table = SymScanner(ast)
   }
 
   def dumpTokens(tokens: List[Token]) = {

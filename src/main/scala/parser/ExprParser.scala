@@ -28,7 +28,7 @@ trait BinaryTranslator {
     var t = terms(index)
     val left = terms.slice(0, index - 1)
     val bn = Expr.Binary(
-      terms(index).asInstanceOf[OPERATOR].op,
+      strToOp(terms(index).asInstanceOf[OPERATOR].op),
       terms(index - 1).asInstanceOf[Expr],
       terms(index + 1).asInstanceOf[Expr])
     val rights = terms.slice(index + 2, terms.size)
@@ -114,7 +114,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
   
   def block: Parser[Block] = positioned {
-    rep(log(statement | none)("stmt")) ^^ (stmts => Block(stmts.filter(_ != Empty()).map(_.asInstanceOf[Stmt])))
+    rep(log(statement | none)("stmt")) ^^ (stmts => Block(stmts.filter(_ != Empty).map(_.asInstanceOf[Stmt])))
   }
 
   def multiLineIf: Parser[If] = positioned {
@@ -139,7 +139,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def none: Parser[ASTNode] = positioned {
-    EOL ^^^ Empty()
+    EOL ^^^ Empty
   }
 
   def local: Parser[Stmt] = positioned {

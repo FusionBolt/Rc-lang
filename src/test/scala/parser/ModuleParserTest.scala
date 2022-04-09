@@ -12,6 +12,7 @@ import lexer.Ident.*
 import ast.{Params, Expr, Item}
 import ast.Expr.*
 import ast.*
+import ast.ImplicitConversions.*
 
 class ModuleParserTest extends BaseParserTest with ModuleParser {
   def apply(tokens: Seq[Token]): Either[RcParserError, Item] = {

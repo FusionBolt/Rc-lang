@@ -8,7 +8,7 @@ import lexer.Punctuation.*
 import lexer.Literal.*
 import lexer.Delimiter.*
 import lexer.Ident.*
-import ast.Id
+import ast.Ident
 import ast.Type
 
 import scala.util.parsing.combinator.PackratParsers
@@ -42,12 +42,12 @@ trait RcBaseParser extends PackratParsers {
     accept("upper_identifier", { case id@UPPER_IDENTIFIER(name) => id })
   }
 
-  protected def id: Parser[Id] = positioned {
-    identifier ^^ { case IDENTIFIER(id) => Id(id) }
+  protected def id: Parser[Ident] = positioned {
+    identifier ^^ { case IDENTIFIER(id) => Ident(id) }
   }
 
-  protected def sym: Parser[Id] = positioned {
-    upperIdentifier ^^ { case UPPER_IDENTIFIER(id) => Id(id) }
+  protected def sym: Parser[Ident] = positioned {
+    upperIdentifier ^^ { case UPPER_IDENTIFIER(id) => Ident(id) }
   }
 
   protected def stringLiteral: Parser[STRING] = positioned {
@@ -62,7 +62,7 @@ trait RcBaseParser extends PackratParsers {
     accept("operator", { case op@OPERATOR(_) => op })
   }
 
-  protected def idWithTy: Parser[(Id, Type)] = {
+  protected def idWithTy: Parser[(Ident, Type)] = {
     id ~ (COLON ~> ty).? ^^ {
       case id ~ ty => (id, ty.getOrElse(Type.Infer))
     }

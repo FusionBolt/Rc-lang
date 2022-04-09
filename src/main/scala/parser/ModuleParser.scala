@@ -32,7 +32,7 @@ trait ModuleParser extends RcBaseParser with ExprParser {
   }
 
   def module: Parser[RcModule] = positioned {
-    (item | noneItem).* ^^ { items => RcModule(items.filter(_ != Empty()).map(_.asInstanceOf[Item])) }
+    (item | noneItem).* ^^ { items => RcModule(items.filter(_ != Empty).map(_.asInstanceOf[Item])) }
   }
 
   def field: Parser[FieldDef] = positioned {
@@ -42,7 +42,7 @@ trait ModuleParser extends RcBaseParser with ExprParser {
   }
 
   def noneItem: Parser[ASTNode] = positioned {
-    EOL ^^^ Empty()
+    EOL ^^^ Empty
   }
 
   // todo:refactor

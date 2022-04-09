@@ -8,38 +8,44 @@ trait ASTVisitor {
   type R = Unit
 
   def visit(modules: Modules): R = visitRecursive(modules)
-  def visit(module: RcModule): R = visitRecursive(module)
-  def visit(item: Item): R = visitRecursive(item)
-  def visit(expr: Expr): R = visitRecursive(expr)
-  def visit(stmt: Stmt): R = visitRecursive(stmt)
-  def visit(ty: Type): R = visitRecursive(ty)
-  def visit(decl: MethodDecl): R = visitRecursive(decl)
-  def visit(id: Id): R = {}
-  def visit(param: Param): R = visitRecursive(param)
-  def visit(field: FieldDef): R = visitRecursive(field)
-  def visitRecursive(modules: Modules): R = modules.modules.foreach(visit)
 
-  def visitRecursive(module: RcModule): R = {
+  def visit(module: RcModule): R = visitRecursive(module)
+
+  def visit(item: Item): R = visitRecursive(item)
+
+  def visit(expr: Expr): R = visitRecursive(expr)
+
+  def visit(stmt: Stmt): R = visitRecursive(stmt)
+
+  def visit(ty: Type): R = visitRecursive(ty)
+
+  def visit(decl: MethodDecl): R = visitRecursive(decl)
+
+  def visit(ident: Ident): R = {}
+
+  def visit(param: Param): R = visitRecursive(param)
+
+  def visit(field: FieldDef): R = visitRecursive(field)
+
+  def visit(method: Item.Method): R = visitRecursive(method)
+
+  def visit(klass: Item.Class): R = visitRecursive(klass)
+
+  final def visitRecursive(modules: Modules): R = modules.modules.foreach(visit)
+
+  final def visitRecursive(module: RcModule): R = {
     module.items.foreach(visit)
   }
 
-  def visitRecursive(item: Item): R = {
+  final def visitRecursive(item: Item): R = {
     item match {
-      case Item.Method(decl, block) => visit(decl); visit(block)
-      case Item.Class(name, parent, vars, methods) => {
-        visit(name)
-        parent match {
-          case Some(parentId) => visit(parentId)
-          case None =>
-        }
-        vars.foreach(visit)
-        methods.foreach(visit)
-      }
+      case method: Item.Method => visit(method)
+      case klass: Item.Class => visit(klass)
       case _ => throw new RuntimeException("NoneItem")
     }
   }
 
-  def visitRecursive(expr: Expr): R = {
+  final def visitRecursive(expr: Expr): R = {
     expr match {
       case Number(n) =>
       case Identifier(id) =>
@@ -59,9 +65,9 @@ trait ASTVisitor {
     }
   }
 
-  def visitRecursive(s: Stmt): R = {
+  final def visitRecursive(s: Stmt): R = {
     s match {
-      case Local(id, ty, value) => visit(id);visit(ty);visit(value)
+      case Local(id, ty, value) => visit(id); visit(ty); visit(value)
       case Stmt.Expr(expr) => visit(expr)
       case While(cond, stmts) => visit(cond); visit(stmts)
       case Assign(id, value) => visit(id); visit(value)
@@ -69,31 +75,46 @@ trait ASTVisitor {
     }
   }
 
-  def visitRecursive(value: Type): R = {
+  final def visitRecursive(value: Type): R = {
 
   }
 
-  def visitRecursive(b: Block): R = {
-    b.stmts.foreach(visitRecursive)
+  final def visitRecursive(b: Block): R = {
+    b.stmts.foreach(visit)
   }
 
-  def visitRecursive(decl: MethodDecl): R = {
+  final def visitRecursive(decl: MethodDecl): R = {
     visit(decl.name)
     decl.inputs.params.foreach(visit)
     visit(decl.outType)
   }
 
-  def visitRecursive(param: Param): R = {
+  final def visitRecursive(param: Param): R = {
     visit(param.name)
     visit(param.ty)
   }
 
-  def visitRecursive(field: FieldDef): R = {
+  final def visitRecursive(field: FieldDef): R = {
     visit(field.name)
     visit(field.ty)
     field.initValue match {
       case Some(expr) => visit(expr)
       case _ =>
     }
+  }
+
+  final def visitRecursive(method: Item.Method): R = {
+    visit(method.decl)
+    visit(method.body)
+  }
+
+  final def visitRecursive(klass: Item.Class): R = {
+    visit(klass.name)
+    klass.parent match {
+      case Some(parent) => visit(parent)
+      case None =>
+    }
+    klass.vars.foreach(visit)
+    klass.methods.foreach(visit)
   }
 }
