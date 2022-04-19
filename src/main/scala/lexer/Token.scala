@@ -3,9 +3,7 @@ package lexer
 
 import scala.util.parsing.input.Positional
 
-trait Token extends Positional {
-
-}
+trait Token extends Positional
 
 enum Keyword extends Token:
   // local

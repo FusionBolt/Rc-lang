@@ -11,7 +11,7 @@ import scala.collection.mutable.Map
 class GlobalTable(var classTable: Map[String, ClassEntry]) {
   def classes = classTable.keys
 
-  def kernel = classTable("Kernel")
+  def kernel = classTable(Def.Kernel)
 }
 
 case class LocalEntry(id: Int, astNode: Stmt.Local) {
