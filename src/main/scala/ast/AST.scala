@@ -4,7 +4,7 @@ package ast
 import scala.language.implicitConversions
 import scala.util.parsing.input.Positional
 
-case class Ident(str: String) extends Positional
+case class Ident(str: String) extends ASTNode
 
 object ImplicitConversions {
   implicit def strToId(str: String): Ident = Ident(str)

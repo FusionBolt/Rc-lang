@@ -144,7 +144,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
 
   def local: Parser[Stmt] = positioned {
     (VAR ~> id) ~ (EQL ~> termExpr) ^^ {
-      case id ~ expr => Stmt.Local(id, Type.Nil, expr)
+      case id ~ expr => Stmt.Local(id, TyInfo.Nil, expr)
     }
   }
 

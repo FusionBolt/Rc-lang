@@ -9,7 +9,7 @@ import lexer.Literal.*
 import lexer.Delimiter.*
 import lexer.Ident.*
 import ast.Ident
-import ast.Type
+import ast.TyInfo
 
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.input.{CharSequenceReader, NoPosition, Position, Positional, Reader}
@@ -62,14 +62,14 @@ trait RcBaseParser extends PackratParsers {
     accept("operator", { case op@OPERATOR(_) => op })
   }
 
-  protected def idWithTy: Parser[(Ident, Type)] = {
+  protected def idWithTy: Parser[(Ident, TyInfo)] = {
     id ~ (COLON ~> ty).? ^^ {
-      case id ~ ty => (id, ty.getOrElse(Type.Infer))
+      case id ~ ty => (id, ty.getOrElse(TyInfo.Infer))
     }
   }
 
-  protected def ty: Parser[Type] = positioned {
-    sym ^^ Type.Spec
+  protected def ty: Parser[TyInfo] = positioned {
+    sym ^^ TyInfo.Spec
   }
 
   protected def oneline[T](p: Parser[T]): Parser[T] = log(p <~ EOL)("oneline")

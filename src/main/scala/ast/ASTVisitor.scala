@@ -17,7 +17,7 @@ trait ASTVisitor {
 
   def visit(stmt: Stmt): R = visitRecursive(stmt)
 
-  def visit(ty: Type): R = visitRecursive(ty)
+  def visit(ty: TyInfo): R = visitRecursive(ty)
 
   def visit(decl: MethodDecl): R = visitRecursive(decl)
 
@@ -75,7 +75,7 @@ trait ASTVisitor {
     }
   }
 
-  final def visitRecursive(value: Type): R = {
+  final def visitRecursive(value: TyInfo): R = {
 
   }
 

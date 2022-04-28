@@ -9,7 +9,8 @@ import lexer.Punctuation.*
 import lexer.Literal.*
 import lexer.Delimiter.*
 import lexer.Ident.*
-import ast.{ASTBuilder, Expr, FieldDef, Item, MethodDecl, Param, Params, Stmt, Type, strToId}
+import ast.{ASTBuilder, Expr, FieldDef, Item, MethodDecl, Param, Params, Stmt, TyInfo}
+import ast.ImplicitConversions.*
 import ast.Expr.{Block, If}
 
 import scala.util.parsing.input.Positional

@@ -41,8 +41,8 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
           mkEmptyTokenMethod("f",
             sepWithComma(List(IDENTIFIER("a"), IDENTIFIER("b")))),
           makeASTMethod("f",
-            List(Param("a", Type.Infer),
-              Param("b", Type.Infer))))
+            List(Param("a", TyInfo.Infer),
+              Param("b", TyInfo.Infer))))
       }
 
       it("spec type") {
@@ -53,8 +53,8 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
               List(IDENTIFIER("a"), COLON, UPPER_IDENTIFIER("Int"))))),
           makeASTMethod("f",
             List(
-              Param("a", Type.Spec("Int")),
-              Param("a", Type.Spec("Int"))
+              Param("a", TyInfo.Spec("Int")),
+              Param("a", TyInfo.Spec("Int"))
             )))
       }
     }
@@ -68,7 +68,7 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
       it("with one line") {
         expectSuccess(
           makeTokenMethod("foo", makeLocal("a", NUMBER(1))),
-          makeASTMethod("foo", block = List(Stmt.Local("a", Type.Nil, Number(1)))))
+          makeASTMethod("foo", block = List(Stmt.Local("a", TyInfo.Nil, Number(1)))))
       }
 
       it("with multi line") {

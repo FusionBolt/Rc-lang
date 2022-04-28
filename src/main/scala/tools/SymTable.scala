@@ -1,7 +1,7 @@
 package rclang
 package tools
 import ast.{FieldDef, Ident, Item, MethodDecl}
-import ast.Type
+import ast.TyInfo
 import ast.Stmt
 
 import scala.collection.mutable

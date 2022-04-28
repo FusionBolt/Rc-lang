@@ -1,7 +1,7 @@
 package rclang
 package analysis
 
-import ast.{ASTNode, ASTVisitor, Item, RcModule, Stmt, Type}
+import ast.{ASTNode, ASTVisitor, Item, RcModule, Stmt, TyInfo}
 import ast.Item.*
 import ast.Ident
 import ast.ImplicitConversions.*

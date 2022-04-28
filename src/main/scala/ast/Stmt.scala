@@ -3,10 +3,11 @@ package ast
 
 import ast.Expr.Block
 import ast.Ident
+import ty.Typed
 import scala.util.parsing.input.Positional
 
-enum Stmt extends ASTNode:
-  case Local(name: Ident, ty: Type, value: ast.Expr)
+enum Stmt extends ASTNode with Typed:
+  case Local(name: Ident, tyInfo: TyInfo, value: ast.Expr)
   case Expr(expr: ast.Expr)
-  case While(cond: ast.Expr, stmts: Block)
+  case While(cond: ast.Expr, body: Block)
   case Assign(name: Ident, value: ast.Expr)

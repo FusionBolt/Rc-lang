@@ -4,7 +4,11 @@ package ast
 import scala.util.parsing.input.Positional
 import ast.Stmt
 import ast.Ident
+
 import BinaryOp.*
+import ty.Typed
+import ty.Type
+import ty.Infer
 
 enum BinaryOp(op: String) extends ASTNode:
   case Add extends BinaryOp("+")
@@ -27,7 +31,7 @@ def strToOp(op: String): BinaryOp = {
   }
 }
 
-enum Expr extends ASTNode:
+enum Expr extends ASTNode with Typed:
   case Number(v: Int)
   case Identifier(ident: Ident)
   case Bool(b: Boolean)
@@ -35,7 +39,8 @@ enum Expr extends ASTNode:
   case Str(str: String)
   // false -> elsif | else
   case If(cond: Expr, true_branch: Block, false_branch: Option[Expr])
-  case Lambda(args: List[Expr], stmts: List[Expr])
+  case Lambda(args: Params, block: Block)
+  // todo:call a lambda
   case Call(target: Ident, args: List[Expr])
   case MethodCall(obj: Expr, target: Ident, args: List[Expr])
   case Block(stmts: List[Stmt])
