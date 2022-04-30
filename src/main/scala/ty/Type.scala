@@ -9,7 +9,7 @@ enum Type:
   case Int32
   case Float
   case Nil
-  case Fn
+  case Fn(ret: Type, params: List[Type])
   case Infer
   case Err(msg: String)
 

@@ -3,6 +3,7 @@ package tools
 import ast.{FieldDef, Ident, Item, MethodDecl}
 import ast.TyInfo
 import ast.Stmt
+import ast.ASTNode
 
 import scala.collection.mutable
 import scala.collection.mutable.Map
@@ -12,6 +13,9 @@ class GlobalTable(var classTable: Map[String, ClassEntry]) {
   def classes = classTable.keys
 
   def kernel = classTable(Def.Kernel)
+
+  def methodTypeTable: Map[Ident, Item] =
+    kernel.methods.map((name, local) => (local.astNode.decl.name -> local.astNode.asInstanceOf[Item]))
 }
 
 case class LocalEntry(id: Int, astNode: Stmt.Local) {

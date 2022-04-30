@@ -6,7 +6,9 @@ import lexer.*
 import parser.RcParser
 import analysis.SymScanner
 
-import java.io.{PrintWriter, File}
+import rclang.ty.{Infer, TyCtxt, TypeCheck, TypedTranslator}
+
+import java.io.{File, PrintWriter}
 
 object Compile {
   // todo:should not in interface
@@ -30,7 +32,12 @@ object Compile {
     println("Parser Finish")
     // todo:dump ast
     println(ast)
-    var table = SymScanner(ast)
+    val table = SymScanner(ast).methodTypeTable.toMap
+    val tyCtxt = TyCtxt(table.map((id, item) => id -> Infer(item)))
+    // todo:dump table and TyCtxt
+    val typedModule = TypedTranslator(tyCtxt)(ast)
+    // todo:dump typedModule
+    TypeCheck(typedModule)
   }
 
   def dumpTokens(tokens: List[Token]) = {

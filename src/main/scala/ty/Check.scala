@@ -1,10 +1,16 @@
 package rclang
 package ty
 import ast.Expr
+import ast.RcModule
 import ast.Expr.*
 import ty.Type.*
 
-case object Check {
+
+case object TypeCheck {
+  def apply(module: RcModule): Unit = {
+    // check(module)
+  }
+
   def check(expr: Expr): Boolean = {
     expr match
       case Number(v) => true
