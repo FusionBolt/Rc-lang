@@ -21,20 +21,28 @@ case object Infer {
   }
 
   private def infer(typed: Typed, force: Boolean): Type = {
-    if(!force && typed.ty != Infer) {
+    if(!force && typed.ty != Type.Infer) {
       typed.ty
     } else {
       infer(typed)
     }
   }
 
+  private def infer(typed: Typed): Type = {
+    typed match
+      case expr: Expr => infer(expr)
+      case item: Item => infer(item)
+      case method: Item.Method => infer(method)
+      case stmt: Stmt => infer(stmt)
+      case _ => ???
+  }
+
+
   private def infer(item: Item): Type = {
     item match
       case m: Item.Method => infer(m)
       case _ => ???
   }
-
-  private def infer(typed: Typed): Type = throw new RuntimeException("infer should be a type impl Typed")
 
   private def infer(stmt: Stmt): Type = {
     stmt match

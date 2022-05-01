@@ -7,10 +7,10 @@ import ast.Stmt.*
 
 import scala.collection.immutable.Map
 
-// todo:immutable tyCtxt
 case class TypedTranslator(var tyCtxt: TyCtxt) {
   def apply(module: RcModule): RcModule = {
-    // todo:ref or value??
+    // update local table in TypedTranslator will cause Infer ctxt update
+    // because of pass a typCtxt by Ref
     Infer.enter(tyCtxt, RcModuleTrans(module))
   }
 
@@ -51,9 +51,10 @@ case class TypedTranslator(var tyCtxt: TyCtxt) {
   def stmtTrans(stmt: Stmt): Stmt =
     (stmt match
       case Local(name, ty, value) =>
-        // todo:情况
-        tyCtxt.addLocal(name, Infer.translate(ty))
-        Local(name, ty, value.withInfer)
+        val localTy = if ty == TyInfo.Infer then Infer(value) else Infer.translate(ty)
+        tyCtxt.addLocal(name, localTy)
+        // todo: how to process if ty is Infer
+        Local(name, ty, value.withInfer).withTy(localTy)
       case Stmt.Expr(expr) => Stmt.Expr(expr.withInfer)
       case While(cond, body) => While(cond.withInfer, body.withInfer)
       case Assign(name, value) => Assign(name, value.withInfer))
@@ -77,7 +78,7 @@ case class TypedTranslator(var tyCtxt: TyCtxt) {
 //  }
 //
   def methodTrans(method: Item.Method): Item = {
-    method.copy(body = method.body.withInfer).withInfer
+    method.copy(body = exprTrans(method.body).asInstanceOf[Block]).withInfer
   }
 
 //  def classTrans(klass: Item.Class): Item = {

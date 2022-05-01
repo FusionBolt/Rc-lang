@@ -17,6 +17,7 @@ class GlobalTable(var classTable: Map[String, ClassEntry]) {
   def methodTypeTable: Map[Ident, Item] =
     kernel.methods.map((name, local) => (local.astNode.decl.name -> local.astNode.asInstanceOf[Item]))
 }
+// todo: add some translator to different Table
 
 case class LocalEntry(id: Int, astNode: Stmt.Local) {
   def pos = astNode.pos

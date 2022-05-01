@@ -11,7 +11,8 @@ import scala.collection.mutable.Set
 import scala.language.implicitConversions
 
 case class ValidateError(node: ASTNode, reason: String)
-
+// todo: ErrorType
+// todo: add info into global table
 case class Scope(var localTable: Set[Ident] = Set()) {
 
   def add(ident: Ident): Boolean = {
@@ -31,7 +32,7 @@ case class ScopeManager() {
 
   def enter[T](params: Params, f:() => T): T = {
     val oldScope = scopes
-    scopes = scopes.appended(Scope(mutable.Set.from(params.params.map(_.name))))
+    scopes ::= Scope(mutable.Set.from(params.params.map(_.name)))
     val result = f()
     scopes = oldScope
     result
@@ -42,7 +43,7 @@ case class ScopeManager() {
   def add(ident: Ident): Boolean = curScope.add(ident)
 
   def contains(ident: Ident): Boolean = {
-    scopes.findLast(_.contains(ident)).isEmpty
+    !scopes.exists(_.contains(ident))
   }
 
   def curContains(ident: Ident): Boolean = curScope.contains(ident)
@@ -82,7 +83,7 @@ trait MethodValidate extends Validate {
 
   def checkMethod(method: Method): Result = {
     checkMethodDecl(method.decl)
-    checkExpr(method.body)
+    checkBlock(method.body, method.decl.inputs)
   }
 
   def checkMethodDecl(decl: MethodDecl): Result = {
@@ -158,9 +159,9 @@ trait ModuleValidate extends Validate with MethodValidate {
     fields.flatMap(fieldDefValid):::dupNameCheck(fields.map(_.name))
   }
 
+  // todo:id and scope??
   def fieldDefValid(fieldDef: FieldDef): Result = {
     fieldDef.initValue match {
-      // todo:id and scope??
       case Some(expr) => checkExpr(expr)
       case None => checkCond(fieldDef.ty != TyInfo.Infer, fieldDef, "Field without initValue need spec Type")
     }
