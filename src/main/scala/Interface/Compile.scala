@@ -6,6 +6,7 @@ import lexer.*
 import parser.RcParser
 import analysis.SymScanner
 
+import rclang.mir.ToMIR
 import rclang.ty.{Infer, TyCtxt, TypeCheck, TypedTranslator}
 
 import java.io.{File, PrintWriter}
@@ -38,6 +39,9 @@ object Compile {
     val typedModule = TypedTranslator(tyCtxt)(ast)
     // todo:dump typedModule
     TypeCheck(typedModule)
+
+    val funList = ToMIR(table).proc(typedModule)
+    println(funList(0).instructions.map(_.toString).mkString("\n"))
   }
 
   def dumpTokens(tokens: List[Token]) = {

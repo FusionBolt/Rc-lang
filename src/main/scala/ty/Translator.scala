@@ -7,8 +7,9 @@ import ast.Stmt.*
 
 import scala.collection.immutable.Map
 
-case class TypedTranslator(var tyCtxt: TyCtxt) {
-  def apply(module: RcModule): RcModule = {
+case object TypedTranslator {
+  var tyCtxt: TyCtxt = TyCtxt()
+  def apply(tyCtxt: TyCtxt)(module: RcModule): RcModule = {
     // update local table in TypedTranslator will cause Infer ctxt update
     // because of pass a typCtxt by Ref
     Infer.enter(tyCtxt, RcModuleTrans(module))
@@ -29,12 +30,12 @@ case class TypedTranslator(var tyCtxt: TyCtxt) {
     (expr match
       case Binary(op, lhs, rhs) => Binary(op, lhs.withInfer, rhs.withInfer)
       case If(cond, true_branch, false_branch) => {
-        val f = false_branch match
+        val false_br = false_branch match
           case Some(fBr) => Some(fBr.withInfer)
           case None => None
         If(cond.withInfer,
           true_branch.withInfer.asInstanceOf[Block],
-          f)
+          false_br)
       }
       case Call(target, args) => Call(target, args.map(_.withInfer))
       case Return(expr) => Return(expr.withInfer)

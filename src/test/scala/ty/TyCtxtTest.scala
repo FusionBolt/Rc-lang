@@ -55,13 +55,18 @@ class TyCtxtTest extends AnyFunSpec with BeforeAndAfter {
         val id = Ident("a")
         val ty = Nil
         tyCtxt.addLocal(id, ty)
-        tyCtxt.enter(() => {
-          val innerTy = String
-          tyCtxt.addLocal(id, innerTy)
-          tyCtxt.lookup(id).contains(innerTy)
-        })
-        tyCtxt.lookup(id).contains(ty)
+        tyCtxt.enter(testEnter(id))
+        assert(tyCtxt.enter(id) == String)
+        assert(tyCtxt.lookup(id).contains(ty))
       })
+    }
+
+    def testEnter(id: Ident): Type = {
+      assert(tyCtxt.local.isEmpty)
+      val innerTy = String
+      tyCtxt.addLocal(id, innerTy)
+      assert(tyCtxt.lookup(id).contains(innerTy))
+      innerTy
     }
   }
 }

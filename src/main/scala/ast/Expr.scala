@@ -10,7 +10,7 @@ import ty.Typed
 import ty.Type
 import ty.Infer
 
-enum BinaryOp(op: String) extends ASTNode:
+enum BinaryOp(op: String) extends Positional:
   case Add extends BinaryOp("+")
   case Sub extends BinaryOp("-")
   case Mul extends BinaryOp("*")
@@ -47,5 +47,6 @@ enum Expr extends ASTNode with Typed:
   case Return(expr: ast.Expr)
   case Field(expr: Expr, ident: Ident)
   case Self
+  // symbol
   case Constant(ident: Ident)
   case Index(expr: Expr, i: Expr)
