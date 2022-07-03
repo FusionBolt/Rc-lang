@@ -10,6 +10,7 @@ import lexer.Delimiter.*
 import lexer.Ident.*
 import ast.Ident
 import ast.TyInfo
+import tools.RcLogger
 
 import scala.util.parsing.combinator.PackratParsers
 import scala.util.parsing.input.{CharSequenceReader, NoPosition, Position, Positional, Reader}
@@ -18,19 +19,21 @@ trait RcBaseParser extends PackratParsers {
   override type Elem = Token
 
   private def take[T](p: Reader[T], n: Int): List[T] = {
-    if (n > 0 && !p.atEnd) then p.first::take(p.rest, n - 1) else Nil
+    if (n > 0 && !p.atEnd) then p.first :: take(p.rest, n - 1) else Nil
   }
 
-  override def log[T](p: => Parser[T])(name: String): Parser[T] = Parser{ in =>
-    in match {
-      case reader: PackratReader[Token] =>
-        println(s"trying ${name} at (${take(reader, 3).mkString(", ")})")
-      case _ =>
-        println("trying " + name + " at " + in)
-    }
-
+  override def log[T](p: => Parser[T])(name: String): Parser[T] = Parser { in =>
     val r = p(in)
-    println(name +" --> "+ r)
+    if (RcLogger.level > 1) {
+      in match {
+        case reader: PackratReader[Token] =>
+          RcLogger.log(s"trying ${name} at (${take(reader, 3).mkString(", ")})")
+        case _ =>
+          RcLogger.log("trying " + name + " at " + in)
+      }
+
+      RcLogger.log(name + " --> " + r)
+    }
     r
   }
 
@@ -116,7 +119,7 @@ trait RcBaseParser extends PackratParsers {
     }
   }
 
-  class RcPackratReader(reader: Reader[Token])  extends PackratReader[Token](reader) {
+  class RcPackratReader(reader: Reader[Token]) extends PackratReader[Token](reader) {
     override def toString: String = {
       reader.toString
     }

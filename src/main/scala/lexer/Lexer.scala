@@ -38,7 +38,7 @@ object Lexer extends RegexParsers {
   }
 
   def tokens: Parser[List[Token]] = {
-    phrase(log(allTokens)("token"))
+    phrase(allTokens)
   }
 
   def rep1sepNoDis[T](p : => Parser[T], q : => Parser[Any]): Parser[List[T]] =
@@ -64,9 +64,9 @@ object Lexer extends RegexParsers {
     whiteSpace.+ ^^^ SPACE
   }
 
-  def notSpacer: Parser[Token] = log(keyword | value | eol)("notSpacer")
+  def notSpacer: Parser[Token] = keyword | value | eol
 
-  def spacer: Parser[Token] = log(symbol | operator | eql | space)("Spacer")
+  def spacer: Parser[Token] = symbol | operator | eql | space
 
   def upperIdentifier: Parser[UPPER_IDENTIFIER] = positioned {
     "[A-Z_][a-zA-Z0-9_]*".r ^^ { str => UPPER_IDENTIFIER(str) }

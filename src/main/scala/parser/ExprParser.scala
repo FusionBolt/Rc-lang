@@ -75,7 +75,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def term: Parser[Expr] = positioned {
-    bool | num | string | selfField | call | log(beginWithTerm)("beginWithId") | sym ^^ Expr.Constant | idExpr
+    bool | num | string | selfField | call | beginWithTerm | sym ^^ Expr.Constant | idExpr
   }
 
   def bool: Parser[Expr] = positioned {

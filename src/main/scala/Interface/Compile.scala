@@ -6,48 +6,42 @@ import lexer.*
 import parser.RcParser
 import analysis.SymScanner
 
-import rclang.mir.ToMIR
+import rclang.mir.*
+import rclang.tools.{DumpManager, RcLogger}
 import rclang.ty.{Infer, TyCtxt, TypeCheck, TypedTranslator}
 
 import java.io.{File, PrintWriter}
 
+class Ex
+
+def run[TL, TR](result: => Either[TL, TR]): TR = {
+  result match {
+    case Left(l) => throw new RuntimeException(l.toString)
+    case Right(r) => r
+  }
+}
 object Compile {
-  // todo:should not in interface
-  def apply(option: CompileOption): Unit = {
-    val f = Source fromFile option.srcPath
+  def getSrc(path: String) = {
+    val f = Source fromFile path
     // avoid last line is end and lost last empty line
     val src = f.getLines.mkString("\n") + "\n"
     f.close()
-    println(src)
-    val tokens = Lexer(src) match {
-      case Left(value) => throw RuntimeException(value.msg)
-      case Right(value) => value
-    }
-    println("Lexer Finish")
-    // todo:dump tokens
-    dumpTokens(tokens)
-    val ast = RcParser(tokens) match {
-      case Left(value) => throw RuntimeException(value.msg)
-      case Right(value) => value
-    }
-    println("Parser Finish")
-    // todo:dump ast
-    println(ast)
+    src
+  }
+  // todo:should not in interface
+  def apply(option: CompileOption): Unit = {
+    DumpManager.mkDumpRootDir
+    val src = getSrc(option.srcPath)
+    val tokens = RcLogger.log(run(Lexer(src)), "Lexer")
+    RcLogger.log("token.txt", _.write(tokens.mkString(" ")))
+    val ast = RcLogger.log(run(RcParser(tokens)), "Parser")
+    // todo:refactor dump
+    RcLogger.log("ast.txt", _.write(ast.toString))
     val table = SymScanner(ast).methodTypeTable.toMap
     val tyCtxt = TyCtxt(table.map((id, item) => id -> Infer(item)))
-    // todo:dump table and TyCtxt
     val typedModule = TypedTranslator(tyCtxt)(ast)
-    // todo:dump typedModule
     TypeCheck(typedModule)
-
-    val funList = ToMIR(table).proc(typedModule)
-    println(funList(0).instructions.map(_.toString).mkString("\n"))
-  }
-
-  def dumpTokens(tokens: List[Token]) = {
-    val str = tokens.mkString(" ")
-    val f = new PrintWriter(new File("tokens.txt"));
-    f.write(str)
-    f.close()
+    val funList = RcLogger.log(ToMIR(table).proc(typedModule), "ToMIR")
+    RcLogger.log("mir.txt", _.write(funList(0).instructions.map(_.toString).mkString("\n")))
   }
 }
