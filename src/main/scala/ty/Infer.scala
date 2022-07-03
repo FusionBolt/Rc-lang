@@ -89,16 +89,20 @@ case object Infer {
   }
 
   def translate(info: TyInfo): Type = info match
-    case TyInfo.Spec(ty) => ???
+    case TyInfo.Spec(ty) => translate(ty)
     case TyInfo.Infer => Err("can't translate TyInfo.Infer")
     case TyInfo.Nil => Nil
 
-//  private def translate(ident: Ident): Type = {
-//    // todo:other good way?
-//    List("Boolean", "String", "Int32", "Float").find(_.str == ident) match
-//      case Some(value) => Type.valueOf(value)
-//      case None => ??? // todo:find in ctxt
-//  }
+  def translate(ident: Ident): Type = {
+    ident.str match
+      case "Boolean" => Type.Boolean
+      case "String" => Type.String
+      case "Int32" => Type.Int32
+      case "Float" => Type.Float
+      case "Nil" => Type.Nil
+      case _ => ???
+    // todo:other good way?
+  }
 
   private def common(lhs: Expr, rhs: Expr): Type = {
     val lt = infer(lhs)

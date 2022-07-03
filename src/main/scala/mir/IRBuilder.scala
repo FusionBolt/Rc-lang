@@ -23,7 +23,7 @@ case class IRBuilder() {
   }
 
 //  def createFunction(name: String, args: List[Argument], ret: Type) : Function = insert(Function(name, args))
-  def createPHINode() : PHINode = insert(PHINode(List()))
+  def createPHINode() : PHINode = insert(PHINode())
   def createCondBr(cond: Value, True: BasicBlock, False: BasicBlock) : CondBranch = insert(CondBranch(cond, True, False))
   def createBr(dest: BasicBlock) : Branch = insert(Branch(dest))
   def createCall(func: Function, args: List[Value]) : Call = insert(Call(func, args))

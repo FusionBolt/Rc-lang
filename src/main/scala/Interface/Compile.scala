@@ -9,6 +9,8 @@ import analysis.SymScanner
 import rclang.mir.*
 import rclang.tools.{DumpManager, RcLogger}
 import rclang.ty.{Infer, TyCtxt, TypeCheck, TypedTranslator}
+import tools.RcLogger.log
+import rclang.pass.PassManager
 
 import java.io.{File, PrintWriter}
 
@@ -20,6 +22,7 @@ def run[TL, TR](result: => Either[TL, TR]): TR = {
     case Right(r) => r
   }
 }
+
 object Compile {
   def getSrc(path: String) = {
     val f = Source fromFile path
@@ -32,16 +35,18 @@ object Compile {
   def apply(option: CompileOption): Unit = {
     DumpManager.mkDumpRootDir
     val src = getSrc(option.srcPath)
-    val tokens = RcLogger.log(run(Lexer(src)), "Lexer")
-    RcLogger.log("token.txt", _.write(tokens.mkString(" ")))
-    val ast = RcLogger.log(run(RcParser(tokens)), "Parser")
+    val tokens = log(run(Lexer(src)), "Lexer")
+    log("token.txt", _.write(tokens.mkString(" ").replace("EOL", "\n")))
+    val ast = log(run(RcParser(tokens)), "Parser")
     // todo:refactor dump
-    RcLogger.log("ast.txt", _.write(ast.toString))
+    log("ast.txt", _.write(ast.toString))
     val table = SymScanner(ast).methodTypeTable.toMap
     val tyCtxt = TyCtxt(table.map((id, item) => id -> Infer(item)))
     val typedModule = TypedTranslator(tyCtxt)(ast)
     TypeCheck(typedModule)
-    val funList = RcLogger.log(ToMIR(table).proc(typedModule), "ToMIR")
-    RcLogger.log("mir.txt", _.write(funList(0).instructions.map(_.toString).mkString("\n")))
+    val funList = log(ToMIR(table).proc(typedModule), "ToMIR")
+    val main = funList(0)
+    log("mir.txt", _.write(main.instructions.map(_.toString).mkString("\n")))
+    log("domTree.txt", _.write(DomTreeBuilder().build(main).toString))
   }
 }

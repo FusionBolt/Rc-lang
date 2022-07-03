@@ -1,8 +1,7 @@
 package rclang
 package mir
 
-class BasicBlock(var stmts: List[Instruction]) extends Value with InFunction {
-  def this() = this(List())
+case class BasicBlock(var stmts: List[Instruction] = List()) extends Value with InFunction {
 
   def terminator: Terminator = stmts.last.asInstanceOf[Terminator]
 
@@ -16,7 +15,7 @@ class BasicBlock(var stmts: List[Instruction]) extends Value with InFunction {
 case class Function(var name: String,
                     var argument: List[Argument],
                     var bbs: List[BasicBlock] = List(),
-                    var entryBB: BasicBlock = BasicBlock(List())) {
+                    var entry: BasicBlock = BasicBlock(List())) {
   def instructions = bbs.flatMap(_.stmts)
 }
 

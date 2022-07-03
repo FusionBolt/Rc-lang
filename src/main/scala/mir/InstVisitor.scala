@@ -5,19 +5,9 @@ package mir
 def traverse[T, U](list: List[T], f: T => U): List[U] =
   list.map(f)
 
-def traverseInst[T <: Instruction](list: List[T]): List[Unit] =
-  traverse(list, i => i match {
-    case i: Call => println("Call")
-    case i: CondBranch => println("CondBranch")
-    case i: Branch => println("Branch")
-    case i: Return => println("Return")
-    case i: Binary => println("Binary")
-    case i: Alloc => println("Alloc")
-    case i: Load => println("Load")
-    case i: Store => println("Store")
-    case i: PHINode => println("PHINode")
-    case _ =>
-  })
+// todo:check instruction(Type and other)
+def printInst[T <: Instruction](list: List[T]): List[Unit] =
+  traverse(list, println)
 
 trait InstVisitor {
   type TRet = Unit

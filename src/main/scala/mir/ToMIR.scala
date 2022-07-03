@@ -48,7 +48,7 @@ case class ToMIR(table: Map[Ident, Item] = Map[Ident, Item]()) {
     builder.currentFn = fn
     procBlock(method.body)
     fn.bbs = builder.basicBlocks
-    fn.entryBB = builder.basicBlocks.head
+    fn.entry = builder.basicBlocks.head
     fn
   }
 
@@ -105,7 +105,7 @@ case class ToMIR(table: Map[Ident, Item] = Map[Ident, Item]()) {
   def makeType(tyInfo: TyInfo): Type = {
     tyInfo match
       // todo:fix this
-      case TyInfo.Spec(ty) => Type.Infer
+      case TyInfo.Spec(ty) => Infer.translate(ty)
       case TyInfo.Nil => Type.Nil
       case _ => ???
   }
