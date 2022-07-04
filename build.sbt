@@ -10,11 +10,14 @@ lazy val root = (project in file("."))
 
 scalacOptions += "-Ypartial-unification"
 
+enablePlugins(JavaAppPackaging)
+
 libraryDependencies ++= Seq(
+  "org.apache.commons" % "commons-lang3" % "3.5",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.0",
   "org.scalatest" %% "scalatest" % "3.2.9" % Test,
   "org.typelevel" %% "cats-core" % "2.7.0",
-  "org.typelevel" %% "cats-effect" % "3.3.9"
+  "org.typelevel" %% "cats-effect" % "3.3.9",
 )
 
 libraryDependencies ++= Seq(
