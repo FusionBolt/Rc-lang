@@ -39,7 +39,7 @@ case class ToMIR(table: Map[Ident, Item] = Map[Ident, Item]()) {
     })
   }
 
-  // todo：only call for a new instance, make a function builder
+  // todo: only call for a new instance, make a function builder
   def procMethod(method: Item.Method): Function = {
     // ir builder manages the function
     val args = procArgument(method.decl.inputs)
@@ -47,13 +47,15 @@ case class ToMIR(table: Map[Ident, Item] = Map[Ident, Item]()) {
     builder = IRBuilder()
     builder.currentFn = fn
     procBlock(method.body)
+    // todo: auto insert return should in ast
+    builder.createReturn(builder.currentBasicBlock.stmts.last)
     fn.bbs = builder.basicBlocks
     fn.entry = builder.basicBlocks.head
     fn
   }
 
+  // todo:this need block? or add a scope?
   def procBlock(block: Expr.Block): Value = {
-    builder.insertBasicBlock()
     block.stmts.map(procStmt).last
   }
 
@@ -71,9 +73,9 @@ case class ToMIR(table: Map[Ident, Item] = Map[Ident, Item]()) {
       case Expr.Str(str) => Constant.Str(str)
       case Expr.If(cond, true_branch, false_branch) => {
         val c = procExpr(cond)
-        val trueBB = BasicBlock()
-        val falseBB = BasicBlock()
-        val mergeBB = BasicBlock()
+        val trueBB = builder.createBB()
+        val falseBB = builder.createBB()
+        val mergeBB = builder.createBB()
         builder.createCondBr(c, trueBB, falseBB)
         builder.insertBasicBlock(trueBB)
         val t = procExpr(true_branch)

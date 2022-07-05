@@ -6,8 +6,14 @@ import ty.*
 
 // todo:replace with a dsl
 case class IRBuilder() {
+  // todo:global value number
+  var idCounter = 0
+  def makeId = {
+    idCounter += 1
+    idCounter.toString
+  }
   var currentFn: Function = _
-  var basicBlocks: List[BasicBlock] = List(BasicBlock())
+  var basicBlocks: List[BasicBlock] = List(BasicBlock(idCounter.toString))
   var currentBasicBlock: BasicBlock = basicBlocks.last
 
   private def insert[T <: Instruction](inst: T): T = {
@@ -15,7 +21,7 @@ case class IRBuilder() {
     currentBasicBlock.insert(inst)
   }
 
-  def insertBasicBlock(block: BasicBlock = BasicBlock()): BasicBlock = {
+  def insertBasicBlock(block: BasicBlock = BasicBlock(makeId)): BasicBlock = {
     basicBlocks = basicBlocks :+ block
     block.parent = currentFn
     currentBasicBlock = basicBlocks.last
@@ -23,6 +29,7 @@ case class IRBuilder() {
   }
 
 //  def createFunction(name: String, args: List[Argument], ret: Type) : Function = insert(Function(name, args))
+  def createBB() = BasicBlock(makeId)
   def createPHINode() : PHINode = insert(PHINode())
   def createCondBr(cond: Value, True: BasicBlock, False: BasicBlock) : CondBranch = insert(CondBranch(cond, True, False))
   def createBr(dest: BasicBlock) : Branch = insert(Branch(dest))

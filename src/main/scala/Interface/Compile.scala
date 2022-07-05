@@ -10,11 +10,9 @@ import rclang.mir.*
 import rclang.tools.{DumpManager, RcLogger}
 import rclang.ty.{Infer, TyCtxt, TypeCheck, TypedTranslator}
 import tools.RcLogger.log
-import rclang.pass.PassManager
 
 import java.io.{File, PrintWriter}
 
-class Ex
 
 def run[TL, TR](result: => Either[TL, TR]): TR = {
   result match {
@@ -46,7 +44,8 @@ object Compile {
     TypeCheck(typedModule)
     val funList = log(ToMIR(table).proc(typedModule), "ToMIR")
     val main = funList(0)
+    rendDot(main, "main.dot", "RcDump")
     log("mir.txt", _.write(main.instructions.map(_.toString).mkString("\n")))
-    log("domTree.txt", _.write(DomTreeBuilder().build(main).toString))
+//    log("domTree.txt", _.write(DomTreeBuilder().build(main).toString))
   }
 }

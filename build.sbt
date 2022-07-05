@@ -8,8 +8,6 @@ lazy val root = (project in file("."))
     idePackagePrefix := Some("rclang")
   )
 
-scalacOptions += "-Ypartial-unification"
-
 enablePlugins(JavaAppPackaging)
 
 libraryDependencies ++= Seq(

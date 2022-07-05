@@ -46,6 +46,9 @@ case class Alloc(id: String, typ: Type) extends Instruction
 case class Load(ptr: Value) extends Instruction
 case class Store(value: Value, ptr: Value) extends Instruction
 case class PHINode(var prevs: Map[Value, Set[BasicBlock]] = Map()) extends Instruction {
+  // todo:fix this toString
+  // avoid recursive
+  override def toString: String = s"Phi${prevs.values.head.map(_.name).mkString(",")}"
   def addIncoming(value: Value, block: BasicBlock): Unit = {
     prevs = prevs.updated(value, prevs.getOrElse(value, Set()) + block)
   }

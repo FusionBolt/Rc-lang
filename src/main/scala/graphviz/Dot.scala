@@ -92,6 +92,13 @@ abstract class Dot(
  * @param tailHeads array of (tailName, headName) pairs.
  */
   def edges(tailHeads: Array[(String, String)]): Unit = {
+    edges(tailHeads.toList)
+  }
+
+  def edges(tailHeads: List[(String, String)]): Unit = {
+    if(tailHeads.isEmpty) {
+      return
+    }
     for ((t, h) <- tailHeads) {
       this.body += this._edgePlain.format(t, h)
     }
