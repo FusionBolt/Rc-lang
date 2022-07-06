@@ -22,6 +22,8 @@ case class Module(var functions: Function)
 
 def rendDot(f: Function, fileName: String, directory: String): Unit = {
   val dot = new Digraph()
+  dot.node("entry")
+  dot.edge("entry", f.entry.name)
   f.bbs.foreach(bb => {
     val name = bb.name
     dot.node(name)

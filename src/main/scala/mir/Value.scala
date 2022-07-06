@@ -4,24 +4,24 @@ package mir
 import ty.*
 
 class Value extends Typed {
-  var use = List[Use]()
 }
 
+val varOps = -1
 class User(numOps: Int) extends Value {
-  // todo:list numOps
-  var operands: List[Value] = List()
-  def setOperand(i: Int, op: Value) = {
-    operands = operands.updated(i, op)
-    op.use.appended(Use(this))
-    // todo:appended??
+  var uses: List[Use] = List.fill(numOps)(null)
+  def operands = uses
+  def setOperands(ops: List[Value]) = uses = ops.map(Use(_, this))
+  def setOperand(i: Int, v: Value) = {
+    uses = uses.updated(i, Use(v, this))
   }
-  def getOperand(i: Int) = operands(i)
+  def getOperand(i: Int) = uses(i).value
+  def getOperands = uses.map(_.value)
 }
 
-// todo: finish
-class Use(var value: Value = null)
+// todo:implicit cast, use -> value, uses -> values
+case class Use(var value: Value, var parent: User)
 
-enum Constant(typ: Type, use: Use = Use()) extends Value:
+enum Constant(typ: Type) extends User(0):
   case Integer(value: Int) extends Constant(Type.Int32)
   case Str(str: String) extends Constant(Type.String)
   case Bool(bool: Boolean) extends Constant(Type.Boolean)

@@ -17,39 +17,64 @@ trait InFunction {
   var parent: Function = null
 }
 
-sealed class Instruction extends User(0) with InBasicBlock
+sealed class Instruction(numOps: Int) extends User(numOps) with InBasicBlock
 
-case class BinaryInst(lhsValue: Value, rhsValue: Value) extends Instruction {
+case class BinaryInst(lhsValue: Value, rhsValue: Value) extends Instruction(2) {
   setOperand(0, lhsValue)
   setOperand(1, rhsValue)
   def lhs: Value = getOperand(0)
   def rhs: Value = getOperand(1)
 }
 
-case class UnaryInst(operandValue: Value) extends Instruction {
+case class UnaryInst(operandValue: Value) extends Instruction(1) {
   setOperand(0, operandValue)
   def operand: Value = getOperand(0)
 }
-// todo: call number ops??
-case class Call(func: Function, args: List[Value]) extends Instruction
-case class CondBranch(cond: Value, true_branch: BasicBlock, false_branch: BasicBlock) extends Instruction with Terminator {
-  def successors: List[BasicBlock] = List(true_branch, false_branch)
+// todo: function is a operand?
+case class Call(func: Function, args_value: List[Value]) extends Instruction(varOps) {
+  setOperands(args)
+  def args = getOperands
+  def getArg(i: Int): Value = getOperand(i)
 }
-case class Branch(dest: BasicBlock) extends Instruction with Terminator {
+
+case class CondBranch(condValue: Value, tBranch: BasicBlock, fBranch: BasicBlock) extends Instruction(3) with Terminator {
+  setOperand(0, condValue)
+  setOperand(1, tBranch)
+  setOperand(2, fBranch)
+  def cond: Value = getOperand(0)
+  def trueBranch: BasicBlock = getOperand(1).asInstanceOf[BasicBlock]
+  def falseBranch: BasicBlock = getOperand(2).asInstanceOf[BasicBlock]
+  def successors: List[BasicBlock] = List(trueBranch, falseBranch)
+}
+
+case class Branch(destBasicBlock: BasicBlock) extends Instruction(1) with Terminator {
+  setOperand(0, destBasicBlock)
+  def dest: BasicBlock = getOperand(0).asInstanceOf[BasicBlock]
   def successors = List(dest)
 }
-case class Return(value: Value) extends Instruction with Terminator {
+
+case class Return(value: Value) extends Instruction(1) with Terminator {
+  setOperand(0, value)
   def successors = List()
 }
-case class Binary(op: String, lhs: Value, rhs: Value) extends Instruction
-case class Alloc(id: String, typ: Type) extends Instruction
-case class Load(ptr: Value) extends Instruction
-case class Store(value: Value, ptr: Value) extends Instruction
-case class PHINode(var prevs: Map[Value, Set[BasicBlock]] = Map()) extends Instruction {
+
+case class Binary(op: String, lhs_value: Value, rhs_value: Value) extends Instruction(2) {
+  setOperand(0, lhs_value)
+  setOperand(1, rhs_value)
+  def lhs = getOperand(0)
+  def rhs = getOperand(1)
+}
+
+case class Alloc(var id: String, val typ: Type) extends Instruction(0)
+
+case class Load(ptr: Value) extends Instruction(1)
+case class Store(value: Value, ptr: Value) extends Instruction(2)
+case class PHINode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends Instruction(varOps) {
   // todo:fix this toString
   // avoid recursive
-  override def toString: String = s"Phi${prevs.values.head.map(_.name).mkString(",")}"
+  private def incomingsStr = incomings.map(x => x._2.map(b => s"${x._1} => ${b.name}").mkString("\n")).mkString("\n")
+  override def toString: String = "Phi"
   def addIncoming(value: Value, block: BasicBlock): Unit = {
-    prevs = prevs.updated(value, prevs.getOrElse(value, Set()) + block)
+    incomings = incomings.updated(value, incomings.getOrElse(value, Set()) + block)
   }
 }

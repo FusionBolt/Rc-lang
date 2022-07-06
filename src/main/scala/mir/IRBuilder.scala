@@ -28,7 +28,6 @@ case class IRBuilder() {
     basicBlocks.last
   }
 
-//  def createFunction(name: String, args: List[Argument], ret: Type) : Function = insert(Function(name, args))
   def createBB() = BasicBlock(makeId)
   def createPHINode() : PHINode = insert(PHINode())
   def createCondBr(cond: Value, True: BasicBlock, False: BasicBlock) : CondBranch = insert(CondBranch(cond, True, False))
@@ -39,5 +38,4 @@ case class IRBuilder() {
   def createLoad(value: Value): Load = insert(Load(value))
   def createStore(value: Value, ptr: Value) : Store = insert(Store(value, ptr))
   def createBinary(op: String, lhs: Value, rhs: Value) : Binary = insert(Binary(op, lhs, rhs))
-//  def createTmp(typ: Type) : Tmp = insert(Tmp(typ))
 }
