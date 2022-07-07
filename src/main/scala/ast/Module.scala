@@ -7,7 +7,7 @@ import ast.Ident
 
 import ty.Typed
 
-case class RcModule(items: List[Item]) extends ASTNode
+case class RcModule(items: List[Item], name: String = "") extends ASTNode
 
 enum Item extends ASTNode with Typed:
   case Method(decl: MethodDecl, body: Block) extends Item with Typed

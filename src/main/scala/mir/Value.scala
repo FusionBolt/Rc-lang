@@ -4,6 +4,12 @@ package mir
 import ty.*
 
 class Value extends Typed {
+  var name: String = ""
+}
+
+class GlobalValue extends Value
+
+class GlobalVariable extends GlobalValue {
 }
 
 val varOps = -1
@@ -20,8 +26,3 @@ class User(numOps: Int) extends Value {
 
 // todo:implicit cast, use -> value, uses -> values
 case class Use(var value: Value, var parent: User)
-
-enum Constant(typ: Type) extends User(0):
-  case Integer(value: Int) extends Constant(Type.Int32)
-  case Str(str: String) extends Constant(Type.String)
-  case Bool(bool: Boolean) extends Constant(Type.Boolean)

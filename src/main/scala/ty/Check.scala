@@ -3,7 +3,7 @@ package ty
 import ast.Expr
 import ast.RcModule
 import ast.Expr.*
-import ty.Type.*
+import ty.*
 
 
 case object TypeCheck {

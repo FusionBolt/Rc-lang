@@ -22,7 +22,7 @@ trait InstVisitor {
       case i: Alloc => visit(i)
       case i: Load => visit(i)
       case i: Store => visit(i)
-      case i: PHINode => visit(i)
+      case i: PhiNode => visit(i)
   }
 
   def visit(call: Call): TRet = {
@@ -50,7 +50,7 @@ trait InstVisitor {
   def visit(store: Store): TRet = {
 
   }
-  def visit(phinode: PHINode): TRet = {
+  def visit(phinode: PhiNode): TRet = {
 
   }
 }
@@ -104,7 +104,7 @@ class MIRPrinter extends MIRVisitor {
 
   }
 
-  override def visit(phinode: PHINode): TRet = {
+  override def visit(phinode: PhiNode): TRet = {
 
   }
 }

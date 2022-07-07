@@ -7,28 +7,40 @@ import ty.*
 
 // todo:不同层的id怎么处理
 // todo:debug info
-case class ToMIR(table: Map[Ident, Item] = Map[Ident, Item]()) {
-  var builder = IRBuilder()
-  var env = Map[Ident, Value]()
-  var globalTable = table
-  var fnTable = Map[Ident, Function]()
-  def proc(module: RcModule): List[Function] = {
-    module.items.map(_ match
-      case m: Item.Method => procMethod(m)
-      case _ => ???)
+case class ToMIR(var globalTable: Map[Ident, Item] = Map[Ident, Item]()) {
+  var module = Module()
+  def proc(rcModule: RcModule): Module = {
+    module.name = rcModule.name
+    rcModule.items.foreach(_ match
+      case m: Item.Method => getFn(m)
+      case c: Item.Class => procClass(c))
+    module
   }
 
+  def procClass(klass: Item.Class) = {
+    // todo:rename fn, how to distinct between normal name and link name
+    var fns = klass.methods.map(getFn)
+    var ty = StructType(klass.name.str, Map())
+    module.types += ty
+  }
+
+  def getFn(fn: Item.Method): Function = FnToMIR(globalTable, module).procMethod(fn)
+}
+
+case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) {
   def getFun(id: Ident): Function = {
-    fnTable.getOrElse(id, globalTable(id) match {
+    parentModule.fnTable.getOrElse(id.str, globalTable(id) match {
       case f: Item.Method => {
-        val fn = ToMIR(globalTable).procMethod(f)
-        fnTable += (id -> fn)
+        val fn = FnToMIR(globalTable, parentModule).procMethod(f)
+        parentModule.fnTable += (id.str -> fn)
         fn
       }
       case _ => ???
     })
-
   }
+
+  var builder = IRBuilder()
+  var env = Map[Ident, Value]()
 
   // todo: argument and params
   def procArgument(params: Params): List[Argument] = {
@@ -39,16 +51,17 @@ case class ToMIR(table: Map[Ident, Item] = Map[Ident, Item]()) {
     })
   }
 
-  // todo: only call for a new instance, make a function builder
   def procMethod(method: Item.Method): Function = {
     // ir builder manages the function
     val args = procArgument(method.decl.inputs)
     val fn = Function(method.decl.name.str, args)
+    parentModule.fnTable += (method.decl.name.str -> fn)
     builder = IRBuilder()
     builder.currentFn = fn
     procBlock(method.body)
-    // todo: auto insert return should in ast
-    builder.createReturn(builder.currentBasicBlock.stmts.last)
+    if(!builder.currentBasicBlock.stmts.last.isInstanceOf[Return]) {
+      builder.createReturn(builder.currentBasicBlock.stmts.last)
+    }
     fn.bbs = builder.basicBlocks
     fn.entry = builder.basicBlocks.head
     fn
@@ -81,26 +94,26 @@ case class ToMIR(table: Map[Ident, Item] = Map[Ident, Item]()) {
         val t = procExpr(true_branch)
         builder.createBr(mergeBB)
         builder.insertBasicBlock(falseBB)
-        val f = false_branch match
-          case Some(value) => procExpr(value)
-          case None => null
+        val f = false_branch.map(procExpr)
         builder.createBr(mergeBB)
         builder.insertBasicBlock(mergeBB)
         val phi = builder.createPHINode()
         phi.addIncoming(t, trueBB)
-        phi.addIncoming(f, falseBB)
-// todo:fix this
+        // todo: map for false
+        if (f.isDefined) {
+          phi.addIncoming(f.get, falseBB)
+        }
         phi
       }
-//      case Expr.Lambda(args, block) => ???
+      //      case Expr.Lambda(args, block) => ???
       case Expr.Call(target, args) => builder.createCall(getFun(target), args.map(procExpr))
-//      case Expr.MethodCall(obj, target, args) => ???
+      //      case Expr.MethodCall(obj, target, args) => ???
       case block: Expr.Block => procBlock(block)
       case Expr.Return(expr) => builder.createReturn(procExpr(expr))
-//      case Expr.Field(expr, ident) => ???
-//      case Self => ???
-//      case Expr.Constant(ident) => ???
-//      case Expr.Index(expr, i) => ???
+      //      case Expr.Field(expr, ident) => ???
+      //      case Self => ???
+      //      case Expr.Constant(ident) => ???
+      //      case Expr.Index(expr, i) => ???
       case _ => ???
   }
 
@@ -108,7 +121,7 @@ case class ToMIR(table: Map[Ident, Item] = Map[Ident, Item]()) {
     tyInfo match
       // todo:fix this
       case TyInfo.Spec(ty) => Infer.translate(ty)
-      case TyInfo.Nil => Type.Nil
+      case TyInfo.Nil => NilType
       case _ => ???
   }
 

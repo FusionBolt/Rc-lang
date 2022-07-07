@@ -3,13 +3,13 @@ package ty
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.BeforeAndAfter
 import ast.ImplicitConversions.*
-import ty.Type.*
+import ty.*
 import ast.Ident
 
 class TyCtxtTest extends AnyFunSpec with BeforeAndAfter {
   var tyCtxt: TyCtxt = _
   before {
-    tyCtxt = TyCtxt(Map(Ident("a") -> Int32, Ident("b") -> Float))
+    tyCtxt = TyCtxt(Map(Ident("a") -> Int32Type, Ident("b") -> FloatType))
   }
 
   describe("enter") {
@@ -22,7 +22,7 @@ class TyCtxtTest extends AnyFunSpec with BeforeAndAfter {
     }
 
     it("block") {
-      val ty = String
+      val ty = StringType
       val t = tyCtxt.enter({
         ty
       })
@@ -34,7 +34,7 @@ class TyCtxtTest extends AnyFunSpec with BeforeAndAfter {
     it("succeed") {
       tyCtxt.enter(() => {
         val id = Ident("n")
-        val ty = Nil
+        val ty = NilType
         tyCtxt.addLocal(id, ty)
         assert(tyCtxt.lookup(id).contains(ty))
       })
@@ -44,7 +44,7 @@ class TyCtxtTest extends AnyFunSpec with BeforeAndAfter {
     it("sameWithGlobal") {
       tyCtxt.enter(() => {
         val id = Ident("a")
-        val ty = Nil
+        val ty = NilType
         tyCtxt.addLocal(id, ty)
         assert(tyCtxt.lookup(id).contains(ty))
       })
@@ -53,17 +53,17 @@ class TyCtxtTest extends AnyFunSpec with BeforeAndAfter {
     it("nested") {
       tyCtxt.enter(() => {
         val id = Ident("a")
-        val ty = Nil
+        val ty = NilType
         tyCtxt.addLocal(id, ty)
         tyCtxt.enter(testEnter(id))
-        assert(tyCtxt.enter(id) == String)
+        assert(tyCtxt.enter(id) == StringType)
         assert(tyCtxt.lookup(id).contains(ty))
       })
     }
 
     def testEnter(id: Ident): Type = {
       assert(tyCtxt.local.isEmpty)
-      val innerTy = String
+      val innerTy = StringType
       tyCtxt.addLocal(id, innerTy)
       assert(tyCtxt.lookup(id).contains(innerTy))
       innerTy

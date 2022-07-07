@@ -2,7 +2,7 @@ package rclang
 package ty
 import ast.Expr.*
 import ast.*
-import ty.Type.*
+import ty.*
 import ty.TyCtxt
 
 case object Infer {
@@ -21,7 +21,7 @@ case object Infer {
   }
 
   private def infer(typed: Typed, force: Boolean): Type = {
-    if(!force && typed.ty != Type.Infer) {
+    if(!force && typed.ty != InferType) {
       typed.ty
     } else {
       infer(typed)
@@ -50,7 +50,7 @@ case object Infer {
         ty match
           case TyInfo.Spec(ty) => ???
           case TyInfo.Infer => infer(value)
-          case TyInfo.Nil => Nil
+          case TyInfo.Nil => NilType
       }
       case Stmt.Expr(expr) => infer(expr)
       case Stmt.While(cond, body) => infer(body)
@@ -59,11 +59,11 @@ case object Infer {
 
   private def infer(expr: Expr): Type = {
     expr match
-      case Number(v) => Int32
+      case Number(v) => Int32Type
       case Identifier(ident) => lookup(ident)
-      case Bool(b) => Boolean
+      case Bool(b) => BooleanType
       case Binary(op, lhs, rhs) => common(lhs, rhs)
-      case Str(str) => String
+      case Str(str) => StringType
       case If(cond, true_branch, false_branch) => false_branch match
         case Some(fBr) => common(true_branch, fBr)
         case None => infer(true_branch)
@@ -79,27 +79,27 @@ case object Infer {
   }
 
   private def lookup(ident: Ident): Type = {
-    tyCtxt.lookup(ident).getOrElse(Err(s"$ident not found"))
+    tyCtxt.lookup(ident).getOrElse(ErrType(s"$ident not found"))
   }
 
   private def infer(f: Item.Method): Type = {
     val ret = translate(f.decl.outType)
     val params = f.decl.inputs.params.map(_.ty).map(translate)
-    Fn(ret, params)
+    FnType(ret, params)
   }
 
   def translate(info: TyInfo): Type = info match
     case TyInfo.Spec(ty) => translate(ty)
-    case TyInfo.Infer => Err("can't translate TyInfo.Infer")
-    case TyInfo.Nil => Nil
+    case TyInfo.Infer => ErrType("can't translate TyInfo.Infer")
+    case TyInfo.Nil => NilType
 
   def translate(ident: Ident): Type = {
     ident.str match
-      case "Boolean" => Type.Boolean
-      case "String" => Type.String
-      case "Int32" => Type.Int32
-      case "Float" => Type.Float
-      case "Nil" => Type.Nil
+      case "Boolean" => BooleanType
+      case "String" => StringType
+      case "Int32" => Int32Type
+      case "Float" => FloatType
+      case "Nil" => NilType
       case _ => ???
     // todo:other good way?
   }
@@ -107,6 +107,6 @@ case object Infer {
   private def common(lhs: Expr, rhs: Expr): Type = {
     val lt = infer(lhs)
     val rt = infer(rhs)
-    if lt == rt then lt else Err("failed")
+    if lt == rt then lt else ErrType("failed")
   }
 }

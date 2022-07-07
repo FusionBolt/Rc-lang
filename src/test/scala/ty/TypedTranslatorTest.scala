@@ -7,7 +7,7 @@ import ast.*
 import ast.ImplicitConversions.*
 import ast.{ASTBuilder, RcModule}
 
-import ty.Type.Int32
+import ty.Int32Type
 
 class TypedTranslatorTest extends AnyFunSpec with ASTBuilder {
   val tyCtxt = TyCtxt()
@@ -20,7 +20,7 @@ class TypedTranslatorTest extends AnyFunSpec with ASTBuilder {
       ))))
       val result = TypedTranslator(tyCtxt)(m)
       val ty = result.items.head.asInstanceOf[Item.Method].body.stmts.last.asInstanceOf[Stmt.Expr].expr.asInstanceOf[Identifier].ty
-      assert(ty == Int32)
+      assert(ty == Int32Type)
     }
   }
 }

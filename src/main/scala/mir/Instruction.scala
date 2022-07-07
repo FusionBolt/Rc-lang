@@ -7,15 +7,18 @@ trait Terminator {
   def successors: List[BasicBlock]
 }
 
-class Argument(var name: String, var ty: Type)
-
-trait InBasicBlock {
-  var parent: BasicBlock = null
+class Argument(var name: String, var ty: Type) {
+  var default: Option[Value] = None
+  var passByRef: Boolean = true
 }
 
-trait InFunction {
-  var parent: Function = null
+trait In[T] {
+  var parent: T = null.asInstanceOf[T]
 }
+
+type InBasicBlock = In[BasicBlock]
+type InFunction = In[Function]
+
 
 sealed class Instruction(numOps: Int) extends User(numOps) with InBasicBlock
 
@@ -69,7 +72,7 @@ case class Alloc(var id: String, val typ: Type) extends Instruction(0)
 
 case class Load(ptr: Value) extends Instruction(1)
 case class Store(value: Value, ptr: Value) extends Instruction(2)
-case class PHINode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends Instruction(varOps) {
+case class PhiNode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends Instruction(varOps) {
   // todo:fix this toString
   // avoid recursive
   private def incomingsStr = incomings.map(x => x._2.map(b => s"${x._1} => ${b.name}").mkString("\n")).mkString("\n")
@@ -78,3 +81,8 @@ case class PHINode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends I
     incomings = incomings.updated(value, incomings.getOrElse(value, Set()) + block)
   }
 }
+
+enum Constant(typ: Type) extends User(0):
+  case Integer(value: Int) extends Constant(Int32Type)
+  case Str(str: String) extends Constant(StringType)
+  case Bool(bool: Boolean) extends Constant(BooleanType)

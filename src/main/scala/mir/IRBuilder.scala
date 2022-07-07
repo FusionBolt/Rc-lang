@@ -29,7 +29,7 @@ case class IRBuilder() {
   }
 
   def createBB() = BasicBlock(makeId)
-  def createPHINode() : PHINode = insert(PHINode())
+  def createPHINode() : PhiNode = insert(PhiNode())
   def createCondBr(cond: Value, True: BasicBlock, False: BasicBlock) : CondBranch = insert(CondBranch(cond, True, False))
   def createBr(dest: BasicBlock) : Branch = insert(Branch(dest))
   def createCall(func: Function, args: List[Value]) : Call = insert(Call(func, args))
