@@ -27,9 +27,9 @@ trait ASTVisitor {
 
   def visit(field: FieldDef): R = visitRecursive(field)
 
-  def visit(method: Item.Method): R = visitRecursive(method)
+  def visit(method: Method): R = visitRecursive(method)
 
-  def visit(klass: Item.Class): R = visitRecursive(klass)
+  def visit(klass: Class): R = visitRecursive(klass)
 
   final def visitRecursive(modules: Modules): R = modules.modules.foreach(visit)
 
@@ -39,8 +39,8 @@ trait ASTVisitor {
 
   final def visitRecursive(item: Item): R = {
     item match {
-      case method: Item.Method => visit(method)
-      case klass: Item.Class => visit(klass)
+      case method: Method => visit(method)
+      case klass: Class => visit(klass)
       case _ => throw new RuntimeException("NoneItem")
     }
   }
@@ -103,12 +103,12 @@ trait ASTVisitor {
     }
   }
 
-  final def visitRecursive(method: Item.Method): R = {
+  final def visitRecursive(method: Method): R = {
     visit(method.decl)
     visit(method.body)
   }
 
-  final def visitRecursive(klass: Item.Class): R = {
+  final def visitRecursive(klass: Class): R = {
     visit(klass.name)
     klass.parent match {
       case Some(parent) => visit(parent)

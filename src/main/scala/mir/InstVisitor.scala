@@ -6,8 +6,11 @@ def traverse[T, U](list: List[T], f: T => U): List[U] =
   list.map(f)
 
 // todo:check instruction(Type and other)
-def printInst[T <: Instruction](list: List[T]): List[Unit] =
-  traverse(list, println)
+def traverseInst[T <: Instruction](list: List[T]): List[String] =
+  traverse(list, inst => {
+    val user = inst.asInstanceOf[User]
+    s"${inst.getClass.getSimpleName}:${user.ty} ${user.operands.map(_.toString).mkString(" ")}"
+  })
 
 trait InstVisitor {
   type TRet = Unit

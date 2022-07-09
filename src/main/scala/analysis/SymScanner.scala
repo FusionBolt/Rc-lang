@@ -2,7 +2,7 @@ package rclang
 package analysis
 
 import ast.{ASTNode, ASTVisitor, Item, RcModule, Stmt, TyInfo}
-import ast.Item.*
+import ast.*
 import ast.Ident
 import ast.ImplicitConversions.*
 import tools.{ClassEntry, GlobalTable, LocalTable, State, toState}
@@ -18,7 +18,7 @@ import scala.collection.mutable.Map
  */
 object SymScanner extends ASTVisitor {
   // todo: scan constant
-  var currentClass: State[ClassEntry] = new ClassEntry(Item.Class("Kernel", None, List(), List()))
+  var currentClass: State[ClassEntry] = new ClassEntry(Class("Kernel", None, List(), List()))
   var currentMethod: State[LocalTable] = new LocalTable(null)
   var classTable:Map[String, ClassEntry] = Map(Def.Kernel -> currentClass.value)
 
@@ -35,7 +35,7 @@ object SymScanner extends ASTVisitor {
    * 3. add to ClassTable
    * @return
    */
-  override def visit(klass: Item.Class): R = {
+  override def visit(klass: Class): R = {
     val result = currentClass.by(new ClassEntry(klass)){ () =>
       super.visit(klass)
     }
@@ -49,7 +49,7 @@ object SymScanner extends ASTVisitor {
    * 3. add to Current ClassTable's MethodTable
    * @return
    */
-  override def visit(method: Item.Method): R = {
+  override def visit(method: Method): R = {
     val result = currentMethod.by(new LocalTable(method)) { () =>
       super.visit(method)
     }

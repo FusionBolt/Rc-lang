@@ -1,6 +1,6 @@
 package rclang
 package mir
-import ty.Type
+import ty.{FnType, Type}
 
 case class BasicBlock(nameStr: String, var stmts: List[Instruction] = List()) extends Value with InFunction {
   name = nameStr
@@ -12,14 +12,19 @@ case class BasicBlock(nameStr: String, var stmts: List[Instruction] = List()) ex
   }
 
   def successors = terminator.successors
+
+  override def toString: String = "BasicBlock"
 }
 
 case class Function(fnName: String,
+                    var retType: Type,
                     var argument: List[Argument],
                     var bbs: List[BasicBlock] = List()) extends GlobalValue {
   name = fnName
   var entry: BasicBlock = null
   def instructions = bbs.flatMap(_.stmts)
+
+  def fnType = FnType(retType, argument.map(_.ty))
 }
 
 case class Module(var name: String = "", var fnTable: Map[String, Function] = Map()) {

@@ -21,7 +21,7 @@ trait ModuleParser extends RcBaseParser with ExprParser {
 
   def method: Parser[Item] = positioned {
     oneline(DEF ~> id ~ params) ~ block <~ END ^^ {
-      case id ~ params ~ block => Item.Method(MethodDecl(id, params, TyInfo.Nil), block)
+      case id ~ params ~ block => Method(MethodDecl(id, params, TyInfo.Nil), block)
     }
   }
 
@@ -47,12 +47,12 @@ trait ModuleParser extends RcBaseParser with ExprParser {
 
   // todo:refactor
   // todo:make a EOL filter
-  def classDefine: Parser[Item.Class] = positioned {
+  def classDefine: Parser[Item] = positioned {
     oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ log(item | field | noneItem)("class member").* <~ log(END)("class end") ^^ {
       case klass ~ parent ~ defines =>
-        Item.Class(klass, parent,
+        Class(klass, parent,
           defines.filter(_.isInstanceOf[FieldDef]).map(_.asInstanceOf[FieldDef]),
-          defines.filter(_.isInstanceOf[Item.Method]).map(_.asInstanceOf[Item.Method]))
+          defines.filter(_.isInstanceOf[Method]).map(_.asInstanceOf[Method])).asInstanceOf[Item]
     }
   }
 }

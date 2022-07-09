@@ -32,7 +32,7 @@ case object Infer {
     typed match
       case expr: Expr => infer(expr)
       case item: Item => infer(item)
-      case method: Item.Method => infer(method)
+      case method: Method => infer(method)
       case stmt: Stmt => infer(stmt)
       case _ => ???
   }
@@ -40,7 +40,7 @@ case object Infer {
 
   private def infer(item: Item): Type = {
     item match
-      case m: Item.Method => infer(m)
+      case m: Method => infer(m)
       case _ => ???
   }
 
@@ -82,7 +82,7 @@ case object Infer {
     tyCtxt.lookup(ident).getOrElse(ErrType(s"$ident not found"))
   }
 
-  private def infer(f: Item.Method): Type = {
+  private def infer(f: Method): Type = {
     val ret = translate(f.decl.outType)
     val params = f.decl.inputs.params.map(_.ty).map(translate)
     FnType(ret, params)

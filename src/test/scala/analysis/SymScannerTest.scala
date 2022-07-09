@@ -1,7 +1,6 @@
 package rclang
 package analysis
 
-import ast.Item.*
 import ast.{ASTBuilder, Expr, RcModule}
 import ast.Expr.*
 import ast.ImplicitConversions.*

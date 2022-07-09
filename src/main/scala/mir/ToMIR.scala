@@ -12,26 +12,26 @@ case class ToMIR(var globalTable: Map[Ident, Item] = Map[Ident, Item]()) {
   def proc(rcModule: RcModule): Module = {
     module.name = rcModule.name
     rcModule.items.foreach(_ match
-      case m: Item.Method => getFn(m)
-      case c: Item.Class => procClass(c))
+      case m: Method => getFn(m)
+      case c: Class => procClass(c))
     module
   }
 
-  def procClass(klass: Item.Class) = {
+  def procClass(klass: Class) = {
     // todo:rename fn, how to distinct between normal name and link name
-    var fns = klass.methods.map(getFn)
+    var fns = klass.methods.map(getFn(_, klass.name.str)).map(_.fnType)
     var ty = StructType(klass.name.str, Map())
     module.types += ty
   }
 
-  def getFn(fn: Item.Method): Function = FnToMIR(globalTable, module).procMethod(fn)
+  def getFn(fn: Method, prefix: String = ""): Function = FnToMIR(globalTable, module).procMethod(fn, prefix)
 }
 
 case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) {
-  def getFun(id: Ident): Function = {
+  def getFun(id: Ident, prefix: String = ""): Function = {
     parentModule.fnTable.getOrElse(id.str, globalTable(id) match {
-      case f: Item.Method => {
-        val fn = FnToMIR(globalTable, parentModule).procMethod(f)
+      case f: Method => {
+        val fn = FnToMIR(globalTable, parentModule).procMethod(f, prefix)
         parentModule.fnTable += (id.str -> fn)
         fn
       }
@@ -50,12 +50,14 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
       Argument(name.str, makeType(ty))
     })
   }
-
-  def procMethod(method: Item.Method): Function = {
+  
+  // todo:implicit TypeInfo to Type
+  def procMethod(method: Method, prefix: String = ""): Function = {
     // ir builder manages the function
     val args = procArgument(method.decl.inputs)
-    val fn = Function(method.decl.name.str, args)
-    parentModule.fnTable += (method.decl.name.str -> fn)
+    val fnName = s"${prefix}_${method.decl.name.str}"
+    val fn = Function(fnName, makeType(method.decl.outType), args)
+    parentModule.fnTable += (fnName -> fn)
     builder = IRBuilder()
     builder.currentFn = fn
     procBlock(method.body)
@@ -73,7 +75,7 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
   }
 
   def procExpr(expr: Expr): Value = {
-    expr match
+    var v = expr match
       case Expr.Number(v) => Constant.Integer(v)
       case Expr.Identifier(ident) => builder.createLoad(env(ident))
       case Expr.Bool(b) => Constant.Bool(b)
@@ -115,6 +117,7 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
       //      case Expr.Constant(ident) => ???
       //      case Expr.Index(expr, i) => ???
       case _ => ???
+      v.withTy(expr.ty)
   }
 
   def makeType(tyInfo: TyInfo): Type = {
@@ -122,7 +125,7 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
       // todo:fix this
       case TyInfo.Spec(ty) => Infer.translate(ty)
       case TyInfo.Nil => NilType
-      case _ => ???
+      case _ => InferType
   }
 
   def procStmt(stmt: ast.Stmt): Value = {

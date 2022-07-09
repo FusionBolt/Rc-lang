@@ -32,7 +32,7 @@ class StmtParserTest extends BaseParserTest with ExprParser {
 
   describe("local") {
     it("succeed") {
-      expectSuccess(mkLocalStmt("a", NUMBER(1)), Stmt.Local("a", TyInfo.Nil, Expr.Number(1)))
+      expectSuccess(mkLocalStmt("a", NUMBER(1)), Stmt.Local("a", TyInfo.Infer, Expr.Number(1)))
     }
   }
 

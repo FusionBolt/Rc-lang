@@ -19,8 +19,8 @@ case class TyCtxt(val global:Map[Ident, Type] = Map[Ident, Type]()) {
   var local = Map[Ident, Type]()
 
   def lookup(ident: Ident): Option[Type] = {
-    val ty = local.get(ident) orElse outer.find(_.contains(ident)) orElse global.get(ident)
-    ty.asInstanceOf[Option[Type]]
+    val ty = local.get(ident) orElse outer.find(_.contains(ident)).map(_(ident)) orElse global.get(ident)
+    ty
   }
 
   /**

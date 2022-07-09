@@ -3,7 +3,7 @@ package tools
 import ast.{FieldDef, Ident, Item, MethodDecl}
 import ast.TyInfo
 import ast.Stmt
-import ast.ASTNode
+import ast.*
 
 import scala.collection.mutable
 import scala.collection.mutable.Map
@@ -26,7 +26,7 @@ case class LocalEntry(id: Int, astNode: Stmt.Local) {
   def initValue = astNode.value
 }
 
-class ClassEntry(val astNode: Item.Class) {
+class ClassEntry(val astNode: Class) {
   var methods = Map.empty[String, LocalTable]
   var fields = Map.empty[String, FieldDef]
 
@@ -39,7 +39,7 @@ class ClassEntry(val astNode: Item.Class) {
   }
 }
 
-class LocalTable(val astNode: Item.Method) {
+class LocalTable(val astNode: Method) {
   var locals = Map.empty[String, LocalEntry]
   def fnName = astNode.decl.name
 

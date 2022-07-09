@@ -3,7 +3,7 @@ package analysis
 
 import ast.*
 import ast.Expr.{Block, Self}
-import ast.Item.Method
+import ast.Method
 import tools.State
 
 import scala.collection.mutable
@@ -132,20 +132,20 @@ trait ModuleValidate extends Validate with MethodValidate {
 
   def checkModule(module: RcModule): Result = {
     dupNameCheck(module.items.map(item => item match
-      case Item.Class(name, _, _, _) => name
-      case Item.Method(decl, _) => decl.name
+      case Class(name, _, _, _) => name
+      case Method(decl, _) => decl.name
     )):::module.items.flatMap(checkItem)
   }
 
   def checkItem(item: Item): Result = {
     item match
-      case m: Item.Method => checkMethod(m)
-      case klass: Item.Class => checkClass(klass)
+      case m: Method => checkMethod(m)
+      case klass: Class => checkClass(klass)
   }
 
-  def checkClass(klass: Item.Class): Result = {
+  def checkClass(klass: Class): Result = {
     klass match
-      case Item.Class(name, parent, vars, methods) => {
+      case Class(name, parent, vars, methods) => {
         dupNameCheck(vars.map(_.name)):::dupNameCheck(methods.map(_.decl.name))
       }
   }

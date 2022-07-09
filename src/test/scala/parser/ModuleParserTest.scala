@@ -68,7 +68,7 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
       it("with one line") {
         expectSuccess(
           makeTokenMethod("foo", makeLocal("a", NUMBER(1))),
-          makeASTMethod("foo", block = List(Stmt.Local("a", TyInfo.Nil, Number(1)))))
+          makeASTMethod("foo", block = List(Stmt.Local("a", TyInfo.Infer, Number(1)))))
       }
 
       it("with multi line") {

@@ -7,7 +7,10 @@ trait Terminator {
   def successors: List[BasicBlock]
 }
 
-class Argument(var name: String, var ty: Type) {
+// todo:override is ok?
+class Argument(nameStr: String, argTy: Type) extends Value {
+  name = nameStr
+  ty = argTy
   var default: Option[Value] = None
   var passByRef: Boolean = true
 }
@@ -58,6 +61,7 @@ case class Branch(destBasicBlock: BasicBlock) extends Instruction(1) with Termin
 
 case class Return(value: Value) extends Instruction(1) with Terminator {
   setOperand(0, value)
+  ty = value.ty
   def successors = List()
 }
 
@@ -68,10 +72,21 @@ case class Binary(op: String, lhs_value: Value, rhs_value: Value) extends Instru
   def rhs = getOperand(1)
 }
 
-case class Alloc(var id: String, val typ: Type) extends Instruction(0)
+case class Alloc(var id: String, typ: Type) extends Instruction(0) {
+  ty = typ
+}
 
-case class Load(ptr: Value) extends Instruction(1)
-case class Store(value: Value, ptr: Value) extends Instruction(2)
+case class Load(ptr: Value) extends Instruction(1) {
+  ty = ptr.ty
+  setOperand(0, ptr)
+}
+
+case class Store(value: Value, ptr: Value) extends Instruction(2) {
+  ty = value.ty
+  setOperand(0, value)
+  setOperand(1, ptr)
+}
+
 case class PhiNode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends Instruction(varOps) {
   // todo:fix this toString
   // avoid recursive

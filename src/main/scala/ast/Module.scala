@@ -7,11 +7,17 @@ import ast.Ident
 
 import ty.Typed
 
-case class RcModule(items: List[Item], name: String = "") extends ASTNode
+case class RcModule(items: List[Item], name: String = "") extends ASTNode {
+  override def toString: String = s"RcModule:$name\n" + items.mkString("\n")
+}
 
-enum Item extends ASTNode with Typed:
-  case Method(decl: MethodDecl, body: Block) extends Item with Typed
-  case Class(name: Ident, parent: Option[Ident], vars: List[FieldDef], methods:List[Method])
+sealed class Item extends ASTNode with Typed
+
+case class Method(decl: MethodDecl, body: Block) extends Item{
+  override def toString: String = s"Method:${decl.name}\n${body.toString}"
+}
+
+case class Class(name: Ident, parent: Option[Ident], vars: List[FieldDef], methods:List[Method]) extends Item
 
 case class FieldDef(name: Ident, ty: TyInfo, initValue: Option[Expr]) extends ASTNode
 case class Param(name: Ident, ty: TyInfo) extends ASTNode

@@ -4,12 +4,14 @@ package ty
 import ast.{ASTNode, ASTVisitor, Expr, FieldDef, Ident, Item, MethodDecl, Modules, Param, RcModule, Stmt, TyInfo}
 import ast.Expr.*
 import ast.Stmt.*
+import ast.*
 
 import scala.collection.immutable.Map
 
 case object TypedTranslator {
   var tyCtxt: TyCtxt = TyCtxt()
   def apply(tyCtxt: TyCtxt)(module: RcModule): RcModule = {
+    this.tyCtxt = tyCtxt
     // update local table in TypedTranslator will cause Infer ctxt update
     // because of pass a typCtxt by Ref
     Infer.enter(tyCtxt, RcModuleTrans(module))
@@ -17,13 +19,14 @@ case object TypedTranslator {
 
   // fn type
   def RcModuleTrans(module: RcModule): RcModule = {
-    RcModule(module.items.map(itemTrans))
+    val items = module.items.map(itemTrans)
+    RcModule(items)
   }
 
   def itemTrans(item: Item): Item = {
     item match
-      case m: Item.Method => tyCtxt.enter(methodTrans(m))
-      case c: Item.Class => ???
+      case m: Method => tyCtxt.enter(methodTrans(m))
+      case c: Class => ???
   }
 
   def exprTrans(expr: Expr): Expr =
@@ -52,7 +55,9 @@ case object TypedTranslator {
   def stmtTrans(stmt: Stmt): Stmt =
     (stmt match
       case Local(name, ty, value) =>
-        val localTy = if ty == TyInfo.Infer then Infer(value) else Infer.translate(ty)
+        val localTy = ty match
+          case TyInfo.Spec(_) => Infer.translate(ty)
+          case _ => Infer(value)
         tyCtxt.addLocal(name, localTy)
         // todo: how to process if ty is Infer
         Local(name, ty, value.withInfer).withTy(localTy)
@@ -61,27 +66,7 @@ case object TypedTranslator {
       case Assign(name, value) => Assign(name, value.withInfer))
     .withInfer
 
-//
-//  def tyInfoTrans(ty: TyInfo): TyInfo = {
-//
-//  }
-//
-//  def methodDeclTrans(decl: MethodDecl): MethodDecl = {
-//
-//  }
-//
-//  def paramTrans(param: Param): Param = {
-//
-//  }
-//
-//  def fieldDefTrans(field: FieldDef): FieldDef = {
-//
-//  }
-//
-  def methodTrans(method: Item.Method): Item = {
+  def methodTrans(method: Method): Item = {
     method.copy(body = exprTrans(method.body).asInstanceOf[Block]).withInfer
   }
-
-//  def classTrans(klass: Item.Class): Item = {
-//  }
 }
