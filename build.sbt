@@ -8,7 +8,6 @@ lazy val root = (project in file("."))
     idePackagePrefix := Some("rclang")
   )
 
-enablePlugins(JavaAppPackaging)
 
 libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-lang3" % "3.5",

@@ -33,3 +33,6 @@ classes/
 
 # Visual Studio Code
 .vscode
+
+# dump files
+RcDump
