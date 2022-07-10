@@ -97,7 +97,7 @@ case object Infer {
     ident.str match
       case "Boolean" => BooleanType
       case "String" => StringType
-      case "Int32" => Int32Type
+      case "Int" => Int32Type
       case "Float" => FloatType
       case "Nil" => NilType
       case _ => ???

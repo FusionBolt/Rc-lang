@@ -26,7 +26,12 @@ case object TypedTranslator {
   def itemTrans(item: Item): Item = {
     item match
       case m: Method => tyCtxt.enter(methodTrans(m))
-      case c: Class => ???
+      case c: Class => tyCtxt.enter(classTrans(c))
+  }
+
+  def classTrans(klass: Class): Class = {
+    val methods = klass.methods.map(tyCtxt.enter(methodTrans))
+    klass.copy(methods = methods)
   }
 
   def exprTrans(expr: Expr): Expr =
@@ -66,7 +71,7 @@ case object TypedTranslator {
       case Assign(name, value) => Assign(name, value.withInfer))
     .withInfer
 
-  def methodTrans(method: Method): Item = {
+  def methodTrans(method: Method): Method = {
     method.copy(body = exprTrans(method.body).asInstanceOf[Block]).withInfer
   }
 }

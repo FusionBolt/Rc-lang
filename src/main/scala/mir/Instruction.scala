@@ -43,6 +43,10 @@ case class Call(func: Function, args_value: List[Value]) extends Instruction(var
   def getArg(i: Int): Value = getOperand(i)
 }
 
+def commonTy(lhs: Type, rhs: Type): Type = {
+  lhs
+}
+
 case class CondBranch(condValue: Value, tBranch: BasicBlock, fBranch: BasicBlock) extends Instruction(3) with Terminator {
   setOperand(0, condValue)
   setOperand(1, tBranch)
@@ -65,9 +69,11 @@ case class Return(value: Value) extends Instruction(1) with Terminator {
   def successors = List()
 }
 
+// todo:这种情况怎么写构造函数
 case class Binary(op: String, lhs_value: Value, rhs_value: Value) extends Instruction(2) {
   setOperand(0, lhs_value)
   setOperand(1, rhs_value)
+  ty = commonTy(lhs_value.ty, rhs_value.ty)
   def lhs = getOperand(0)
   def rhs = getOperand(1)
 }
@@ -97,7 +103,14 @@ case class PhiNode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends I
   }
 }
 
-enum Constant(typ: Type) extends User(0):
-  case Integer(value: Int) extends Constant(Int32Type)
-  case Str(str: String) extends Constant(StringType)
-  case Bool(bool: Boolean) extends Constant(BooleanType)
+sealed class Constant(typ: Type) extends User(0)
+
+case class Integer(value: Int) extends Constant(Int32Type) {
+  ty = Int32Type
+}
+case class Str(str: String) extends Constant(StringType) {
+  ty = StringType
+}
+case class Bool(bool: Boolean) extends Constant(BooleanType) {
+  ty = BooleanType
+}

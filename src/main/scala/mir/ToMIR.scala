@@ -76,16 +76,16 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
 
   def procExpr(expr: Expr): Value = {
     var v = expr match
-      case Expr.Number(v) => Constant.Integer(v)
+      case Expr.Number(v) => Integer(v)
       case Expr.Identifier(ident) => builder.createLoad(env(ident))
-      case Expr.Bool(b) => Constant.Bool(b)
+      case Expr.Bool(b) => Bool(b)
       case Expr.Binary(op, lhs, rhs) => {
         val l = procExpr(lhs)
         val r = procExpr(rhs)
         // todo:op
         builder.createBinary(op.toString, l, r)
       }
-      case Expr.Str(str) => Constant.Str(str)
+      case Expr.Str(str) => Str(str)
       case Expr.If(cond, true_branch, false_branch) => {
         val c = procExpr(cond)
         val trueBB = builder.createBB()
@@ -117,7 +117,8 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
       //      case Expr.Constant(ident) => ???
       //      case Expr.Index(expr, i) => ???
       case _ => ???
-      v.withTy(expr.ty)
+      // todo:bad design
+      if v.ty == InferType then v.withTy(expr.ty) else v
   }
 
   def makeType(tyInfo: TyInfo): Type = {
@@ -130,9 +131,11 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
 
   def procStmt(stmt: ast.Stmt): Value = {
     stmt match
+      // todo: bad design? init value
       case ast.Stmt.Local(name, tyInfo, value) => {
-        env += name -> procExpr(value)
-        builder.createAlloc(name.str, makeType(tyInfo))
+        val alloc = builder.createAlloc(name.str, stmt.ty)
+        env += (name -> alloc)
+        alloc
       }
       case ast.Stmt.Expr(expr) => procExpr(expr)
       case ast.Stmt.While(cond, body) => ???
