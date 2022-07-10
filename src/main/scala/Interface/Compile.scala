@@ -42,9 +42,9 @@ object Compile {
     val tyCtxt = TyCtxt(table.map((id, item) => id -> Infer(item)))
     val typedModule = TypedTranslator(tyCtxt)(ast)
     TypeCheck(typedModule)
-    val funList = log(ToMIR(table).proc(typedModule), "ToMIR")
-    val main = funList(0)
-    rendDot(main, "main.dot", "RcDump")
+    val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
+    val main = mirMod.fnTable.values.head
+    rendFn(main, "main.dot", "RcDump")
     log("mir.txt", _.write(main.instructions.map(_.toString).mkString("\n")))
 //    log("domTree.txt", _.write(DomTreeBuilder().build(main).toString))
   }
