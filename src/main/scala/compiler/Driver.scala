@@ -1,30 +1,19 @@
 package rclang
-package Interface
+package compiler
 
-import scala.io.Source
-import lexer.*
-import parser.RcParser
 import analysis.{BasicAA, DomTreeAnalysis, SymScanner}
-
-import scala.language.implicitConversions
+import lexer.Lexer
 import mir.*
-import tools.{DumpManager, RcLogger}
+import parser.RcParser
+import pass.AnalysisManager
+import tools.*
 import ty.{Infer, TyCtxt, TypeCheck, TypedTranslator}
 import tools.RcLogger.log
 import analysis.Analysis.given
-import pass.AnalysisManager
 
-import java.io.{File, PrintWriter}
-import scala.quoted.*
+import scala.io.Source
 
-def run[TL, TR](result: => Either[TL, TR]): TR = {
-  result match {
-    case Left(l) => throw new RuntimeException(l.toString)
-    case Right(r) => r
-  }
-}
-
-object Compile {
+object Driver {
   def getSrc(path: String) = {
     val f = Source fromFile path
     // avoid last line is end and lost last empty line
@@ -37,9 +26,9 @@ object Compile {
   def apply(option: CompileOption): Unit = {
     DumpManager.mkDumpRootDir
     val src = getSrc(option.srcPath)
-    val tokens = log(run(Lexer(src)), "Lexer")
+    val tokens = log(Lexer(src).unwrap, "Lexer")
     log("token.txt", _.write(tokens.mkString(" ").replace("EOL", "\n")))
-    val ast = log(run(RcParser(tokens)), "Parser")
+    val ast = log(RcParser(tokens).unwrap, "Parser")
     // todo:refactor dump
     log("ast.txt", _.write(ast.toString))
     val table = SymScanner(ast).methodTypeTable.toMap
@@ -56,18 +45,26 @@ object Compile {
     //    main.instructions.map(_.toString).mkString("\n"))
     log("mir.txt", _.write(dumpStr))
     rendFn(main, "main.dot", "RcDump")
+    println("reach: " + allReach(begin, end))
+    println("reach: " + allReach(tBr, end))
     val tree = DomTreeBuilder().build(main)
+    println(tree.nodes.keys.map(_.name).mkString(","))
+
     val n1 = tree.node(begin)
     val n2 = tree.node(end)
-    val n3 = tree.node(tBr)
-    val isDom = tree.isDom(n1, n2)
+    val d = n1 dom n2
+
+    println(tree.nodes.contains(tBr))
+
+    val r = n1 dom n2
+    val id = sdom(n1, n2)
+    println("is Dom: " + d)
+    println("is IDom: " + id)
     var am = AnalysisManager[Function]()
     am.addAnalysis(DomTreeAnalysis())
     am.addAnalysis(BasicAA())
     var domTree = am.getResult[DomTreeAnalysis](main)
     var aa = am.getResult[BasicAA](main)
-    println(domTree)
-    println(tree.isDom(n3, n2))
     log("domTree.txt", _.write(tree.toString))
   }
 }

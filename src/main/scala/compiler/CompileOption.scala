@@ -1,4 +1,4 @@
 package rclang
-package Interface
+package compiler
 
 case class CompileOption(srcPath: String)

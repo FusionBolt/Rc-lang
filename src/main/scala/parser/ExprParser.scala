@@ -7,6 +7,7 @@ import lexer.Punctuation.*
 import lexer.Literal.*
 import lexer.Delimiter.*
 import lexer.Ident.*
+import lexer.Token
 import ast.Expr.{Block, If, Return}
 
 import scala.collection.immutable.HashMap
@@ -162,5 +163,11 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     oneline(WHILE ~> parSround(termExpr)) ~ block <~ log(END)("end while") ^^ {
       case cond ~ body => Stmt.While(cond, body)
     }
+  }
+}
+
+object RcExprParser extends ExprParser {
+  def apply(tokens: Seq[Token]) : Either[RcParserError, Expr] = {
+    doParser(tokens, expr)
   }
 }

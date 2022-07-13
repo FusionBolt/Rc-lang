@@ -11,6 +11,8 @@ case class BasicBlock(nameStr: String, var stmts: List[Instruction] = List()) ex
     i
   }
 
+  def prev = parent.bbs(parent.bbs.indexOf(this))
+
   def successors = terminator.successors
 
   override def toString: String = "BasicBlock"
