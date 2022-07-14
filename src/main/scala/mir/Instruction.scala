@@ -22,7 +22,6 @@ trait In[T] {
 type InBasicBlock = In[BasicBlock]
 type InFunction = In[Function]
 
-
 sealed class Instruction(numOps: Int) extends User(numOps) with InBasicBlock
 
 case class BinaryInst(lhsValue: Value, rhsValue: Value) extends Instruction(2) {
@@ -101,6 +100,26 @@ case class PhiNode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends I
   def addIncoming(value: Value, block: BasicBlock): Unit = {
     incomings = incomings.updated(value, incomings.getOrElse(value, Set()) + block)
   }
+}
+
+case class SwitchInst() extends Instruction(varOps) with Terminator {
+  def addCase(cond: Value, bb: BasicBlock) : Unit = {
+
+  }
+
+  override def successors: List[BasicBlock] = {
+    operands.map(_.asInstanceOf[BasicBlock])
+  }
+}
+
+// used for test
+case class MultiSuccessorsInst(var bbs: List[BasicBlock] = List()) extends Instruction(varOps) with Terminator {
+  def add(bb: BasicBlock) : BasicBlock = {
+    bbs = bbs :+ bb
+    bb
+  }
+
+  override def successors: List[BasicBlock] = bbs
 }
 
 sealed class Constant(typ: Type) extends User(0)

@@ -10,7 +10,7 @@ import cats.effect.unsafe.IORuntime
 import java.io.{File, PrintWriter}
 
 
-object RcLogger extends IOApp.Simple {
+object RcLogger {
   val logger: Logger[IO] = consoleLogger()
 
   def log(str: String): Unit = {
@@ -23,14 +23,16 @@ object RcLogger extends IOApp.Simple {
     r
   }
 
-  def log[T](path: String, f: PrintWriter => Unit) = {
-    val printer = new PrintWriter(new File(DumpManager.dumpRoot, path));
-    f(printer)
-    printer.close()
+  def logf[T](path: String, v: T): Unit = logf(path, v.toString)
+
+  def logf(path: String, str: String): Unit = {
+    logf(path)(_.write(str))
   }
 
-  def run: IO[Unit] = {
-    logger.info("")
+  def logf(path: String)(f: PrintWriter => Unit) = {
+    val printer = new PrintWriter(new File(DumpManager.getDumpRoot, path));
+    f(printer)
+    printer.close()
   }
 
   var level = 1

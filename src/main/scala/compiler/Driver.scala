@@ -8,7 +8,7 @@ import parser.RcParser
 import pass.AnalysisManager
 import tools.*
 import ty.{Infer, TyCtxt, TypeCheck, TypedTranslator}
-import tools.RcLogger.log
+import tools.RcLogger.{log, logf}
 import analysis.Analysis.given
 
 import scala.io.Source
@@ -27,26 +27,22 @@ object Driver {
     DumpManager.mkDumpRootDir
     val src = getSrc(option.srcPath)
     val tokens = log(Lexer(src).unwrap, "Lexer")
-    log("token.txt", _.write(tokens.mkString(" ").replace("EOL", "\n")))
+    logf("token.txt", tokens.mkString(" ").replace("EOL", "\n"))
     val ast = log(RcParser(tokens).unwrap, "Parser")
     // todo:refactor dump
-    log("ast.txt", _.write(ast.toString))
+    logf("ast.txt", ast)
     val table = SymScanner(ast).methodTypeTable.toMap
     val tyCtxt = TyCtxt(table.map((id, item) => id -> Infer(item)))
     val typedModule = TypedTranslator(tyCtxt)(ast)
-    log("typedModule.txt", _.write(typedModule.toString))
+    logf("typedModule.txt", typedModule)
     TypeCheck(typedModule)
     val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
     val main = mirMod.fnTable.values.head
-    val begin = main.bbs.find(_.name == "0").get
-    val tBr = main.bbs.find(_.name == "1").get
-    val end = main.bbs.find(_.name == "3").get
-    val dumpStr = traverseInst(main.instructions).mkString("\n")
-    //    main.instructions.map(_.toString).mkString("\n"))
-    log("mir.txt", _.write(dumpStr))
-    rendFn(main, "main.dot", "RcDump")
-    println("reach: " + allReach(begin, end))
-    println("reach: " + allReach(tBr, end))
+    val begin = main.getBB("0")
+    val tBr = main.getBB("1")
+    val end = main.getBB("3")
+    logf("mir.txt", main)
+    rendDot(main, "main.dot", "RcDump")
     val tree = DomTreeBuilder().build(main)
     println(tree.nodes.keys.map(_.name).mkString(","))
 
@@ -65,6 +61,6 @@ object Driver {
     am.addAnalysis(BasicAA())
     var domTree = am.getResult[DomTreeAnalysis](main)
     var aa = am.getResult[BasicAA](main)
-    log("domTree.txt", _.write(tree.toString))
+    logf("domTree.txt", tree.toString)
   }
 }

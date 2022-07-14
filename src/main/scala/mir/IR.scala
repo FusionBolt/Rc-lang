@@ -27,6 +27,10 @@ case class Function(fnName: String,
   def instructions = bbs.flatMap(_.stmts)
 
   def fnType = FnType(retType, argument.map(_.ty))
+
+  def getBB(name: String): BasicBlock = bbs.find(_.name == name).get
+
+  override def toString: String = s"$fnName(${argument.mkString(",")})\n${traverseInst(instructions).mkString("\n")}"
 }
 
 case class Module(var name: String = "", var fnTable: Map[String, Function] = Map()) {
