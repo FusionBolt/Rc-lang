@@ -71,10 +71,25 @@ case object Infer {
       case Block(stmts) => tyCtxt.enter(infer(stmts.last)) // todo: maybe early return
       case Call(target, args) => lookup(target)
       case Lambda(args, block) => ???
-      case MethodCall(obj, target, args) => ???
+      case MethodCall(obj, target, args) => {
+        // obj is a constant or obj is a expr
+        obj match
+          case Identifier(ident) => ???
+          case Binary(op, lhs, rhs) => ???
+          case If(cond, true_branch, false_branch) => ???
+          case Lambda(args, block) => ???
+          case Call(target, args) => ???
+          case MethodCall(obj, target, args) => ???
+          case Block(stmts) => ???
+          case Field(expr, ident) => ???
+          case Self => ???
+          case Symbol(ident) => lookup(ident)
+          case Index(expr, i) => ???
+          case _ => throw new RuntimeException(s"unexpected expr $expr")
+      }
       case Field(expr, ident) => ???
       case Self => ???
-      case Constant(ident) => ???
+      case Symbol(ident) => ???
       case Index(expr, i) => ???
   }
 
@@ -100,7 +115,8 @@ case object Infer {
       case "Int" => Int32Type
       case "Float" => FloatType
       case "Nil" => NilType
-      case _ => ???
+      // todo: ident should be a Constant
+      case _ => lookup(ident)
     // todo:other good way?
   }
 

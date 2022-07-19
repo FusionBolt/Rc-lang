@@ -76,7 +76,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def term: Parser[Expr] = positioned {
-    bool | num | string | selfField | call | beginWithTerm | sym ^^ Expr.Constant | idExpr
+    bool | num | string | selfField | call | beginWithTerm | sym ^^ Expr.Symbol | idExpr
   }
 
   def bool: Parser[Expr] = positioned {
@@ -144,7 +144,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def local: Parser[Stmt] = positioned {
-    (VAR ~> id) ~ (EQL ~> termExpr) ^^ {
+    ((VAR | VAL) ~> id) ~ (EQL ~> termExpr) ^^ {
       case id ~ expr => Stmt.Local(id, TyInfo.Infer, expr)
     }
   }
@@ -167,7 +167,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
 }
 
 object RcExprParser extends ExprParser {
-  def apply(tokens: Seq[Token]) : Either[RcParserError, Expr] = {
-    doParser(tokens, expr)
+  def apply(tokens: Seq[Token]) : Either[RcParserError, Stmt] = {
+    doParser(tokens, statement)
   }
 }

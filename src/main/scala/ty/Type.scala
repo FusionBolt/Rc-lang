@@ -23,6 +23,8 @@ case class ErrType(msg: String) extends Type
 
 case class StructType(name: String, fields: Map[String, Type]) extends Type
 
+case class PointerType(ty: Type) extends Type
+
 trait Typed {
   var ty: Type = InferType
 

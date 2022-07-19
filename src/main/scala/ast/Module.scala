@@ -9,6 +9,8 @@ import ty.Typed
 
 case class RcModule(items: List[Item], name: String = "") extends ASTNode {
   override def toString: String = s"RcModule:$name\n" + items.mkString("\n")
+
+  def method(name: String): Option[Method] = items.collectFirst { case m: Method if m.decl.name.str == name => m }
 }
 
 sealed class Item extends ASTNode with Typed

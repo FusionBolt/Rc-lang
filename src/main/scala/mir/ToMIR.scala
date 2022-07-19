@@ -13,7 +13,8 @@ case class ToMIR(var globalTable: Map[Ident, Item] = Map[Ident, Item]()) {
     module.name = rcModule.name
     rcModule.items.foreach(_ match
       case m: Method => getFn(m)
-      case c: Class => procClass(c))
+      case c: Class => procClass(c)
+      case _ => throw new Exception("not support"))
     module
   }
 
@@ -72,6 +73,18 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
   // todo:this need block? or add a scope?
   def procBlock(block: Expr.Block): Value = {
     block.stmts.map(procStmt).last
+  }
+
+  // todo:finish
+//  def getClassMember(id: Ident): Value = {
+//    // get alloca of member var
+//    globalTable.getOrElse(id, throw new Exception(s"undefined variable ${id.str}")) match {
+//      case Class(_, vars, _, _) => vars.find(id).getOrElse(throw new Exception(s"Can not find var ${id.str}"))
+//      case _ => throw new Exception(s"undefined variable ${id.str}")
+//    }
+//  }
+  def lookup(id: Ident): Value = {
+    env(id)
   }
 
   def procExpr(expr: Expr): Value = {

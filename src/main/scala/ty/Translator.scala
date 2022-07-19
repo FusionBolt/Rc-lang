@@ -53,7 +53,7 @@ case object TypedTranslator {
       case Block(stmts) => tyCtxt.enter(Block(stmts.map(stmtTrans)))
       case Field(expr, ident) => ???
       case Self => ???
-      case Constant(ident) => ???
+      case Symbol(ident) => ???
       case Index(expr, i) => ???
       case _ => expr).withInfer
 

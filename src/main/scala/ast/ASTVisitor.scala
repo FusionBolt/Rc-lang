@@ -60,7 +60,7 @@ trait ASTVisitor {
       case Return(expr) =>
       case Field(obj, id) =>
       case Self =>
-      case Constant(id) =>
+      case Symbol(id) =>
       case Index(expr, i) =>
     }
   }

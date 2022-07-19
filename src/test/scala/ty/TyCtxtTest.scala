@@ -9,7 +9,8 @@ import ast.Ident
 class TyCtxtTest extends AnyFunSpec with BeforeAndAfter {
   var tyCtxt: TyCtxt = _
   before {
-    tyCtxt = TyCtxt(Map(Ident("a") -> Int32Type, Ident("b") -> FloatType))
+    tyCtxt = TyCtxt()
+    tyCtxt.global = Map(Ident("a") -> Int32Type, Ident("b") -> FloatType)
   }
 
   describe("enter") {

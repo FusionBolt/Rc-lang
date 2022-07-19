@@ -3,12 +3,24 @@ package ty
 
 import ast.Ident
 import ty.Type
+import tools.GlobalTable
+import ty.Infer
+
+import scala.collection.immutable.Map
 
 /**
  *
  * @param global GlobalTypeInfo
  */
-case class TyCtxt(val global:Map[Ident, Type] = Map[Ident, Type]()) {
+case class TyCtxt() {
+  // todo: this should be val? and fix TyCtxtTest
+  var global:Map[Ident, Type] = Map()
+  var globalTable: GlobalTable = null
+  def setGlobalTable(gt:GlobalTable) = {
+    globalTable = gt
+    global = globalTable.methodTypeTable.toMap.map((id, item) => id -> Infer(item))
+  }
+
   /**
    * OuterScopes's Type only SymbolTable
    */

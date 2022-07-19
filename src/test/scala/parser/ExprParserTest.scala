@@ -48,7 +48,7 @@ class ExprParserTest extends ExprParser with BaseParserTest {
 
   describe("const") {
     it("succeed") {
-      expectSuccess(UPPER_IDENTIFIER("Foo"), Expr.Constant("Foo"))
+      expectSuccess(UPPER_IDENTIFIER("Foo"), Expr.Symbol("Foo"))
     }
   }
 
@@ -93,7 +93,7 @@ class ExprParserTest extends ExprParser with BaseParserTest {
     it("new") {
       expectSuccess(
         List(UPPER_IDENTIFIER("Foo"), DOT, IDENTIFIER("new"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES),
-        MethodCall(Constant("Foo"), "new", List()))
+        MethodCall(Symbol("Foo"), "new", List()))
     }
   }
 

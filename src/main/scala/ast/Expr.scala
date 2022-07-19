@@ -9,8 +9,20 @@ import BinaryOp.*
 import ty.Typed
 import ty.Type
 import ty.Infer
+import ast.ImplicitConversions.strToId
 
-enum BinaryOp(op: String) extends Positional:
+def uuid = java.util.UUID.randomUUID.toString
+
+def lambdaToMethod(lambda: Expr.Lambda): Method = lambdaToMethod(lambda.args, lambda.block)
+
+def lambdaToMethod(args: Params, body: Expr): Method = {
+  val blockBody: Expr.Block = body match
+    case b: Expr.Block => b
+    case _ => Expr.Block(List(Stmt.Expr(body)))
+  Method(MethodDecl(s"lambda_${uuid}", args, TyInfo.Infer), blockBody)
+}
+
+enum BinaryOp(op: String) extends Positional :
   case Add extends BinaryOp("+")
   case Sub extends BinaryOp("-")
   case Mul extends BinaryOp("*")
@@ -31,7 +43,7 @@ def strToOp(op: String): BinaryOp = {
   }
 }
 
-enum Expr extends ASTNode with Typed:
+enum Expr extends ASTNode with Typed :
   case Number(v: Int)
   case Identifier(ident: Ident)
   case Bool(b: Boolean)
@@ -48,7 +60,7 @@ enum Expr extends ASTNode with Typed:
   case Field(expr: Expr, ident: Ident)
   case Self
   // symbol
-  case Constant(ident: Ident)
+  case Symbol(ident: Ident)
   case Index(expr: Expr, i: Expr)
 
   override def toString: String = this match

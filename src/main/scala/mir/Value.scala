@@ -13,6 +13,11 @@ class GlobalVariable extends GlobalValue {
 }
 
 val varOps = -1
+// todo: use enum NumOps
+enum NumOps:
+  case Fixed(num: Int)
+  case Dynamic
+
 class User(numOps: Int) extends Value {
   var uses: List[Use] = List.fill(numOps)(Use(null, null))
   def operands = uses
