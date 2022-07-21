@@ -7,8 +7,6 @@ import tools.DumpManager
 import mir.*
 
 class CFGTest extends RcTestBase {
-
-
   var bbs: BBsType = null
   before {
     bbs = mkBBs(
@@ -27,6 +25,12 @@ class CFGTest extends RcTestBase {
       canReach(bbs("1"), bbs("3")) should be(true)
       canReach(bbs("1"), bbs("4")) should be(true)
       canReach(bbs("4"), bbs("1")) should be(false)
+    }
+  }
+
+  describe("predecessors") {
+    it("succ") {
+      predecessors(bbs("4"), bbs.values.toList) should be(Set(bbs("2"), bbs("3")))
     }
   }
 

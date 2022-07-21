@@ -10,7 +10,6 @@ case class DomTreeNode(var parentTree: DomTree, var basicBlock: BasicBlock) {
 
   def addChild(child: DomTreeNode) = {
     domChildren = child :: domChildren
-    child.iDom = this
   }
 }
 
@@ -54,47 +53,46 @@ def allReach(a: BasicBlock, b: BasicBlock): Boolean = {
 
 case class DomTreeBuilder() {
   var visited = Set[BasicBlock]()
-  def build(f: Function): DomTree = {
-    val dt = DomTree(f)
-    dfs(f.entry, dt, f)
-    dt
+//  def build(f: Function): DomTree = {
+//    val dt = DomTree(f)
+//    dfs(f.entry, dt, f)
+//    dt
+//  }
+
+  type Node = BasicBlock
+  type DomInfoType = Map[Node, Set[Node]]
+  def compute(fn: Function): DomInfoType = {
+    val predMap = predecessorsMap(fn.bbs)
+    val n = fn.bbs
+    compute(n.toSet, predMap, fn.entry)
   }
 
-  private def dfs(bb: BasicBlock, tree: DomTree, f: Function): Option[DomTreeNode] = {
-    // strict dominance
-    if (visited.contains(bb)) {
-      return None
-    }
-    val prevBB = bb.prev
+  def compute(N: Set[Node], pred: DomInfoType, root: Node): DomInfoType = {
+    var change = false;
+    var T = Set[Node]()
+    var D = Set[Node]()
+    var Domin = Map[Node, Set[Node]]()
+//    Domin(root) = Set[Node](root)
+    Domin = Domin.updated(root, Set[Node](root))
+    (N - root).foreach(n => {
+//      Domin(n) = N
+      Domin = Domin.updated(n, N)
+    })
 
-    if (prevBB.successors.size == 1) {
-      // prevBB
-      //   |
-      //  bb
-      val node = tree.addNode(bb)
-      tree.node(prevBB).addChild(node)
-      // todo:fix this
-      Some(node)
-      // visit bb's child
-    } else {
-
-      // other prevBB
-      //   \   /
-      //     b
-      prevBB.successors.foreach(succ => {
-        val node = tree.addNode(succ)
-        tree.node(prevBB).addChild(node)
+    while(!change) {
+      (N - root).foreach(n => {
+        T = N
+        pred(n).foreach( p => {
+          T = T & Domin(p)
+        })
+        D = T + n
+        if(D != Domin(n)) then {
+          change = true
+//          Domin(n) = D
+          Domin = Domin.updated(n, D)
+        }
       })
-      val childs = bb.terminator.successors.map(next => {
-        dfs(next, tree, f)
-      })
-      if (allReach(tree.entry.domChildren.head.basicBlock, bb)) {
-        val node = tree.addNode(bb)
-        node.domChildren = childs.flatten
-        Some(node)
-      } else {
-        None
-      }
     }
+    Domin
   }
 }

@@ -51,16 +51,23 @@ object Driver {
     val ast = parse(src)
     val (typedModule, table) = typeProc(ast)
     val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
-//    domTree(mirMod)
+    domTree(mirMod)
   }
 
-//  def domTree(mirMod: Module) = {
-//    val main = mirMod.fnTable.values.head
-//    val begin = main.getBB("0")
-//    val tBr = main.getBB("1")
-//    val end = main.getBB("3")
-//    logf("mir.txt", main)
-//    CFGRender().rendFn("main.dot", "RcDump", main)
+  def domTree(mirMod: Module) = {
+    val main = mirMod.fnTable.values.head
+    val begin = main.getBB("0")
+    val tBr = main.getBB("1")
+    val end = main.getBB("3")
+    logf("mir.txt", main)
+    CFGRender().rendFn("main.dot", "RcDump", main)
+    val domain = DomTreeBuilder().compute(main)
+    val beginDom = domain(begin)
+    println(beginDom)
+//    val pred =
+//    val tree = DomTreeBuilder().compute(main.bbs.toSet, pred, main.entry)
+
+
 //    val tree = DomTreeBuilder().build(main)
 //    println(tree.nodes.keys.map(_.name).mkString(","))
 //
@@ -80,5 +87,5 @@ object Driver {
 //    var domTree = am.getResult[DomTreeAnalysis](main)
 //    var aa = am.getResult[BasicAA](main)
 //    logf("domTree.txt", tree.toString)
-//  }
+  }
 }

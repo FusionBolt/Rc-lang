@@ -8,7 +8,7 @@ object Analysis:
     type ResultT = AAResult
   }
 
-  given DomTreeAnalysis with {
-    type ResultT = DomTree
-  }
+//  given DomTreeAnalysis with {
+//    type ResultT = DomTree
+//  }
 

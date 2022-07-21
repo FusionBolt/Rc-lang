@@ -21,6 +21,13 @@ def canReach(a: BasicBlock, b: BasicBlock): Boolean = {
   a.successors.exists(canReach(_, b))
 }
 
+def predecessors(bb: BasicBlock, bbs: List[BasicBlock]): Set[BasicBlock] = {
+  bbs.filter(_.terminator.successors.contains(bb)).toSet
+}
+
+def predecessorsMap(bbs: List[BasicBlock]): Map[BasicBlock, Set[BasicBlock]] = {
+  bbs.map(bb => bb -> predecessors(bb, bbs)).toMap
+}
 
 def dfsBasicBlocks(b: BasicBlock): List[BasicBlock] = {
   var result = List[BasicBlock]()

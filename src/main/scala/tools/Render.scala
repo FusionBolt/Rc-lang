@@ -13,13 +13,13 @@ trait Render {
     dot.render(fileName = fileName, directory = directory, format = "svg")
   }
 
-  def rend[T](fileName: String, directory: String, v: T)(f: (Digraph, T) => Unit): Unit = {
+  protected def rend[T](fileName: String, directory: String, v: T)(f: (Digraph, T) => Unit): Unit = {
     rendDotImpl(fileName, directory) { dot =>
       f(dot, v)
     }
   }
 
-  def rend[T](fileName: String, directory: String, list: List[T])(f: (Digraph, T) => Unit): Unit = {
+  protected def rend[T](fileName: String, directory: String, list: List[T])(f: (Digraph, T) => Unit): Unit = {
     rendDotImpl(fileName, directory) { dot =>
       list.foreach(v => f(dot, v))
     }
