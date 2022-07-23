@@ -1,3 +1,11 @@
+class A
+
+end
+
+class B < A
+
+end
+
 class Point
   var x:Int
   var y:Int
