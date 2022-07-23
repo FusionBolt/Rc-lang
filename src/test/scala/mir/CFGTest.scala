@@ -16,7 +16,7 @@ class CFGTest extends RcTestBase {
     "3" -> "4",
     )
     println(bbs.values.map(_.name))
-    CFGRender().rend("CFGTest", DumpManager.getDumpRoot, bbs.values.toList)
+    CFGRender.rendBBs(bbs.values.toList, "CFGTest")
   }
 
   describe("canReach") {
@@ -35,6 +35,8 @@ class CFGTest extends RcTestBase {
   }
 
   describe("dfsBasicBlocks") {
-
+    it("succ") {
+      dfsBasicBlocks(bbs("1")) should be(List(bbs("1"), bbs("2"), bbs("4"), bbs("3")))
+    }
   }
 }

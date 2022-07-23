@@ -1,7 +1,7 @@
 package rclang
 package compiler
 
-import analysis.{BasicAA, DomTreeAnalysis, SymScanner}
+import analysis.{BasicAA, SymScanner}
 import lexer.Lexer
 import mir.*
 import parser.RcParser
@@ -60,10 +60,10 @@ object Driver {
     val tBr = main.getBB("1")
     val end = main.getBB("3")
     logf("mir.txt", main)
-    CFGRender().rendFn("main.dot", "RcDump", main)
+    CFGRender.rendFn(main, "main.dot", "RcDump")
     val domain = DomTreeBuilder().compute(main)
-    val beginDom = domain(begin)
-    println(beginDom)
+//    val beginDom = domain(begin)
+//    println(beginDom)
 //    val pred =
 //    val tree = DomTreeBuilder().compute(main.bbs.toSet, pred, main.entry)
 

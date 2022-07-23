@@ -1,9 +1,9 @@
 package rclang
 package mir
 
-import tools.Render
+import tools.{DumpManager, Render}
 
-class CFGRender extends Render {
+object CFGRender extends Render {
 //  var blocksEntryName = "blocksEntry"
   def BBEdges(dot: Digraph, bb: BasicBlock) = {
     val name = bb.name
@@ -11,13 +11,13 @@ class CFGRender extends Render {
     dot.edges(bb.terminator.successors.map(b => (name, b.name)).toArray)
   }
 
-  def rendBBs(fileName: String, directory: String, bbs: List[BasicBlock]): Unit = {
+  def rendBBs(bbs: List[BasicBlock], fileName: String, directory: String = DumpManager.getDumpRoot): Unit = {
     rend(fileName, directory, bbs)(BBEdges)
   }
 
-  def rendFn(fileName: String, directory: String, fn: Function): Unit = {
+  def rendFn(fn: Function, fileName: String, directory: String = DumpManager.getDumpRoot): Unit = {
 //    blocksEntryName = fn.entry.name
-    rendBBs(fileName, directory, fn.bbs)
+    rendBBs(fn.bbs, fileName, directory)
   }
 
   override def rendInit(dot: Digraph): Unit = {

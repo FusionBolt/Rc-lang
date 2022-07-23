@@ -4,12 +4,17 @@ package mir
 import tools.tap
 import util.chaining.scalaUtilChainingOps
 
-case class DomTreeNode(var parentTree: DomTree, var basicBlock: BasicBlock) {
-  var domChildren: List[DomTreeNode] = List()
+class DomTreeNode(var parentTree: DomTree, var basicBlock: BasicBlock, var children: List[DomTreeNode] = List()) {
   var iDom: DomTreeNode = null
 
+  def name: String = basicBlock.name
+
   def addChild(child: DomTreeNode) = {
-    domChildren = child :: domChildren
+    children = child :: children
+  }
+
+  def addChilds(childs: List[DomTreeNode]) = {
+    children = childs ::: children
   }
 }
 
@@ -21,7 +26,7 @@ case class DomTree(var parent: Function) {
   var nodes = Map[BasicBlock, DomTreeNode]()
   var entry = DomEntry
   entry.parentTree = this
-  entry.domChildren = List(addNode(parent.entry))
+//  entry.domChildren = List(addNode(parent.entry))
 
   // todo:finish, should recalc
   def addNode(bb: BasicBlock): DomTreeNode = {
@@ -30,18 +35,22 @@ case class DomTree(var parent: Function) {
     )
   }
 
+  def apply(bb: BasicBlock) = node(bb)
   def node(bb: BasicBlock): DomTreeNode = nodes(bb)
-}
 
-extension (i: DomTreeNode) def dom(a: DomTreeNode): Boolean = {
-  if(i == a) {
-    true
-  } else {
-    i.domChildren.find(child => child dom a).isDefined
+  override def toString: String = {
+    nodes.values.toList.sortBy(_.name).map(d => s"${d.name} -> ${d.children.map(_.name).sorted.mkString(",")}").mkString("\n")
   }
 }
 
-infix def sdom(i: DomTreeNode, a: DomTreeNode): Boolean = i != a && (i dom a)
+
+extension (i: DomTreeNode) {
+  def dom(a: DomTreeNode): Boolean = {
+    i.children.contains(a)
+  }
+
+  def sdom(a: DomTreeNode): Boolean = i != a && (i dom a)
+}
 
 // todo: infix format? i iDom b
 infix def idom(i: DomTreeNode, a: DomTreeNode): Boolean = i.iDom == a
@@ -53,46 +62,60 @@ def allReach(a: BasicBlock, b: BasicBlock): Boolean = {
 
 case class DomTreeBuilder() {
   var visited = Set[BasicBlock]()
-//  def build(f: Function): DomTree = {
-//    val dt = DomTree(f)
-//    dfs(f.entry, dt, f)
-//    dt
-//  }
 
   type Node = BasicBlock
   type DomInfoType = Map[Node, Set[Node]]
-  def compute(fn: Function): DomInfoType = {
+
+  def compute(fn: Function): DomTree = {
     val predMap = predecessorsMap(fn.bbs)
-    val n = fn.bbs
-    compute(n.toSet, predMap, fn.entry)
+    val bbs = dfsBasicBlocks(fn.entry)
+    compute(bbs, predMap, fn.entry)
   }
 
-  def compute(N: Set[Node], pred: DomInfoType, root: Node): DomInfoType = {
+  var dumpCompute = false
+
+  def computeLog(str: String) = {
+    if (dumpCompute)
+      println(str)
+  }
+
+  def compute(nodes: List[Node], pred: DomInfoType, root: Node): DomTree = {
     var change = false;
-    var T = Set[Node]()
-    var D = Set[Node]()
-    var Domin = Map[Node, Set[Node]]()
-//    Domin(root) = Set[Node](root)
-    Domin = Domin.updated(root, Set[Node](root))
+    var Domin = Map(root -> Set[Node](root))
+    val N = nodes.toSet
     (N - root).foreach(n => {
-//      Domin(n) = N
       Domin = Domin.updated(n, N)
     })
+    assert(Domin(root).size == 1)
+    assert(root != null)
 
-    while(!change) {
-      (N - root).foreach(n => {
-        T = N
-        pred(n).foreach( p => {
-          T = T & Domin(p)
-        })
-        D = T + n
-        if(D != Domin(n)) then {
+    // remove entry
+    val workList = nodes.tail
+    while (!change) {
+      workList.foreach(n => {
+        computeLog(s"process: ${n.name}")
+        val preds = pred(n)
+        computeLog(s"preds: ${preds.map(_.name).mkString(", ")}")
+        // union set of all predecessors dominator set
+        // first node only be dominated by itself
+        // first result of tmpDom is {root}
+        val tmpDom = preds.foldLeft(N) { (acc, p) => acc & Domin(p) }
+        // predecessors dom set + self (not strict dominate)
+        val D = tmpDom + n
+        if (D != Domin(n)) then {
+          computeLog(s"Dom: ${D.map(_.name).mkString(", ")}")
           change = true
-//          Domin(n) = D
           Domin = Domin.updated(n, D)
         }
       })
     }
-    Domin
+    val tree = DomTree(root.parent)
+    Domin.foreach(d => {
+      tree.addNode(d._1)
+    })
+    Domin.foreach(d => {
+      tree.node(d._1).addChilds(d._2.map(tree.node).toList)
+    })
+    tree
   }
 }
