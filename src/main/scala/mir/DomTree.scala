@@ -2,6 +2,8 @@ package rclang
 package mir
 
 import tools.tap
+
+import scala.collection.mutable.LinkedHashSet
 import util.chaining.scalaUtilChainingOps
 
 class DomTreeNode(var parentTree: DomTree, var basicBlock: BasicBlock, var children: List[DomTreeNode] = List()) {
@@ -60,35 +62,35 @@ def allReach(a: BasicBlock, b: BasicBlock): Boolean = {
   a.successors.forall(canReach(_, b))
 }
 
-case class DomTreeBuilder() {
-  var visited = Set[BasicBlock]()
+type Node = BasicBlock
+type DomInfoType = Map[Node, LinkedHashSet[Node]]
 
-  type Node = BasicBlock
-  type DomInfoType = Map[Node, Set[Node]]
+case class DomTreeBuilder() {
+  var visited = LinkedHashSet[BasicBlock]()
 
   def compute(fn: Function): DomTree = {
     val predMap = predecessorsMap(fn.bbs)
     val bbs = dfsBasicBlocks(fn.entry)
-    compute(bbs, predMap, fn.entry)
+    compute(LinkedHashSet.from(bbs), predMap, fn.entry)
   }
 
-  var dumpCompute = false
-
+  var dumpCompute = true
   def computeLog(str: String) = {
     if (dumpCompute)
       println(str)
   }
 
-  def compute(nodes: List[Node], pred: DomInfoType, root: Node): DomTree = {
+  def computeImpl(nodes: LinkedHashSet[Node], pred: DomInfoType, root: Node): DomInfoType = {
     var change = false;
-    var Domin = Map(root -> Set[Node](root))
-    val N = nodes.toSet
+    var Domin = Map(root -> LinkedHashSet[Node](root))
+    val N = nodes
     (N - root).foreach(n => {
       Domin = Domin.updated(n, N)
     })
     assert(Domin(root).size == 1)
     assert(root != null)
 
+    println(nodes)
     // remove entry
     val workList = nodes.tail
     while (!change) {
@@ -107,9 +109,19 @@ case class DomTreeBuilder() {
           change = true
           Domin = Domin.updated(n, D)
         }
+        println("")
       })
     }
-    val tree = DomTree(root.parent)
+    Domin
+  }
+
+  def compute(nodes: LinkedHashSet[Node], pred: DomInfoType, root: Node): DomTree = {
+    val Domin = computeImpl(nodes, pred, root)
+    makeTree(Domin, root.parent)
+  }
+
+  def makeTree(Domin: DomInfoType, f: Function) : DomTree = {
+    val tree = DomTree(f)
     Domin.foreach(d => {
       tree.addNode(d._1)
     })
@@ -118,4 +130,46 @@ case class DomTreeBuilder() {
     })
     tree
   }
+}
+
+def idomComputeLog(str: String) = {
+  if (false)
+    println(str)
+}
+
+def iDomCompute(N: LinkedHashSet[Node], Domin: DomInfoType, root: Node): Map[Node, Node] = {
+  var tmp = N.foldLeft(Map[Node, LinkedHashSet[Node]]())((acc, n) =>
+    acc.updated(n, Domin(n) - n)
+  )
+
+  //  a != b && a dom b && not exist c: a dom c && c dom b
+
+  // all dominators
+  (N - root).toList.sortBy(_.name).foreach(a => {
+
+    idomComputeLog("a: " + a.name)
+    idomComputeLog("tmp: " + tmp(a).map(_.name).mkString(", "))
+    // tmp(n) - n ==> a dom b && a != b
+    (tmp(a) - a).foreach(b => {
+      // node c ==> a dom c
+      // c != b
+      idomComputeLog("b: " + b.name)
+      (tmp(a) - b).foreach(c => {
+        // if c dom b, then is not idom, should remove from tmp
+        if(tmp(c).contains(b)) {
+          idomComputeLog("c: " + c.name)
+          idomComputeLog("reduce: " + b.name)
+          // todo: why entry not be eliminate
+          tmp = tmp.updated(a, tmp(a) - b)
+        }
+      })
+    })
+    idomComputeLog("")
+  })
+
+  (N - root).map(n => {
+    println(n.name)
+    println(tmp(n))
+    (n -> tmp(n).head)
+  }).toMap
 }

@@ -1,19 +1,25 @@
 package rclang
 package mir
+import scala.collection.mutable.LinkedHashMap
+import scala.collection.mutable.LinkedHashSet
 
 def mkBB(name: String): BasicBlock = {
   val bb = BasicBlock(name, List(MultiSuccessorsInst()))
   bb
 }
 
-type BBsType = Map[String, BasicBlock]
+type BBsType = LinkedHashMap[String, BasicBlock]
 def mkBBs(connections: (String, String)*): BBsType = {
-  val set = connections.foldLeft(Set[BasicBlock]())((s, e) => s + mkBB(e._1) + mkBB(e._2))
-  val map = set.map(s => s.name -> s).toMap
+  // sorted by name
+  val set = connections.foldLeft(Set[BasicBlock]())((s, e) => s + mkBB(e._1) + mkBB(e._2)).filter(b => b.name != "entry" && b.name != "exit")
+  var bbMap = LinkedHashMap("entry" -> mkBB("entry"))
+  val bbInFn = LinkedHashMap.from(set.toList.sortBy(_.name).map(s => s.name -> s))
+  bbMap = bbMap ++ bbInFn
+  bbMap("exit") = mkBB("exit")
   connections.foreach((begin, end) => {
-    map(begin).terminator.asInstanceOf[MultiSuccessorsInst].add(map(end))
+    bbMap(begin).terminator.asInstanceOf[MultiSuccessorsInst].add(bbMap(end))
   })
-  map
+  bbMap
 }
 
 def canReach(a: BasicBlock, b: BasicBlock): Boolean = {
@@ -21,11 +27,11 @@ def canReach(a: BasicBlock, b: BasicBlock): Boolean = {
   a.successors.exists(canReach(_, b))
 }
 
-def predecessors(bb: BasicBlock, bbs: List[BasicBlock]): Set[BasicBlock] = {
-  bbs.filter(_.terminator.successors.contains(bb)).toSet
+def predecessors(bb: BasicBlock, bbs: List[BasicBlock]): LinkedHashSet[BasicBlock] = {
+  LinkedHashSet.from(bbs.filter(_.terminator.successors.contains(bb)))
 }
 
-def predecessorsMap(bbs: List[BasicBlock]): Map[BasicBlock, Set[BasicBlock]] = {
+def predecessorsMap(bbs: List[BasicBlock]): Map[BasicBlock, LinkedHashSet[BasicBlock]] = {
   bbs.map(bb => bb -> predecessors(bb, bbs)).toMap
 }
 
