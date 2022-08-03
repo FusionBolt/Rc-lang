@@ -28,6 +28,7 @@ case class Function(fnName: String,
 
   def getBB(name: String): BasicBlock = bbs.find(_.name == name).get
 
+  // todo: dump with basicblock
   override def toString: String = s"$fnName(${argument.mkString(",")})\n${traverseInst(instructions).mkString("\n")}"
 }
 
@@ -35,6 +36,7 @@ case class Module(var name: String = "", var fnTable: Map[String, Function] = Ma
   var globalVariables: List[GlobalVariable] = List()
   var types: Set[Type] = Set()
   var context: RcContext = null
+  def fns = fnTable.values
 }
 
 case class RcContext() {

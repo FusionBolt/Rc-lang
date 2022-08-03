@@ -4,4 +4,4 @@ import Interface.*
 
 import compiler.CompileOption
 
-@main def main = compiler.Driver(CompileOption("demo/if.rc"))
+@main def main = compiler.Driver(CompileOption("demo/simple.rc"))

@@ -24,7 +24,7 @@ type InFunction = In[Function]
 
 sealed class Instruction(numOps: Int) extends User(numOps) with InBasicBlock
 
-case class BinaryInst(lhsValue: Value, rhsValue: Value) extends Instruction(2) {
+case class BinaryInstBase(lhsValue: Value, rhsValue: Value) extends Instruction(2) {
   setOperand(0, lhsValue)
   setOperand(1, rhsValue)
   def lhs: Value = getOperand(0)

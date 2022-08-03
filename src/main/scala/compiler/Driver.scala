@@ -11,8 +11,9 @@ import ast.ClassesRender
 import ty.{Infer, TyCtxt, Type, TypeCheck, TypedTranslator}
 import tools.RcLogger.{log, logf}
 import analysis.Analysis.given
+import ast.{Class, Ident, Item, RcModule}
 
-import ast.{Ident, Item, RcModule, Class}
+import rclang.codegen.toLIR
 
 import scala.io.Source
 
@@ -51,41 +52,13 @@ object Driver {
     val ast = parse(src)
     val (typedModule, table) = typeProc(ast)
     val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
-    domTree(mirMod)
+    codegen(mirMod)
   }
 
-  def domTree(mirMod: Module) = {
-    val main = mirMod.fnTable.values.head
-    val begin = main.getBB("0")
-    val tBr = main.getBB("1")
-    val end = main.getBB("3")
-    logf("mir.txt", main)
-    CFGRender.rendFn(main, "main.dot", "RcDump")
-    val domain = DomTreeBuilder().compute(main)
-//    val beginDom = domain(begin)
-//    println(beginDom)
-//    val pred =
-//    val tree = DomTreeBuilder().compute(main.bbs.toSet, pred, main.entry)
-
-
-//    val tree = DomTreeBuilder().build(main)
-//    println(tree.nodes.keys.map(_.name).mkString(","))
-//
-//    val n1 = tree.node(begin)
-//    val n2 = tree.node(end)
-//    val d = n1 dom n2
-//
-//    println(tree.nodes.contains(tBr))
-//
-//    val r = n1 dom n2
-//    val id = sdom(n1, n2)
-//    println("is Dom: " + d)
-//    println("is IDom: " + id)
-//    var am = AnalysisManager[Function]()
-//    am.addAnalysis(DomTreeAnalysis())
-//    am.addAnalysis(BasicAA())
-//    var domTree = am.getResult[DomTreeAnalysis](main)
-//    var aa = am.getResult[BasicAA](main)
-//    logf("domTree.txt", tree.toString)
+  def codegen(mirMod: Module) = {
+    val machineIR = toLIR(mirMod)
+//    println(machineIR.name)
+    println(machineIR)
+    logf("LIR.txt", machineIR)
   }
 }
