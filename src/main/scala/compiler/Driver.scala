@@ -52,13 +52,14 @@ object Driver {
     val ast = parse(src)
     val (typedModule, table) = typeProc(ast)
     val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
+    logf("mir.txt", mirMod)
     codegen(mirMod)
   }
 
   def codegen(mirMod: Module) = {
-    val machineIR = toLIR(mirMod)
-//    println(machineIR.name)
-    println(machineIR)
-    logf("LIR.txt", machineIR)
+    val fns = toLIR(mirMod)
+//    println(fns.name)
+    val fnStr = fns.mkString("\n\n")
+    logf("LIR.txt", fnStr)
   }
 }

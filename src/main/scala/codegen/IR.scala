@@ -3,6 +3,7 @@ package codegen
 
 import scala.collection.immutable.ListMap
 import mir.Value
+import ty.Type
 
 class MachineBasicBlock(var nameStr: String, var stmts: List[MachineInst] = List(), var successors: List[MachineBasicBlock] = List()) {
   def insert[T <: MachineInst](inst: T): T = {
@@ -11,12 +12,12 @@ class MachineBasicBlock(var nameStr: String, var stmts: List[MachineInst] = List
   }
 }
 
-class MachineFunction(var name: String, var bbs: List[MachineBasicBlock], var regMap: Map[Value, VReg]) {
+class MachineFunction(var name: String, var bbs: List[MachineBasicBlock], var regMap: Map[Value, Reg]) {
   def instructions = bbs.flatMap(_.stmts)
   override def toString: String = {
     val inst = s"$name()\n${instructions.map(_.toString).mkString("\n")}"
     val reg = "RegMap\n" + regMap.map((k, v) => s"${k} -> ${v}").mkString("\n")
-    inst + "\n\n" + reg
+    inst + "\n\n" + reg + "\n"
   }
 }
 
@@ -31,12 +32,15 @@ case class ISA(var instSet: List[ISAInst] = List()) {
   }
 }
 
-sealed class MachineOperand() {
+class MachineOperand() {
 
 }
 
-case class VReg(name: String = "", number: Int) extends MachineOperand()
-
-case class Reg(name: String = "", number: Int) extends MachineOperand()
-
 case class Imm(value: Int) extends MachineOperand()
+
+//case class Stack() {
+//  var objects = List[Reg]()
+//  def getFromStack(offset: Int, ty: Type): LoadInst = {
+//
+//  }
+//}

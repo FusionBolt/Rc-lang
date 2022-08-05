@@ -37,7 +37,8 @@ case class UnaryInst(operandValue: Value) extends Instruction(1) {
 }
 // todo: function is a operand?
 case class Call(func: Function, args_value: List[Value]) extends Instruction(varOps) {
-  setOperands(args)
+  setOperands(args_value)
+  ty = func.retType
   def args = getOperands
   def getArg(i: Int): Value = getOperand(i)
 }

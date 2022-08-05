@@ -56,6 +56,7 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
   def procMethod(method: Method, prefix: String = ""): Function = {
     // ir builder manages the function
     val args = procArgument(method.decl.inputs)
+    env = args.map(arg => Ident(arg.name) -> Integer(1)).toMap
     val fnName = s"${prefix}_${method.decl.name.str}"
     val fn = Function(fnName, makeType(method.decl.outType), args)
     parentModule.fnTable += (fnName -> fn)
@@ -88,7 +89,7 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
   }
 
   def procExpr(expr: Expr): Value = {
-    var v = expr match
+    val v = expr match
       case Expr.Number(v) => Integer(v)
       case Expr.Identifier(ident) => builder.createLoad(env(ident))
       case Expr.Bool(b) => Bool(b)
@@ -147,9 +148,11 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
       // todo: bad design? init value
       case ast.Stmt.Local(name, tyInfo, value) => {
         val alloc = builder.createAlloc(name.str, stmt.ty)
+        builder.createStore(procExpr(value), alloc)
         env += (name -> alloc)
         alloc
       }
+
       case ast.Stmt.Expr(expr) => procExpr(expr)
       case ast.Stmt.While(cond, body) => ???
       case ast.Stmt.Assign(name, value) => builder.createStore(procExpr(value), env(name))

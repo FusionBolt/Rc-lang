@@ -2,4 +2,9 @@ def main()
   var a = 1
   var b = a + 1
   b = 2
+  var c = add(a, b)
+end
+
+def add(a: Int, b: Int)
+  a + b
 end
