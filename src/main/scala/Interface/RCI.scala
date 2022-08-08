@@ -3,4 +3,4 @@ package Interface
 
 import interpreter.Interpreter
 
-@main def main = Interpreter().run
+@main def rci = Interpreter().run

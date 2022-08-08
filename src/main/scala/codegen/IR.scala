@@ -38,6 +38,7 @@ class MachineOperand() {
 
 case class Imm(value: Int) extends MachineOperand()
 
+case class RelativeReg(reg: Reg, offset: Int) extends MachineOperand
 //case class Stack() {
 //  var objects = List[Reg]()
 //  def getFromStack(offset: Int, ty: Type): LoadInst = {

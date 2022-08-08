@@ -56,8 +56,9 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
   def procMethod(method: Method, prefix: String = ""): Function = {
     // ir builder manages the function
     val args = procArgument(method.decl.inputs)
-    env = args.map(arg => Ident(arg.name) -> Integer(1)).toMap
-    val fnName = s"${prefix}_${method.decl.name.str}"
+    env = args.map(arg => Ident(arg.name) -> arg).toMap
+//    val fnName = s"${prefix}_${method.decl.name.str}"
+    val fnName = method.decl.name.str
     val fn = Function(fnName, makeType(method.decl.outType), args)
     parentModule.fnTable += (fnName -> fn)
     builder = IRBuilder()
