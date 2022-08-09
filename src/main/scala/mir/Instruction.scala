@@ -8,7 +8,7 @@ trait Terminator {
 }
 
 // todo:override is ok?
-class Argument(nameStr: String, argTy: Type) extends Value {
+case class Argument(nameStr: String, argTy: Type) extends Value {
   name = nameStr
   ty = argTy
   var default: Option[Value] = None
@@ -36,9 +36,18 @@ case class UnaryInst(operandValue: Value) extends Instruction(1) {
   def operand: Value = getOperand(0)
 }
 // todo: function is a operand?
-case class Call(func: Function, args_value: List[Value]) extends Instruction(varOps) {
+class CallBase(func: Function, args_value: List[Value]) extends Instruction(varOps) {
   setOperands(args_value)
   ty = func.retType
+  def args = getOperands
+  def getArg(i: Int): Value = getOperand(i)
+}
+
+case class Call(func: Function, args_value: List[Value]) extends CallBase(func, args_value)
+
+class Intrinsic(intrName: String, args_value: List[Value]) extends Instruction(varOps) {
+  name = intrName
+  setOperands(args_value)
   def args = getOperands
   def getArg(i: Int): Value = getOperand(i)
 }

@@ -42,6 +42,7 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
 
   var builder = IRBuilder()
   var env = Map[Ident, Value]()
+  var strTable = List[Str]()
 
   // todo: argument and params
   def procArgument(params: Params): List[Argument] = {
@@ -69,6 +70,7 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
     }
     fn.bbs = builder.basicBlocks
     fn.entry = builder.basicBlocks.head
+    fn.strTable = strTable
     fn
   }
 
@@ -100,7 +102,11 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
         // todo:op
         builder.createBinary(op.toString, l, r)
       }
-      case Expr.Str(str) => Str(str)
+      case Expr.Str(str) => {
+        val strV = Str(str)
+        strTable = strTable :+ strV
+        strV
+      }
       case Expr.If(cond, true_branch, false_branch) => {
         val c = procExpr(cond)
         val trueBB = builder.createBB()
@@ -123,7 +129,13 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
         phi
       }
       //      case Expr.Lambda(args, block) => ???
-      case Expr.Call(target, args) => builder.createCall(getFun(target), args.map(procExpr))
+      case Expr.Call(target, args) => {
+        if(intrinsics.contains(target.str)) {
+          builder.createIntrinsic(target.str, args.map(procExpr))
+        } else {
+          builder.createCall(getFun(target), args.map(procExpr))
+        }
+      }
       //      case Expr.MethodCall(obj, target, args) => ???
       case block: Expr.Block => procBlock(block)
       case Expr.Return(expr) => builder.createReturn(procExpr(expr))

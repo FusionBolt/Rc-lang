@@ -7,11 +7,23 @@ import tools.DumpManager
 
 import java.io.File
 
+// todo: call c printf
+// extern symbol, push arg, call
+// save str
+// process constant and not constant
+
+// todo: program entry: .main
+// default _start -> main
+// can modify in link script
+
+
+type size
 class LIRBuilder {
   var regMap = Map[String, Reg]()
   var valueReg = Map[Value, Reg]()
   var basicBlock = MachineBasicBlock("base")
   var valueOperand = Map[Value, MachineOperand]()
+  var strTable = Map[String, MachineOperand]()
   def bbs = List(basicBlock) // todo:fix this
   def registerReg(v: Value, reg: Reg): Reg = {
     regMap = regMap + (regMap.size.toString -> reg)
@@ -36,8 +48,20 @@ class LIRBuilder {
   }
 
   def getOperand(v: Value): MachineOperand = {
+    // todo:bug point
     if(v.isInstanceOf[Constant]) {
-      return getOrCreate(v)
+      return v.asInstanceOf[Constant] match
+        case Str(str) => {
+          strTable.getOrElse(str, {
+            // move to reg
+            // from is a addr
+            // todo:maybe error
+            val strReg = getOrCreate(v)
+            buildLoad(AddrOfValue(RelativeReg(RIP, Offset.LabelOffset(strTable.size.toString))), strReg)
+            strReg
+          })
+        }
+        case _ => getOrCreate(v)
     }
     valueReg.get(v) orElse valueOperand.get(v) match
       case Some(value) => value
@@ -65,6 +89,10 @@ class LIRBuilder {
     basicBlock.insert(LoadInst(ld, t))
   }
 
+  def buildLoad(from: MachineOperand, to: Reg): LoadInst = {
+    basicBlock.insert(LoadInst(to, from))
+  }
+
   def buildStore(v: Value, ptr: Value): StoreInst = {
     val target = getOrCreate(ptr)
     val value = v match
@@ -74,14 +102,23 @@ class LIRBuilder {
   }
 
   def buildReturn(v: Value): ReturnInst = {
-    val t = valueReg(v)
+    val t = v match
+      case _: Intrinsic => Imm(0)
+      case _ => valueReg(v)
+      Imm(0)
     basicBlock.insert(StoreInst(t, EAX))
+    buildPop(RBP)
     basicBlock.insert(ReturnInst(t))
   }
 
   def buildPush(v: Value): PushInst = {
-    val value = getOrCreate(v)
+//    val value = getOrCreate(v)
+    val value = getOperand(v)
     basicBlock.insert(PushInst(value))
+  }
+
+  def buildPush(v: MachineOperand): PushInst = {
+    basicBlock.insert(PushInst(v))
   }
 
   def buildPop(target: Target): PopInst = {
@@ -91,6 +128,10 @@ class LIRBuilder {
   def buildCall(target: String): CallInst = {
     // save result
     basicBlock.insert(CallInst(target))
+  }
+
+  def buildInlineASM(asm: String): InlineASM = {
+    basicBlock.insert(InlineASM(asm))
   }
 }
 
@@ -114,29 +155,40 @@ case class PushInst(value: MachineOperand) extends MachineInst
 case class PopInst(target: Target) extends MachineInst
 
 // todo: target is a addr
-case class CallInst(target: String) extends MachineInst
+case class CallInst(target: Label) extends MachineInst
+
+case class InlineASM(content: String) extends MachineInst
 
 class LIRTranslator() {
   var builder = new LIRBuilder()
 
   def apply(fn: Function): MachineFunction = {
+    builder.buildPush(RBP)
+    builder.buildLoad(RSP, RBP)
     allocInput(fn.argument)
     fn.bbs.foreach(translateBB)
-    // todo: alloc all
-    MachineFunction(fn.name, builder.bbs, builder.valueReg)
+    // todo: alloc local in stack
+    MachineFunction(fn.name, builder.bbs, builder.valueReg, builder.strTable)
   }
 
+  val argPassByStack = true
+  // rdi, rsi, rdx, rcx, r8/r8d, r9/r9d
   def allocInput(args: List[Argument]) = {
     // esp + i
     // read from stack
     var wordLength = 4
     var offset = wordLength
     args.foreach(arg => {
-      val reg = RelativeReg(StackBaseReg, -offset)
-      // todo:fix this
-      builder.valueOperand = builder.valueOperand.updated(arg, reg)
-      // todo:type size
-      offset += wordLength
+
+      if(argPassByStack) {
+        val reg = RelativeReg(StackBaseReg, Offset.NumOffset(-offset))
+        // todo:fix this
+        builder.valueOperand = builder.valueOperand.updated(arg, reg)
+        // todo:type size
+        offset += wordLength
+      } else {
+        // 
+      }
     })
   }
 
@@ -152,6 +204,7 @@ class LIRTranslator() {
       case inst: Alloc => visitAlloc(inst)
       case inst: Load => visitLoad(inst)
       case inst: Store => visitStore(inst)
+      case inst: Intrinsic => visitIntrinsic(inst)
 //      case inst: PhiNode => visitPhiNode(inst)
 //      case inst: SwitchInst => visitSwitchInst(inst)
 //      case inst: MultiSuccessorsInst => visitMultiSuccessorsInst(inst)
@@ -197,6 +250,15 @@ class LIRTranslator() {
     builder.buildCall(call.func.name)
     // todo: if has return, then pop ret??
   }
+
+  def visitIntrinsic(intr: Intrinsic) = {
+    val f = intr.name match
+      case "open" => "op"
+      case "print" => "puts@PLT"
+      case _ => ???
+    intr.args.foreach(builder.buildPush(_))
+    builder.buildInlineASM(s"call ${f}")
+  }
 }
 
 object RegisterAllocation {
@@ -215,7 +277,11 @@ extension (dir: String) {
 def toLIR(module: Module): List[MachineFunction] = {
   val fns = module.fns.map(LIRTranslator()(_)).toList
   val text = TextSection()
-  text.addFn(fns(1).name -> fns(1).instructions.map(GNUASM.toASM))
+  val strTable = fns.flatMap(fn => (0 until fn.strTable.size).zip(fn.strTable.keys).map((i, str) => StrSection(i, List(str))))
+  val rdata = RDataSection(strTable)
+  println(rdata.asm)
+  fns.foreach(fn => text.addFn(fn.name -> fn.instructions.map(GNUASM.toASM)))
+//  text.addFn(fns(1).name -> fns(1).instructions.map(GNUASM.toASM))
   logf("asm.s", text.toString)
 
   as(DumpManager.getDumpRoot /"asm.s", DumpManager.getDumpRoot / "tmp.o")

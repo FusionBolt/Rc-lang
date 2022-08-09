@@ -19,6 +19,19 @@ case class TextSection(var fns: Map[String, List[String]] = Map()) extends Secti
   }
 }
 
+case class RDataSection(data: List[StrSection] = List()) extends Section {
+  def asm = data.map(_.asm + "\n")
+}
+
+case class StrSection(count: Int, var strs: List[String] = List()) {
+  val decls = ".section .rodata"
+  val label = s".LC$count:"
+  def strsASM = {
+    strs.map(s => s"${indent}.string $s\n").mkString
+  }
+  def asm = s"$decls\n$label\n$strsASM\n"
+}
+
 case class Assembly() {
   def file: String = ""
   var dataSection: List[String] = List()
@@ -55,15 +68,17 @@ object GNUASM {
   }
 
   def toASM(inst: MachineInst): String = {
+    // 1. 32 and 64
     inst match
       case ArithInst(op, lhs, rhs) => arithInstToASM(op, lhs, rhs)
-      case LoadInst(target, value) => s"movl ${operandToASM(target)}, ${operandToASM(value)}"
-      case StoreInst(value, target) => s"movl ${operandToASM(target)}, ${operandToASM(value)}"
+      case LoadInst(target, value) => s"movl ${operandToASM(value)}, ${operandToASM(target)}"
+      case StoreInst(value, target) => s"movl ${operandToASM(value)}, ${operandToASM(target)}"
       case DynamicAllocInst(target) => "" // todo:error
       case ReturnInst(value) => "ret"
-      case PushInst(value) => s"pushl ${operandToASM(value)}"
-      case PopInst(target) => ???
+      case PushInst(value) => s"pushq ${operandToASM(value)}"
+      case PopInst(target) => s"popq ${regToASM(target)}"
       case CallInst(target) => s"call $target"
+      case InlineASM(content) => content
       case _ => ???
   }
 
@@ -79,10 +94,16 @@ object GNUASM {
       case Imm(value) => "$"+{value.toString}
       case r: Reg => regToASM(r)
       case RelativeReg(reg, offset) => s"$offset(${regToASM(reg)})"
+      case AddrOfValue(v) => v.toString
+      case Label(name) => name
       case _ => ???
   }
 
   def regToASM(reg: Reg): String = {
+    if reg.length == 4 then reg4ToASM(reg) else reg8ToASM(reg)
+  }
+
+  def reg4ToASM(reg: Reg): String = {
     val name = reg.number match
       case 0 => "eax"
       case 1 => "ebx"
@@ -90,8 +111,8 @@ object GNUASM {
       case 3 => "edx"
       case 4 => "esi"
       case 5 => "edi"
-      case 6 => "ebp"
-      case 7 => "esp"
+      case 6 => "ebp" // ebp
+      case 7 => "esp" // esp
       case 8 => "r8d"
       case 9 => "r9d"
       case 10 => "r10d"
@@ -100,6 +121,28 @@ object GNUASM {
       case 13 => "r13d"
       case 14 => "r14d"
       case 15 => "r15d"
+      case _ => "out"
+    "%" + name
+  }
+
+  def reg8ToASM(reg: Reg): String = {
+    val name = reg.number match
+      case 0 => "rax"
+      case 1 => "rbx"
+      case 2 => "rcx"
+      case 3 => "rdx"
+      case 4 => "rsi"
+      case 5 => "rdi"
+      case 6 => "rbp"
+      case 7 => "rsp"
+      case 8 => "r8"
+      case 9 => "r9"
+      case 10 => "r10"
+      case 11 => "r11"
+      case 12 => "r12"
+      case 13 => "r13"
+      case 14 => "r14"
+      case 15 => "r15"
       case _ => "out"
     "%" + name
   }

@@ -22,6 +22,7 @@ case class Function(fnName: String,
                     var bbs: List[BasicBlock] = List()) extends GlobalValue {
   name = fnName
   var entry: BasicBlock = null
+  var strTable = List[Str]()
   def instructions = bbs.flatMap(_.stmts)
 
   def fnType = FnType(retType, argument.map(_.ty))

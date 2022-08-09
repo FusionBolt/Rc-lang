@@ -33,6 +33,7 @@ case class IRBuilder() {
   def createCondBr(cond: Value, True: BasicBlock, False: BasicBlock) : CondBranch = insert(CondBranch(cond, True, False))
   def createBr(dest: BasicBlock) : Branch = insert(Branch(dest))
   def createCall(func: Function, args: List[Value]) : Call = insert(Call(func, args))
+  def createIntrinsic(intr: String, args: List[Value]) : Intrinsic = insert(Intrinsic(intr, args))
   def createReturn(value: Value) : Return = insert(Return(value))
   def createAlloc(name: String, typ: Type) : Alloc = insert(Alloc(name, typ))
   def createLoad(value: Value): Load = insert(Load(value))

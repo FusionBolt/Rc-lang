@@ -1,6 +1,9 @@
 package rclang
 package codegen
 
+import codegen.MachineOperand
+
+import scala.collection.immutable.Map
 import scala.collection.immutable.ListMap
 import mir.Value
 import ty.Type
@@ -12,7 +15,7 @@ class MachineBasicBlock(var nameStr: String, var stmts: List[MachineInst] = List
   }
 }
 
-class MachineFunction(var name: String, var bbs: List[MachineBasicBlock], var regMap: Map[Value, Reg]) {
+class MachineFunction(var name: String, var bbs: List[MachineBasicBlock], var regMap: Map[Value, Reg], var strTable: Map[String, MachineOperand] = Map()) {
   def instructions = bbs.flatMap(_.stmts)
   override def toString: String = {
     val inst = s"$name()\n${instructions.map(_.toString).mkString("\n")}"
@@ -38,7 +41,18 @@ class MachineOperand() {
 
 case class Imm(value: Int) extends MachineOperand()
 
-case class RelativeReg(reg: Reg, offset: Int) extends MachineOperand
+enum Offset:
+  case NumOffset(int: Int)
+  case LabelOffset(str: String)
+
+case class RelativeReg(reg: Reg, offset: Offset) extends MachineOperand
+
+case class AddrOfValue(value: MachineOperand) extends MachineOperand
+
+case class Label(name: String) extends MachineOperand
+
+implicit def strToLabel(str: String): Label = Label(str)
+
 //case class Stack() {
 //  var objects = List[Reg]()
 //  def getFromStack(offset: Int, ty: Type): LoadInst = {

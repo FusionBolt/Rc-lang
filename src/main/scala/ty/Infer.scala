@@ -5,6 +5,8 @@ import ast.*
 import ty.*
 import ty.TyCtxt
 
+import rclang.mir.intrinsics
+
 case object Infer {
   var tyCtxt: TyCtxt = TyCtxt()
   def enter[T](tyCtxt: TyCtxt, f: => T): T = {
