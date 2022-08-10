@@ -7,8 +7,4 @@ def main()
   else
     a = 4
   end
-
-  put_i(a)
-  var b = f()
-  put_i(b)
 end

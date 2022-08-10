@@ -6,7 +6,7 @@ import compiler.Driver.{codegen, genASM, parse, typeProc}
 import mir.*
 import tools.RcLogger.{log, logf}
 
-class PrintTest extends RcTestBase {
+class SimpleTest extends RcTestBase {
   def getModule(src: String) = {
     val ast = parse(src)
     val (typedModule, table) = typeProc(ast)
@@ -21,31 +21,63 @@ class PrintTest extends RcTestBase {
     genASM(fns)
   }
 
-  val src = """def main()
-              |    print("Hello world")
-              |end""".stripMargin
+  def getASM(src: String) = {
+    codegen(getModule(src))
+  }
 
-  val mod = getModule(src)
+  describe("print") {
+    val src = """def main()
+                |    print("Hello world")
+                |end
+                |""".stripMargin
 
-  describe("success") {
     it("ok") {
-      val asm = codegen(mod)
+      val asm = getASM(src).strip
       val expect = """.section .text
-                      |  .globl add
-                      |  .type  add, @function
-                      |add:
-                      |  pushq %rbp
-                      |  movq %rsp, %rbp
-                      |  movl %edi, %ecx
-                      |  movl %esi, %esi
-                      |  addl %ecx, %esi
-                      |  movl %esi, %eax
-                      |  popq %rbp
-                      |  ret
-                      |.LFE0:
-                      |  .ident "RCC: 0.0.1"
-                      |""".stripMargin
-      assert(asm == expect)
+                     |  .globl main
+                     |  .type  main, @function
+                     |main:
+                     |  pushq %rbp
+                     |  movq %rsp, %rbp
+                     |  leaq .LC0(%rip), %rax
+                     |  movq %rax, %rdi
+                     |  call puts@PLT
+                     |  movl $0, %eax
+                     |  popq %rbp
+                     |  ret
+                     |.LFE0:
+                     |  .ident "RCC: 0.0.1"
+                     |.section .rodata
+                     |.LC0:
+                     |  .string "Hello world"""".stripMargin
+      asm should be (expect)
+    }
+  }
+
+  describe("add") {
+    val src = """def add(a: Int, b: Int)
+                |  a + b
+                |end
+                |""".stripMargin
+    it("ok") {
+      val asm = getASM(src)
+      val expect = """.section .text
+                     |  .globl add
+                     |  .type  add, @function
+                     |add:
+                     |  pushq %rbp
+                     |  movq %rsp, %rbp
+                     |  movl %edi, %ecx
+                     |  movl %esi, %esi
+                     |  addl %ecx, %esi
+                     |  movl %esi, %eax
+                     |  popq %rbp
+                     |  ret
+                     |.LFE0:
+                     |  .ident "RCC: 0.0.1"
+                     |""".stripMargin
+      println(asm)
+      asm should be(expect)
     }
   }
 }

@@ -9,7 +9,9 @@ import pass.AnalysisManager
 import tools.*
 import ast.ClassesRender
 import ty.{Infer, TyCtxt, Type, TypeCheck, TypedTranslator}
-import tools.RcLogger.{log, logf}
+import tools.RcLogger.{log, logf, warning}
+
+import rclang.codegen.MachineFunction
 //import analysis.Analysis.`given`
 import ast.{Class, Ident, Item, RcModule}
 import codegen.{GNUAssembler, GNUASM, RDataSection, StrSection, TextSection, toLIR}
@@ -59,18 +61,29 @@ object Driver {
 
   def codegen(mirMod: Module) = {
     val fns = log(toLIR(mirMod), "ToLIR")
-//    println(fns.name)
-    val fnStr = fns.mkString("\n\n")
-    logf("LIR.txt", fnStr)
+    logf("LIR.txt", fns.mkString("\n\n"))
+    genASM(fns)
+    genELF(mirMod.fnTable.contains("main"))
+  }
 
+
+  def genELF(hasMain: Boolean) = {
+    val o = log(as(DumpManager.getDumpRoot / "asm.s", DumpManager.getDumpRoot / "tmp.o"), "As")
+    if (hasMain) {
+      log(toExe(o.get), "ToELF")
+    } else {
+      warning("don't has main")
+    }
+  }
+
+  def genASM(fns: List[MachineFunction]) = {
     val text = TextSection()
     val strTable = fns.flatMap(fn => (0 until fn.strTable.size).zip(fn.strTable.keys).map((i, str) => StrSection(i, List(str))))
     val rdata = RDataSection(strTable)
     fns.foreach(fn => text.addFn(fn.name -> fn.instructions.map(GNUASM.toASM)))
-    //  text.addFn(fns(1).name -> fns(1).instructions.map(GNUASM.toASM))
-    logf("asm.s", text.asm + rdata.asm)
-    val o = log(as(DumpManager.getDumpRoot /"asm.s", DumpManager.getDumpRoot / "tmp.o"), "As")
-//    log(toELF(o.get), "ToELF")
+    val asm = text.asm + rdata.asm
+    logf("asm.s", asm)
+    asm
   }
 
   def as(srcPath: String, destPath: String): Option[String] = {
@@ -79,7 +92,7 @@ object Driver {
     Some(destPath)
   }
 
-  def toELF(asmPath: String) = {
+  def toExe(asmPath: String) = {
     val outPath = asmPath.replace("tmp.o", "a.out")
     val args = List(asmPath, "-o", outPath)
     val out = s"gcc ${args.mkString(" ")}".!!

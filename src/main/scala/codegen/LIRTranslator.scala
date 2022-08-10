@@ -37,27 +37,32 @@ class LIRBuilder {
         case None => throw new RuntimeException(s"$v not found")
   }
 
-  // todo:load constant value
-  def getOperand(v: Value): MachineOperand = {
-    // todo:bug point
-    if(v.isInstanceOf[Constant]) {
-      return v.asInstanceOf[Constant] match
-        case Str(str) => {
-          strTable.getOrElse(str, {
-            // move to reg
-            // from is a addr
-            // todo:maybe error
-            val strReg = getOrCreate(v)
-            buildLoad(AddrOfValue(RelativeReg(RIP, Offset.LabelOffset(".LC" + strTable.size.toString))), strReg)
-            strTable = strTable + (str -> strReg)
-            strReg
-          })
-        }
-        case _ => getOrCreate(v)
-    }
+  def getConstant(const: Constant) = {
+    const match
+      case Str(str) => {
+        strTable.getOrElse(str, {
+          // move to reg
+          // from is a addr
+          // todo:maybe error
+          val strReg = getOrCreate(const)
+          buildLoad(AddrOfValue(RelativeReg(RIP, Offset.LabelOffset(".LC" + strTable.size.toString))), strReg)
+          strTable = strTable + (str -> strReg)
+          strReg
+        })
+      }
+      case _ => getOrCreate(const)
+  }
+
+  def getRegOrOperand(v: Value) = {
     valueReg.get(v) orElse valueOperand.get(v) match
       case Some(value) => value
       case None => throw new RuntimeException(s"Unknown value $v")
+  }
+
+  def getOperand(v: Value): MachineOperand = {
+    v match
+      case const: Constant => getConstant(const)
+      case _ => getRegOrOperand(v)
   }
 
   def getOrCreate(v: Value): Reg = {

@@ -13,6 +13,10 @@ import java.io.{File, PrintWriter}
 object RcLogger {
   val logger: Logger[IO] = consoleLogger()
 
+  def warning(str: String): Unit = {
+    log(str)
+  }
+
   def log(str: String): Unit = {
     logger.info(str).unsafeRunSync()
   }

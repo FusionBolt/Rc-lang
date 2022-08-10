@@ -52,10 +52,9 @@ extension (i: DomTreeNode) {
   }
 
   def sdom(a: DomTreeNode): Boolean = i != a && (i dom a)
-}
 
-// todo: infix format? i iDom b
-infix def idom(i: DomTreeNode, a: DomTreeNode): Boolean = i.iDom == a
+  def idom(a: DomTreeNode): Boolean = i.iDom == a
+}
 
 def allReach(a: BasicBlock, b: BasicBlock): Boolean = {
   if (a == b) return true
@@ -159,7 +158,6 @@ def iDomCompute(N: LinkedHashSet[Node], Domin: DomInfoType, root: Node): Map[Nod
         if(tmp(c).contains(b)) {
           idomComputeLog("c: " + c.name)
           idomComputeLog("reduce: " + b.name)
-          // todo: why entry not be eliminate
           tmp = tmp.updated(a, tmp(a) - b)
         }
       })

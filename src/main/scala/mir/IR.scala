@@ -33,7 +33,7 @@ case class Function(fnName: String,
   override def toString: String = s"$fnName(${argument.mkString(",")})\n${traverseInst(instructions).mkString("\n")}\n"
 }
 
-case class Module(var name: String = "", var fnTable: Map[String, Function] = Map()) {
+case class Module(var name: String = "MainModule", var fnTable: Map[String, Function] = Map()) {
   var globalVariables: List[GlobalVariable] = List()
   var types: Set[Type] = Set()
   var context: RcContext = null
