@@ -53,6 +53,15 @@ case class Label(name: String) extends MachineOperand
 
 implicit def strToLabel(str: String): Label = Label(str)
 
+val wordLength = 4
+def sizeof(operand: MachineOperand): Int = {
+  operand match
+    case reg1: Reg => reg1.length
+    case RelativeReg(reg, offset) => reg.length
+    case AddrOfValue(value) => sizeof(value)
+    case Imm(value) => wordLength
+    case _ => 0
+}
 //case class Stack() {
 //  var objects = List[Reg]()
 //  def getFromStack(offset: Int, ty: Type): LoadInst = {

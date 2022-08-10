@@ -25,6 +25,23 @@ case class StructType(name: String, fields: Map[String, Type]) extends Type
 
 case class PointerType(ty: Type) extends Type
 
+def sizeof(ty: Type): Int = {
+  // PtrLength == WordLength
+  val ptrLength = 8
+  ty match
+    case BooleanType => 1
+    case StringType => ptrLength
+    case Int32Type => 4
+    case FloatType => 4
+    case NilType => 0
+    case FnType(ret, params) => ptrLength
+    case InferType => -1 // enum
+    case ErrType(msg) => -1
+    case StructType(name, fields) => -1
+    case PointerType(ty) => ptrLength
+    case _ => ???
+}
+
 trait Typed {
   var ty: Type = InferType
 

@@ -9,12 +9,13 @@ class Reg(val number: Int, val length: Int = 4) extends MachineOperand() with TR
 
 class SpecReg(number: Int) extends Reg(number, 8)
 
-// todo:fix this number
 object StackBaseReg extends SpecReg(7)
 
-case class RetReg() extends TReg
+case class RetReg() extends Reg(0)
 
 case class PCReg() extends TReg
+
+case class ParamReg(num: Int, len: Int = 4) extends Reg(num, len)
 
 object EAX extends Reg(0)
 

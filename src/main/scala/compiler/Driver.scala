@@ -10,12 +10,14 @@ import tools.*
 import ast.ClassesRender
 import ty.{Infer, TyCtxt, Type, TypeCheck, TypedTranslator}
 import tools.RcLogger.{log, logf}
-import analysis.Analysis.given
+//import analysis.Analysis.`given`
 import ast.{Class, Ident, Item, RcModule}
+import codegen.{GNUAssembler, GNUASM, RDataSection, StrSection, TextSection, toLIR}
 
-import rclang.codegen.toLIR
-
+import scala.sys.process.*
 import scala.io.Source
+import java.io.File
+import java.nio.file.Path
 
 object Driver {
   def getSrc(path: String) = {
@@ -45,7 +47,6 @@ object Driver {
     (typedModule, tyCtxt.globalTable.methodTypeTable.toMap)
   }
 
-  // todo:should not in interface
   def apply(option: CompileOption): Unit = {
     DumpManager.mkDumpRootDir
     val src = getSrc(option.srcPath)
@@ -57,9 +58,36 @@ object Driver {
   }
 
   def codegen(mirMod: Module) = {
-    val fns = toLIR(mirMod)
+    val fns = log(toLIR(mirMod), "ToLIR")
 //    println(fns.name)
     val fnStr = fns.mkString("\n\n")
     logf("LIR.txt", fnStr)
+
+    val text = TextSection()
+    val strTable = fns.flatMap(fn => (0 until fn.strTable.size).zip(fn.strTable.keys).map((i, str) => StrSection(i, List(str))))
+    val rdata = RDataSection(strTable)
+    fns.foreach(fn => text.addFn(fn.name -> fn.instructions.map(GNUASM.toASM)))
+    //  text.addFn(fns(1).name -> fns(1).instructions.map(GNUASM.toASM))
+    logf("asm.s", text.asm + rdata.asm)
+    val o = log(as(DumpManager.getDumpRoot /"asm.s", DumpManager.getDumpRoot / "tmp.o"), "As")
+//    log(toELF(o.get), "ToELF")
+  }
+
+  def as(srcPath: String, destPath: String): Option[String] = {
+    val args = List(srcPath, "-o", destPath)
+    val out = s"as ${args.mkString(" ")}".!!
+    Some(destPath)
+  }
+
+  def toELF(asmPath: String) = {
+    val outPath = asmPath.replace("tmp.o", "a.out")
+    val args = List(asmPath, "-o", outPath)
+    val out = s"gcc ${args.mkString(" ")}".!!
+  }
+
+  extension (dir: String) {
+    def /(file: String): String = {
+      s"$dir${File.separator}$file"
+    }
   }
 }

@@ -1,12 +1,11 @@
 package rclang
 package codegen
-import scala.sys.process._
 
 trait Section
 
 val indent = "  "
 case class TextSection(var fns: Map[String, List[String]] = Map()) extends Section {
-  override def toString: String = {
+  def asm: String = {
     val decls = ".section .text\n" + fns.keys.map(n => s"${indent}.globl $n\n${indent}.type  $n, @function").mkString("\n") + "\n"
     val fnInst = fns.map((name, inst) => s"$name:\n${inst.map(indent + _).mkString("\n")}").mkString("\n") + "\n"
     decls + fnInst + ident
@@ -20,19 +19,19 @@ case class TextSection(var fns: Map[String, List[String]] = Map()) extends Secti
 }
 
 case class RDataSection(data: List[StrSection] = List()) extends Section {
-  def asm = data.map(_.asm + "\n")
+  def asm = data.map(_.asm + "\n").mkString
 }
 
 case class StrSection(count: Int, var strs: List[String] = List()) {
   val decls = ".section .rodata"
   val label = s".LC$count:"
   def strsASM = {
-    strs.map(s => s"${indent}.string $s\n").mkString
+    strs.map(s => s"${indent}.string \"$s\"\n").mkString
   }
   def asm = s"$decls\n$label\n$strsASM\n"
 }
 
-case class Assembly() {
+case class GNUAssembler() extends Assembler {
   def file: String = ""
   var dataSection: List[String] = List()
   var textSection: List[String] = List()
@@ -67,16 +66,25 @@ object GNUASM {
     insts.map(toASM).mkString("\n")
   }
 
+  def instStr(inst: String, operand: MachineOperand): String = {
+    inst + instTy(sizeof(operand))
+  }
+
+  def instTy(size: Int): String = {
+    if size == 4 then "l" else "q"
+  }
+
   def toASM(inst: MachineInst): String = {
-    // 1. 32 and 64
     inst match
       case ArithInst(op, lhs, rhs) => arithInstToASM(op, lhs, rhs)
-      case LoadInst(target, value) => s"movl ${operandToASM(value)}, ${operandToASM(target)}"
-      case StoreInst(value, target) => s"movl ${operandToASM(value)}, ${operandToASM(target)}"
+      case LoadInst(target, value) => value match
+        case AddrOfValue(relReg) => s"${instStr("lea", relReg)} ${operandToASM(relReg)}, ${operandToASM(target)}"
+        case _ => s"${instStr("mov", value)} ${operandToASM(value)}, ${operandToASM(target)}"
+      case StoreInst(value, target) => s"${instStr("mov", target)} ${operandToASM(value)}, ${regToASM(target)}"
       case DynamicAllocInst(target) => "" // todo:error
       case ReturnInst(value) => "ret"
-      case PushInst(value) => s"pushq ${operandToASM(value)}"
-      case PopInst(target) => s"popq ${regToASM(target)}"
+      case PushInst(value) => s"${instStr("push", value)} ${operandToASM(value)}"
+      case PopInst(target) => s"${instStr("pop", target)} ${regToASM(target)}"
       case CallInst(target) => s"call $target"
       case InlineASM(content) => content
       case _ => ???
@@ -84,8 +92,7 @@ object GNUASM {
 
   def arithInstToASM(op: String, lhs: MachineOperand, rhs: MachineOperand): String = {
     op match
-      // todo:result in where??
-      case "Add" => s"addl ${operandToASM(lhs)}, ${operandToASM(rhs)}"
+      case "Add" => s"${instStr("add", lhs)} ${operandToASM(lhs)}, ${operandToASM(rhs)}"
       case _ => ???
   }
 
@@ -93,14 +100,43 @@ object GNUASM {
     operand match
       case Imm(value) => "$"+{value.toString}
       case r: Reg => regToASM(r)
-      case RelativeReg(reg, offset) => s"$offset(${regToASM(reg)})"
+      case RelativeReg(reg, offset) => s"${offsetToASM(offset)}(${regToASM(reg)})"
       case AddrOfValue(v) => v.toString
       case Label(name) => name
       case _ => ???
   }
 
+  def offsetToASM(offset: Offset): String = {
+    offset match
+      case Offset.NumOffset(int) => int.toString
+      case Offset.LabelOffset(str) => str
+  }
+
   def regToASM(reg: Reg): String = {
-    if reg.length == 4 then reg4ToASM(reg) else reg8ToASM(reg)
+    reg match
+      case ParamReg(num, len) => paramReg(num, len)
+      case _ => if reg.length == 4 then reg4ToASM(reg) else reg8ToASM(reg)
+  }
+
+  // rdi, rsi, rdx, rcx, r8/r8d, r9/r9d
+  def paramReg(num: Int, len: Int): String = {
+    var name = ""
+    if(len == 4) {
+      name = num match
+        case 0 => "edi"
+        case 1 => "esi"
+        case 2 => "edx"
+        case 3 => "ecx"
+        case _ => ???
+    } else {
+      name = num match
+        case 0 => "rdi"
+        case 1 => "rsi"
+        case 2 => "rdx"
+        case 3 => "rcx"
+        case _ => ???
+    }
+    "%" + name
   }
 
   def reg4ToASM(reg: Reg): String = {
@@ -143,12 +179,8 @@ object GNUASM {
       case 13 => "r13"
       case 14 => "r14"
       case 15 => "r15"
+      case 99 => "rip"
       case _ => "out"
     "%" + name
   }
-}
-
-def as(srcPath: String, destPath: String): Unit = {
-  val args = List(srcPath, "-o", destPath)
-  val out = s"as ${args.mkString(" ")}".!!
 }

@@ -42,19 +42,3 @@ def isaCheck(): Boolean = {
   val rvInstLength = 32
   isa.instSet.forall(_.fields.values.sum == rvInstLength)
 }
-
-class ASMPrinter {
-  def print(inst: ISAInst) = {
-
-  }
-}
-
-class Assembler {
-  def print(inst: ISAInst) = {
-    //    inst.fields.values.foldLeft(0)((sum, ))
-  }
-}
-
-class Emiter {
-
-}

@@ -2,29 +2,19 @@ package rclang
 package codegen
 import mir.*
 import tools.RcLogger.*
-
 import tools.DumpManager
+
+import ty.sizeof
 
 import java.io.File
 
-// todo: call c printf
-// extern symbol, push arg, call
-// save str
-// process constant and not constant
-
-// todo: program entry: .main
-// default _start -> main
-// can modify in link script
-
-
-type size
 class LIRBuilder {
   var regMap = Map[String, Reg]()
   var valueReg = Map[Value, Reg]()
-  var basicBlock = MachineBasicBlock("base")
+  var currBasicBlock = MachineBasicBlock("base")
   var valueOperand = Map[Value, MachineOperand]()
   var strTable = Map[String, MachineOperand]()
-  def bbs = List(basicBlock) // todo:fix this
+  var bbs = List(currBasicBlock)
   def registerReg(v: Value, reg: Reg): Reg = {
     regMap = regMap + (regMap.size.toString -> reg)
     valueReg = valueReg + (v -> reg)
@@ -33,7 +23,7 @@ class LIRBuilder {
 
   def registerReg(v: Value): Reg = {
     val name = regMap.size.toString
-    val reg = Reg(regMap.size)
+    val reg = Reg(regMap.size, sizeof(v.ty))
     regMap = regMap + (name -> reg)
     valueReg = valueReg + (v -> reg)
     reg
@@ -47,6 +37,7 @@ class LIRBuilder {
         case None => throw new RuntimeException(s"$v not found")
   }
 
+  // todo:load constant value
   def getOperand(v: Value): MachineOperand = {
     // todo:bug point
     if(v.isInstanceOf[Constant]) {
@@ -57,7 +48,8 @@ class LIRBuilder {
             // from is a addr
             // todo:maybe error
             val strReg = getOrCreate(v)
-            buildLoad(AddrOfValue(RelativeReg(RIP, Offset.LabelOffset(strTable.size.toString))), strReg)
+            buildLoad(AddrOfValue(RelativeReg(RIP, Offset.LabelOffset(".LC" + strTable.size.toString))), strReg)
+            strTable = strTable + (str -> strReg)
             strReg
           })
         }
@@ -73,32 +65,27 @@ class LIRBuilder {
   }
 
   def buildDynamicAlloc(reg: Reg): DynamicAllocInst = {
-    basicBlock.insert(DynamicAllocInst(reg))
+    currBasicBlock.insert(DynamicAllocInst(reg))
   }
 
   def buildArith(op: String, lhs: MachineOperand, rhs: MachineOperand): ArithInst = {
-    basicBlock.insert(ArithInst(op, lhs, rhs))
+    currBasicBlock.insert(ArithInst(op, lhs, rhs))
   }
 
-  // todo: value maybe a constant of normal value
-  // when constant should be load or save in instr
   def buildLoad(v: Value): LoadInst = {
-    // todo: error when not exist
-    val t = getOperand(v)
-    val ld = registerReg(v)
-    basicBlock.insert(LoadInst(ld, t))
+    val value = getOperand(v)
+    val target = registerReg(v)
+    currBasicBlock.insert(LoadInst(target, value))
   }
 
   def buildLoad(from: MachineOperand, to: Reg): LoadInst = {
-    basicBlock.insert(LoadInst(to, from))
+    currBasicBlock.insert(LoadInst(to, from))
   }
 
   def buildStore(v: Value, ptr: Value): StoreInst = {
     val target = getOrCreate(ptr)
-    val value = v match
-      case _: Constant => buildLoad(v).target
-      case _ => getReg(v)
-    basicBlock.insert(StoreInst(value, target))
+    val value = getOperand(v)
+    currBasicBlock.insert(StoreInst(value, target))
   }
 
   def buildReturn(v: Value): ReturnInst = {
@@ -106,32 +93,32 @@ class LIRBuilder {
       case _: Intrinsic => Imm(0)
       case _ => valueReg(v)
       Imm(0)
-    basicBlock.insert(StoreInst(t, EAX))
+    currBasicBlock.insert(StoreInst(t, RetReg()))
     buildPop(RBP)
-    basicBlock.insert(ReturnInst(t))
+    currBasicBlock.insert(ReturnInst(t))
   }
 
   def buildPush(v: Value): PushInst = {
 //    val value = getOrCreate(v)
     val value = getOperand(v)
-    basicBlock.insert(PushInst(value))
+    currBasicBlock.insert(PushInst(value))
   }
 
   def buildPush(v: MachineOperand): PushInst = {
-    basicBlock.insert(PushInst(v))
+    currBasicBlock.insert(PushInst(v))
   }
 
   def buildPop(target: Target): PopInst = {
-    basicBlock.insert(PopInst(target))
+    currBasicBlock.insert(PopInst(target))
   }
 
   def buildCall(target: String): CallInst = {
     // save result
-    basicBlock.insert(CallInst(target))
+    currBasicBlock.insert(CallInst(target))
   }
 
   def buildInlineASM(asm: String): InlineASM = {
-    basicBlock.insert(InlineASM(asm))
+    currBasicBlock.insert(InlineASM(asm))
   }
 }
 
@@ -142,9 +129,9 @@ case class ArithInst(op: String, var lhs: MachineOperand, var rhs: MachineOperan
 
 case class LoadInst(var target: Target, var value: MachineOperand) extends MachineInst
 
-// todo:存到target里还是存到result里
 case class StoreInst(var value: MachineOperand, var target: Target) extends MachineInst
 
+// no action
 case class DynamicAllocInst(var target: Target) extends MachineInst
 
 case class ReturnInst(value: MachineOperand) extends MachineInst
@@ -154,8 +141,7 @@ case class PushInst(value: MachineOperand) extends MachineInst
 // todo:target is a memory or reg
 case class PopInst(target: Target) extends MachineInst
 
-// todo: target is a addr
-case class CallInst(target: Label) extends MachineInst
+case class CallInst(target: MachineOperand) extends MachineInst
 
 case class InlineASM(content: String) extends MachineInst
 
@@ -167,27 +153,23 @@ class LIRTranslator() {
     builder.buildLoad(RSP, RBP)
     allocInput(fn.argument)
     fn.bbs.foreach(translateBB)
-    // todo: alloc local in stack
     MachineFunction(fn.name, builder.bbs, builder.valueReg, builder.strTable)
   }
 
-  val argPassByStack = true
-  // rdi, rsi, rdx, rcx, r8/r8d, r9/r9d
+  val argPassByStack = false
   def allocInput(args: List[Argument]) = {
-    // esp + i
-    // read from stack
     var wordLength = 4
     var offset = wordLength
-    args.foreach(arg => {
+    args.indices.zip(args).foreach((i, arg) => {
 
       if(argPassByStack) {
         val reg = RelativeReg(StackBaseReg, Offset.NumOffset(-offset))
         // todo:fix this
         builder.valueOperand = builder.valueOperand.updated(arg, reg)
-        // todo:type size
         offset += wordLength
       } else {
-        // 
+        // todo:alloc value to stack
+        builder.registerReg(arg, ParamReg(i, sizeof(arg.ty)))
       }
     })
   }
@@ -221,15 +203,16 @@ class LIRTranslator() {
   }
 
   def visitBinary(bn: Binary) = {
-    builder.registerReg(bn)
-    val lhs = builder.getReg(bn.lhs)
+    val lhs = builder.getOperand(bn.lhs)
     val rhs = builder.getReg(bn.rhs)
+    builder.registerReg(bn, rhs)
     builder.buildArith(bn.op, lhs, rhs)
   }
 
   def visitLoad(load: Load) = {
-    builder.registerReg(load)
-    builder.buildLoad(load.ptr)
+    val l = builder.buildLoad(load.ptr)
+    builder.registerReg(load, l.target)
+    l
   }
 
   def visitStore(store: Store) = {
@@ -243,20 +226,30 @@ class LIRTranslator() {
     builder.buildReturn(ret.value)
   }
 
+  def pushArgs(args: List[Value]) = {
+    if(argPassByStack) {
+      args.foreach(builder.buildPush(_))
+    } else {
+      args.indices.zip(args).foreach((i, arg) => {
+        val op = builder.getOperand(arg)
+        builder.buildLoad(op, ParamReg(i, codegen.sizeof(op)))
+      })
+    }
+  }
+
   def visitCall(call: Call) = {
     // todo:save reg
-    call.args.foreach(builder.buildPush(_))
+    pushArgs(call.args)
     builder.registerReg(call)
     builder.buildCall(call.func.name)
-    // todo: if has return, then pop ret??
   }
 
   def visitIntrinsic(intr: Intrinsic) = {
     val f = intr.name match
-      case "open" => "op"
+      case "open" => ???
       case "print" => "puts@PLT"
       case _ => ???
-    intr.args.foreach(builder.buildPush(_))
+    pushArgs(intr.args)
     builder.buildInlineASM(s"call ${f}")
   }
 }
@@ -267,36 +260,7 @@ object RegisterAllocation {
   }
 }
 
-extension (dir: String) {
-  def /(file: String): String = {
-    s"$dir${File.separator}$file"
-  }
-}
-
-// todo:data dependence and control dependence
 def toLIR(module: Module): List[MachineFunction] = {
   val fns = module.fns.map(LIRTranslator()(_)).toList
-  val text = TextSection()
-  val strTable = fns.flatMap(fn => (0 until fn.strTable.size).zip(fn.strTable.keys).map((i, str) => StrSection(i, List(str))))
-  val rdata = RDataSection(strTable)
-  println(rdata.asm)
-  fns.foreach(fn => text.addFn(fn.name -> fn.instructions.map(GNUASM.toASM)))
-//  text.addFn(fns(1).name -> fns(1).instructions.map(GNUASM.toASM))
-  logf("asm.s", text.toString)
-
-  as(DumpManager.getDumpRoot /"asm.s", DumpManager.getDumpRoot / "tmp.o")
-  println(text)
-
-//  val ass = Assembly()
-//  println(ass.serialize)
-  val legalizer = new Legalizer() {
-
-  }
-  val afterRegAlloc = RegisterAllocation(List())
-  val asm = Emiter()
-  fns.foreach(f => {
-    println(f.name)
-    println(GNUASM.toASM(f))
-  })
   fns
 }
