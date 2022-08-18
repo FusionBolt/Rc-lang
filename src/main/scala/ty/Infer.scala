@@ -57,6 +57,8 @@ case object Infer {
       case Stmt.Expr(expr) => infer(expr)
       case Stmt.While(cond, body) => infer(body)
       case Stmt.Assign(name, value) => lookup(name)
+      case Stmt.Break() => NilType
+      case Stmt.Continue() => NilType
   }
 
   private def infer(expr: Expr): Type = {

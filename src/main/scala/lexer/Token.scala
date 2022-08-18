@@ -19,6 +19,8 @@ enum Keyword extends Token:
   case ELSIF
   case ELSE
   case WHILE
+  case BREAK
+  case CONTINUE
   // class
   case CLASS
   case SUPER

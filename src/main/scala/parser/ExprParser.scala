@@ -136,6 +136,9 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     oneline(assign
       | whileStmt
       | log(local)("local")
+      // todo: only valid in loop body
+      | BREAK ^^^ Stmt.Break()
+      | CONTINUE ^^^ Stmt.Continue()
       | expr ^^ Stmt.Expr)
   }
 

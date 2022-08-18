@@ -12,3 +12,5 @@ enum Stmt extends ASTNode with Typed:
   case Expr(expr: ast.Expr)
   case While(cond: ast.Expr, body: Block)
   case Assign(name: Ident, value: ast.Expr)
+  case Break()
+  case Continue()

@@ -3,10 +3,10 @@ package codegen
 import mir.*
 import tools.RcLogger.*
 import tools.DumpManager
-
 import ty.sizeof
 
 import java.io.File
+import scala.collection.mutable
 
 class LIRBuilder {
   var regMap = Map[String, Reg]()
@@ -14,7 +14,13 @@ class LIRBuilder {
   var currBasicBlock = MachineBasicBlock("base")
   var valueOperand = Map[Value, MachineOperand]()
   var strTable = Map[String, MachineOperand]()
-  var bbs = List(currBasicBlock)
+  var bbs = mutable.LinkedHashSet(currBasicBlock)
+
+  def addMBB(bb: MachineBasicBlock): MachineBasicBlock = {
+    bbs.addOne(bb)
+    bb
+  }
+
   def registerReg(v: Value, reg: Reg): Reg = {
     regMap = regMap + (regMap.size.toString -> reg)
     valueReg = valueReg + (v -> reg)
@@ -69,28 +75,44 @@ class LIRBuilder {
     valueReg.getOrElse(v, registerReg(v))
   }
 
+  def insert[T <: MachineInst](i: T): T = {
+    currBasicBlock.insert(i)
+  }
+
   def buildDynamicAlloc(reg: Reg): DynamicAllocInst = {
-    currBasicBlock.insert(DynamicAllocInst(reg))
+    insert(DynamicAllocInst(reg))
   }
 
   def buildArith(op: String, lhs: MachineOperand, rhs: MachineOperand): ArithInst = {
-    currBasicBlock.insert(ArithInst(op, lhs, rhs))
+    insert(ArithInst(op, lhs, rhs))
+  }
+
+  def buildBranch(target: BasicBlock) = {
+    insert(BranchInst(target.name))
+  }
+
+  def buildCondBranch(cond: MachineOperand, trueBB: BasicBlock, falseBB: BasicBlock) = {
+    insert(BrCondInst(cond, trueBB.name, falseBB.name))
+  }
+
+  def buildPhi(phi: PhiNode) = {
+    insert(PhiInst(phi.incomings))
   }
 
   def buildLoad(v: Value): LoadInst = {
     val value = getOperand(v)
     val target = registerReg(v)
-    currBasicBlock.insert(LoadInst(target, value))
+    insert(LoadInst(target, value))
   }
 
   def buildLoad(from: MachineOperand, to: Reg): LoadInst = {
-    currBasicBlock.insert(LoadInst(to, from))
+    insert(LoadInst(to, from))
   }
 
   def buildStore(v: Value, ptr: Value): StoreInst = {
     val target = getOrCreate(ptr)
     val value = getOperand(v)
-    currBasicBlock.insert(StoreInst(value, target))
+    insert(StoreInst(value, target))
   }
 
   def buildReturn(v: Value): ReturnInst = {
@@ -98,32 +120,32 @@ class LIRBuilder {
       case _: Intrinsic => Imm(0)
       case _ => valueReg(v)
       Imm(0)
-    currBasicBlock.insert(StoreInst(t, RetReg()))
+    insert(StoreInst(t, RetReg()))
     buildPop(RBP)
-    currBasicBlock.insert(ReturnInst(t))
+    insert(ReturnInst(t))
   }
 
   def buildPush(v: Value): PushInst = {
 //    val value = getOrCreate(v)
     val value = getOperand(v)
-    currBasicBlock.insert(PushInst(value))
+    insert(PushInst(value))
   }
 
   def buildPush(v: MachineOperand): PushInst = {
-    currBasicBlock.insert(PushInst(v))
+    insert(PushInst(v))
   }
 
   def buildPop(target: Target): PopInst = {
-    currBasicBlock.insert(PopInst(target))
+    insert(PopInst(target))
   }
 
   def buildCall(target: String): CallInst = {
     // save result
-    currBasicBlock.insert(CallInst(target))
+    insert(CallInst(target))
   }
 
   def buildInlineASM(asm: String): InlineASM = {
-    currBasicBlock.insert(InlineASM(asm))
+    insert(InlineASM(asm))
   }
 }
 
@@ -150,6 +172,12 @@ case class CallInst(target: MachineOperand) extends MachineInst
 
 case class InlineASM(content: String) extends MachineInst
 
+case class BranchInst(target: Label) extends MachineInst
+
+case class BrCondInst(cond: MachineOperand, trueBranch: Label, falseBranch: Label) extends MachineInst
+
+case class PhiInst(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends MachineInst
+
 class LIRTranslator() {
   var builder = new LIRBuilder()
 
@@ -158,7 +186,7 @@ class LIRTranslator() {
     builder.buildLoad(RSP, RBP)
     allocInput(fn.argument)
     fn.bbs.foreach(translateBB)
-    MachineFunction(fn.name, builder.bbs, builder.valueReg, builder.strTable)
+    MachineFunction(fn.name, builder.bbs.toList, builder.valueReg, builder.strTable)
   }
 
   val argPassByStack = false
@@ -184,22 +212,22 @@ class LIRTranslator() {
 //      case inst: BinaryInstBase => visitBinaryInstBase(inst)
 //      case inst: UnaryInst => visitUnaryInst(inst)
       case inst: Call => visitCall(inst)
-//      case inst: CondBranch => visitCondBranch(inst)
-//      case inst: Branch => visitBranch(inst)
+      case inst: CondBranch => visitCondBranch(inst)
+      case inst: Branch => visitBranch(inst)
       case inst: Return => visitReturn(inst)
       case inst: Binary => visitBinary(inst)
       case inst: Alloc => visitAlloc(inst)
       case inst: Load => visitLoad(inst)
       case inst: Store => visitStore(inst)
       case inst: Intrinsic => visitIntrinsic(inst)
-//      case inst: PhiNode => visitPhiNode(inst)
+      case inst: PhiNode => visitPhiNode(inst)
 //      case inst: SwitchInst => visitSwitchInst(inst)
 //      case inst: MultiSuccessorsInst => visitMultiSuccessorsInst(inst)
       case _ => println(i); ???
   }
 
   def translateBB(bb: BasicBlock) = {
-    MachineBasicBlock(bb.name, bb.stmts.map(visitInst))
+    builder.addMBB(MachineBasicBlock(bb.name, bb.stmts.map(visitInst)))
   }
 
   def visitAlloc(alloc: Alloc) = {
@@ -212,6 +240,20 @@ class LIRTranslator() {
     val rhs = builder.getReg(bn.rhs)
     builder.registerReg(bn, rhs)
     builder.buildArith(bn.op, lhs, rhs)
+  }
+
+  def visitCondBranch(branch: CondBranch) = {
+    builder.buildCondBranch(builder.getOperand(branch.cond), branch.tBranch, branch.fBranch)
+  }
+
+  def visitBranch(branch: Branch) = {
+    builder.buildBranch(branch.dest)
+  }
+
+  def visitPhiNode(node: PhiNode) = {
+    val p = builder.buildPhi(node)
+    builder.registerReg(node)
+    p
   }
 
   def visitLoad(load: Load) = {
