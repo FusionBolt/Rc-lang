@@ -44,6 +44,9 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
   var env = Map[Ident, Value]()
   var strTable = List[Str]()
 
+  var curHeader: BasicBlock = null
+  var nextBasicBlock: BasicBlock = null
+
   // todo: argument and params
   def procArgument(params: Params): List[Argument] = {
     params.params.map(param => {
@@ -60,15 +63,20 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
     env = args.map(arg => Ident(arg.name) -> arg).toMap
 //    val fnName = s"${prefix}_${method.decl.name.str}"
     val fnName = method.decl.name.str
-    val fn = Function(fnName, makeType(method.decl.outType), args)
-    parentModule.fnTable += (fnName -> fn)
     builder = IRBuilder()
+    val fn = Function(fnName, makeType(method.decl.outType), args, builder.currentBasicBlock)
+    builder.currentBasicBlock.parent = fn
+    parentModule.fnTable += (fnName -> fn)
     builder.currentFn = fn
+    fn.entry = builder.currentBasicBlock
     procBlock(method.body)
-    if(!builder.currentBasicBlock.stmts.last.isInstanceOf[Return]) {
+    if(builder.currentBasicBlock.stmts.isEmpty) {
+        builder.createReturn(builder.basicBlocks(builder.basicBlocks.size - 2).stmts.last)
+    }
+    else if(!builder.currentBasicBlock.stmts.last.isInstanceOf[Return]) {
       builder.createReturn(builder.currentBasicBlock.stmts.last)
     }
-    fn.bbs = builder.basicBlocks
+    fn.bbs = builder.basicBlocks.filter(_.stmts.nonEmpty)
     fn.entry = builder.basicBlocks.head
     fn.strTable = strTable
     fn
@@ -167,7 +175,35 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
       }
 
       case ast.Stmt.Expr(expr) => procExpr(expr)
-      case ast.Stmt.While(cond, body) => ???
+      case ast.Stmt.While(cond, body) => {
+        // header
+        val header = builder.createBB()
+        curHeader = header
+        builder.createBr(header)
+        builder.insertBasicBlock(header)
+        val condValue = procExpr(cond)
+        val bodyBB = builder.createBB()
+        val afterBB = builder.createBB()
+        nextBasicBlock = afterBB
+        builder.createCondBr(condValue, bodyBB, afterBB)
+        // body
+        builder.insertBasicBlock(bodyBB)
+        val bodyValue = procBlock(body)
+        // after
+        builder.createBr(header)
+        builder.insertBasicBlock(afterBB)
+        bodyValue
+      }
       case ast.Stmt.Assign(name, value) => builder.createStore(procExpr(value), env(name))
+      case ast.Stmt.Break() => {
+        val br = builder.createBr(nextBasicBlock)
+        builder.insertBasicBlock()
+        br
+      }
+      case ast.Stmt.Continue() => {
+        val br = builder.createBr(curHeader)
+        builder.insertBasicBlock()
+        br
+      }
   }
 }

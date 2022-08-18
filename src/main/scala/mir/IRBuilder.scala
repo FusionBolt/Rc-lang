@@ -21,14 +21,18 @@ case class IRBuilder() {
     currentBasicBlock.insert(inst)
   }
 
-  def insertBasicBlock(block: BasicBlock = BasicBlock(makeId)): BasicBlock = {
+  def insertBasicBlock(block: BasicBlock = createBB()): BasicBlock = {
     basicBlocks = basicBlocks :+ block
     block.parent = currentFn
     currentBasicBlock = basicBlocks.last
     basicBlocks.last
   }
 
-  def createBB() = BasicBlock(makeId)
+  def createBB() = {
+    val bb = BasicBlock(makeId)
+    bb.parent = currentFn
+    bb
+  }
   def createPHINode() : PhiNode = insert(PhiNode())
   def createCondBr(cond: Value, True: BasicBlock, False: BasicBlock) : CondBranch = insert(CondBranch(cond, True, False))
   def createBr(dest: BasicBlock) : Branch = insert(Branch(dest))

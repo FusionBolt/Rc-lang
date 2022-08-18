@@ -18,6 +18,8 @@ class DomTreeNode(var parentTree: DomTree, var basicBlock: BasicBlock, var child
   def addChilds(childs: List[DomTreeNode]) = {
     children = childs ::: children
   }
+
+  override def toString: String = s"bb:${basicBlock.name} -> ${children.map(_.basicBlock.toString).mkString(" ")}"
 }
 
 // todo:enum Entry: normal and Post
@@ -26,8 +28,7 @@ object DomEntry extends DomTreeNode(null, null) {
 
 case class DomTree(var parent: Function) {
   var nodes = Map[BasicBlock, DomTreeNode]()
-  var entry = DomEntry
-  entry.parentTree = this
+  def entry = nodes(parent.entry)
 //  entry.domChildren = List(addNode(parent.entry))
 
   // todo:finish, should recalc
@@ -41,14 +42,22 @@ case class DomTree(var parent: Function) {
   def node(bb: BasicBlock): DomTreeNode = nodes(bb)
 
   override def toString: String = {
-    nodes.values.toList.sortBy(_.name).map(d => s"${d.name} -> ${d.children.map(_.name).sorted.mkString(",")}").mkString("\n")
+    "DomTree:\n" + nodes.values.toList.sortBy(_.name).map(d => s"${d.name} -> ${d.children.map(_.name).sorted.mkString(",")}").mkString("\n")
+  }
+
+  def serialize: List[DomTreeNode] = dfsBasicBlocks(parent.entry).map(b => nodes(b))
+  
+  def visit[T](f: DomTreeNode => T): List[T] = {
+    serialize.map(f)
   }
 }
 
 
 extension (i: DomTreeNode) {
   def dom(a: DomTreeNode): Boolean = {
-    i.children.contains(a)
+    // todo:反了??
+    a.children.contains(i)
+//    i.children.contains(a)
   }
 
   def sdom(a: DomTreeNode): Boolean = i != a && (i dom a)
@@ -89,7 +98,6 @@ case class DomTreeBuilder() {
     assert(Domin(root).size == 1)
     assert(root != null)
 
-    println(nodes)
     // remove entry
     val workList = nodes.tail
     while (!change) {

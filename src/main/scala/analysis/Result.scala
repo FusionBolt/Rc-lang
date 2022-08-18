@@ -1,14 +1,18 @@
 package rclang
 package analysis
 
-import mir.DomTree
+import mir.*
 
 object Analysis:
   given BasicAA with {
     type ResultT = AAResult
   }
 
-//  given DomTreeAnalysis with {
-//    type ResultT = DomTree
-//  }
+  given DomTreeAnalysis with {
+    type ResultT = DomTree
+  }
+
+  given LoopAnalysis with {
+    type ResultT = Loop
+  }
 

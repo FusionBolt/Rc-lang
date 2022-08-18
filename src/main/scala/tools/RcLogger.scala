@@ -39,5 +39,10 @@ object RcLogger {
     printer.close()
   }
 
+  def logSep(prefix: String, f: => Unit) = {
+    log(s"------------$prefix begin------------")
+    f
+    log(s"------------$prefix end------------")
+  }
   var level = 1
 }

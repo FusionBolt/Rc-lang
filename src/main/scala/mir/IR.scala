@@ -19,9 +19,9 @@ class BasicBlock(nameStr: String, var stmts: List[Instruction] = List()) extends
 case class Function(fnName: String,
                     var retType: Type,
                     var argument: List[Argument],
+                    var entry: BasicBlock,
                     var bbs: List[BasicBlock] = List()) extends GlobalValue {
   name = fnName
-  var entry: BasicBlock = null
   var strTable = List[Str]()
   def instructions = bbs.flatMap(_.stmts)
 
@@ -30,7 +30,11 @@ case class Function(fnName: String,
   def getBB(name: String): BasicBlock = bbs.find(_.name == name).get
 
   // todo: dump with basicblock
-  override def toString: String = s"$fnName(${argument.mkString(",")})\n${traverseInst(instructions).mkString("\n")}\n"
+  override def toString: String = {
+    val sign = s"$fnName(${argument.mkString(",")})\n"
+    val body = s"${bbs.map(bb => s"BasicBlock:${bb.name}\n${traverseInst(bb.stmts).mkString("\n")})\n").mkString("\n")}"
+    sign + body
+  }
 }
 
 case class Module(var name: String = "MainModule", var fnTable: Map[String, Function] = Map()) {
@@ -44,4 +48,8 @@ case class Module(var name: String = "MainModule", var fnTable: Map[String, Func
 
 case class RcContext() {
   var modules: List[Module] = List()
+}
+
+case class Loop(var bbs: List[BasicBlock]) {
+  var entry = bbs.head
 }

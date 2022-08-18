@@ -1,18 +1,19 @@
 package rclang
 package compiler
 
-import analysis.{BasicAA, SymScanner}
+import analysis.{BasicAA, DomTreeAnalysis, LoopAnalysis, SymScanner}
 import lexer.Lexer
 import mir.*
 import parser.RcParser
-import pass.AnalysisManager
+import pass.{AnalysisManager, PassManager, CFGSimplify}
 import tools.*
 import ast.ClassesRender
 import ty.{Infer, TyCtxt, Type, TypeCheck, TypedTranslator}
 import tools.RcLogger.{log, logf, warning}
-
-import rclang.codegen.MachineFunction
+import codegen.MachineFunction
 //import analysis.Analysis.`given`
+import analysis.Analysis.given_DomTreeAnalysis
+import analysis.Analysis.given_LoopAnalysis
 import ast.{Class, Ident, Item, RcModule}
 import codegen.{GNUAssembler, GNUASM, RDataSection, StrSection, TextSection, toLIR}
 
@@ -49,6 +50,24 @@ object Driver {
     (typedModule, tyCtxt.globalTable.methodTypeTable.toMap)
   }
 
+  def simplify(fn: Function) = {
+    val pm = PassManager[Function]()
+    val am = AnalysisManager[Function]()
+    pm.addPass(CFGSimplify())
+    pm.run(fn, am)
+  }
+
+  def dumpDomTree(fn: Function) = {
+    simplify(fn)
+    CFGRender.rendFn(fn, "whileBBs")
+    val am = AnalysisManager[Function]()
+    am.addAnalysis(DomTreeAnalysis())
+    val domTree = am.getResult[DomTreeAnalysis](fn)
+    println(domTree)
+    //todo：rend一个支配树
+    val loop = am.getResult[LoopAnalysis](fn)
+  }
+
   def apply(option: CompileOption): Unit = {
     DumpManager.mkDumpRootDir
     val src = getSrc(option.srcPath)
@@ -56,6 +75,7 @@ object Driver {
     val (typedModule, table) = typeProc(ast)
     val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
     logf("mir.txt", mirMod)
+    dumpDomTree(mirMod.fnTable.values.head)
     codegen(mirMod)
   }
 

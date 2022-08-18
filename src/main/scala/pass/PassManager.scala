@@ -2,8 +2,8 @@ package rclang
 package pass
 
 case class PassManager[IRUnitT]() {
-  def run() = {
-    passes.foreach(println)
+  def run(IRUnit: IRUnitT, am: AnalysisManager[IRUnitT]) = {
+    passes.foreach(_.run(IRUnit, am))
   }
 
   def addPass(pass: Transform[IRUnitT]): Unit = {
