@@ -19,3 +19,9 @@ case class AnalysisManager[IRUnitT]() {
 
   var analyses = Map[String, Analysis[IRUnitT]]()
 }
+
+def getAnalysisResult[IRUnitT, AnalysisT <: Analysis[IRUnitT]](IRUnit: IRUnitT)(using analysis: AnalysisT): analysis.ResultT = {
+  val am = AnalysisManager[IRUnitT]()
+  am.addAnalysis(analysis)
+  am.getResult(IRUnit)
+}

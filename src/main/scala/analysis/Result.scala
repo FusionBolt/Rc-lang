@@ -13,6 +13,6 @@ object Analysis:
   }
 
   given LoopAnalysis with {
-    type ResultT = Loop
+    type ResultT = LoopInfo
   }
 

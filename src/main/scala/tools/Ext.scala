@@ -1,6 +1,8 @@
 package rclang
 package tools
 
+import java.io.File
+
 extension [T](x: T) {
   def tap(f: T => Unit): T = { f(x); x }
 }
@@ -18,5 +20,11 @@ extension [TL, TR](result: => Either[TL, TR]) {
       case Left(l) => throw new RuntimeException(l.toString)
       case Right(r) => r
     }
+  }
+}
+
+extension (dir: String) {
+  def /(file: String): String = {
+    s"$dir${File.separator}$file"
   }
 }

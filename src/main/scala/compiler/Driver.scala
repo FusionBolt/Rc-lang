@@ -117,10 +117,4 @@ object Driver {
     val args = List(asmPath, "-o", outPath)
     val out = s"gcc ${args.mkString(" ")}".!!
   }
-
-  extension (dir: String) {
-    def /(file: String): String = {
-      s"$dir${File.separator}$file"
-    }
-  }
 }

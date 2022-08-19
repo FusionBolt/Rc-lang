@@ -50,6 +50,8 @@ case class RcContext() {
   var modules: List[Module] = List()
 }
 
-case class Loop(var bbs: List[BasicBlock]) {
-  var entry = bbs.head
+case class Loop(var bbs: List[BasicBlock], var parentLoop: Loop = null, var subLoop: List[Loop] = List()) {
+  def header = bbs.head
 }
+
+case class LoopInfo(var loops: Map[BasicBlock, Loop] = Map())
