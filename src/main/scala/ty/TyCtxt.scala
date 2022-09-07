@@ -6,6 +6,8 @@ import ty.Type
 import tools.GlobalTable
 import ty.Infer
 
+import rclang.mir.NestSpace
+
 import scala.collection.immutable.Map
 
 /**
@@ -14,7 +16,7 @@ import scala.collection.immutable.Map
  */
 case class TyCtxt() {
   // todo: this should be val? and fix TyCtxtTest
-  var global:Map[Ident, Type] = Map()
+  var global: Map[Ident, Type] = Map()
   var globalTable: GlobalTable = null
   def setGlobalTable(gt:GlobalTable) = {
     globalTable = gt

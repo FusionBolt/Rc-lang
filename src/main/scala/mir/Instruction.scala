@@ -102,6 +102,13 @@ case class Store(value: Value, ptr: Value) extends Instruction(2) {
   setOperand(1, ptr)
 }
 
+case class GetElementPtr(value: Value, index: Int) extends Instruction(1) {
+  setOperand(0, value)
+  def align = value.ty match
+    case StructType(name, fields) => fields.values.map(sizeof).min
+    case _ => throw RuntimeException("value should be structure type")
+}
+
 case class PhiNode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends Instruction(varOps) {
   // todo:fix this toString
   // avoid recursive

@@ -39,7 +39,7 @@ object Driver {
     }
   }
 
-  def typeProc(ast: RcModule): (RcModule, Map[Ident, Item]) = {
+  def typeProc(ast: RcModule): (RcModule, GlobalTable) = {
     val table = SymScanner(ast)
     val tyCtxt = TyCtxt()
     tyCtxt.setGlobalTable(table)
@@ -47,7 +47,7 @@ object Driver {
     logf("typedModule.txt", typedModule)
     ClassesRender().rendClasses("classes.dot", "RcDump", typedModule.items collect { case i: Class => i })
     TypeCheck(typedModule)
-    (typedModule, tyCtxt.globalTable.methodTypeTable.toMap)
+    (typedModule, tyCtxt.globalTable)
   }
 
   def simplify(fn: Function) = {

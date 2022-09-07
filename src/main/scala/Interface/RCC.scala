@@ -4,4 +4,4 @@ import Interface.*
 
 import compiler.CompileOption
 
-@main def rcc = compiler.Driver(CompileOption("demo/while.rc"))
+@main def rcc = compiler.Driver(CompileOption("demo/rc_object.rc"))

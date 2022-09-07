@@ -1,13 +1,16 @@
 package rclang
 package mir
 import ast.*
-
 import mir.IRBuilder
+
+import rclang.ast.ImplicitConversions.*
 import ty.*
+
+import tools.{ClassEntry, GlobalTable}
 
 // todo:不同层的id怎么处理
 // todo:debug info
-case class ToMIR(var globalTable: Map[Ident, Item] = Map[Ident, Item]()) {
+case class ToMIR(var globalTable: GlobalTable) {
   var module = Module()
   def proc(rcModule: RcModule): Module = {
     module.name = rcModule.name
@@ -18,35 +21,95 @@ case class ToMIR(var globalTable: Map[Ident, Item] = Map[Ident, Item]()) {
     module
   }
 
+  var klass = Def.Kernel
   def procClass(klass: Class) = {
     // todo:rename fn, how to distinct between normal name and link name
-    var fns = klass.methods.map(getFn(_, klass.name.str)).map(_.fnType)
-    var ty = StructType(klass.name.str, Map())
-    module.types += ty
+    this.klass = klass.name.str;
+    var fns = klass.methods.map(methodPreprocess(klass, _)).map(getFn(_, klass.name.str))
+    this.klass = Def.Kernel
   }
 
-  def getFn(fn: Method, prefix: String = ""): Function = FnToMIR(globalTable, module).procMethod(fn, prefix)
+  def methodPreprocess(klass: Class, method: Method): Method = {
+    // 1. rename
+    // 2. add this ptr to args
+    val decl = method.decl.copy(inputs = Params(List(Param(Def.self, TyInfo.Spec(klass.name))):::method.decl.inputs.params))
+    method.copy(decl = decl)
+  }
+
+  def getFn(fn: Method, prefix: String = ""): Function = FnToMIR(globalTable, module, klass).procMethod(fn, prefix)
 }
 
-case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) {
-  def getFun(id: Ident, prefix: String = ""): Function = {
-    parentModule.fnTable.getOrElse(id.str, globalTable(id) match {
-      case f: Method => {
-        val fn = FnToMIR(globalTable, parentModule).procMethod(f, prefix)
-        parentModule.fnTable += (id.str -> fn)
-        fn
-      }
-      case _ => ???
+// FnEnv
+// 0. f
+// 1. args
+// 2. local var
+type FnEnv = Map[Ident, Value]
+
+// todo: not support nest class and module
+
+case class FullName(fn: String, klass: String, module: String)
+
+case class NestSpace(val gt: GlobalTable, val fullName: FullName, val fnEnv: FnEnv, val args: List[Argument]) {
+  def fn = {
+    gt.classTable(fullName.klass).methods(fullName.fn).astNode
+  }
+
+  def klass = {
+    gt.classTable(fullName.klass).astNode
+  }
+
+  def module: RcModule = {
+    RcModule(List())
+  }
+
+  def lookupFn(id: Ident): Method = {
+    // 1. fn
+    if(fn.name == id) {
+      fn
+    } else {
+      // 2. class
+      klass.methods.find(_.name == id).getOrElse(
+      // 3. module
+        module.items.find(_ match
+        case m: Method => m.name == id
+        case _ => false).get.asInstanceOf[Method])
+    }
+  }
+
+  def lookupVar(id: Ident): Value = {
+    // 1. fn
+    fnEnv.getOrElse(id, {
+      // 2. class
+      val index = klass.fieldIndex(id.str)
+      // todo: fix index and index
+      GetElementPtr(args(0), index)
     })
+  }
+}
+
+
+case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var klass: String = "") {
+  def getFun(id: Ident, prefix: String = ""): Function = {
+    val fn = NestSpace(globalTable, FullName(id, klass, parentModule.name), env, args).lookupFn(id)
+    val newFn = FnToMIR(globalTable, parentModule).procMethod(fn, prefix)
+    parentModule.fnTable += (id.str -> newFn)
+    newFn
+  }
+
+  def lookup(id: Ident): Value = {
+    // local var
+    NestSpace(globalTable, FullName(id, klass, parentModule.name), env, args).lookupVar(id)
   }
 
   var builder = IRBuilder()
-  var env = Map[Ident, Value]()
+  // todo: ident order maybe error??
+  var env: FnEnv = Map()
   var strTable = List[Str]()
 
   var curHeader: BasicBlock = null
   var nextBasicBlock: BasicBlock = null
 
+  var args = List[Argument]()
   // todo: argument and params
   def procArgument(params: Params): List[Argument] = {
     params.params.map(param => {
@@ -55,11 +118,11 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
       Argument(name.str, makeType(ty))
     })
   }
-  
+
   // todo:implicit TypeInfo to Type
   def procMethod(method: Method, prefix: String = ""): Function = {
     // ir builder manages the function
-    val args = procArgument(method.decl.inputs)
+    args = procArgument(method.decl.inputs)
     env = args.map(arg => Ident(arg.name) -> arg).toMap
 //    val fnName = s"${prefix}_${method.decl.name.str}"
     val fnName = method.decl.name.str
@@ -79,6 +142,7 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
     fn.bbs = builder.basicBlocks.filter(_.stmts.nonEmpty)
     fn.entry = builder.basicBlocks.head
     fn.strTable = strTable
+    args = List()
     fn
   }
 
@@ -95,14 +159,15 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
 //      case _ => throw new Exception(s"undefined variable ${id.str}")
 //    }
 //  }
-  def lookup(id: Ident): Value = {
-    env(id)
+
+  def currClass: Class = {
+    globalTable.classTable(klass).astNode
   }
 
   def procExpr(expr: Expr): Value = {
     val v = expr match
       case Expr.Number(v) => Integer(v)
-      case Expr.Identifier(ident) => builder.createLoad(env(ident))
+      case Expr.Identifier(ident) => builder.createLoad(lookup(ident))
       case Expr.Bool(b) => Bool(b)
       case Expr.Binary(op, lhs, rhs) => {
         val l = procExpr(lhs)
@@ -144,7 +209,26 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
           builder.createCall(getFun(target), args.map(procExpr))
         }
       }
-      //      case Expr.MethodCall(obj, target, args) => ???
+      case Expr.MethodCall(obj, target, args) => {
+        val makeCall = (fname: Ident) => builder.createCall(getFun(fname), this.args(0) +: args.map(procExpr))
+        val load = obj match
+          case Expr.Symbol(sym) => {
+            val klass = globalTable.classTable(sym)
+            val method = klass.methods(target.str)
+            makeCall(method.astNode.decl.name)
+          }
+          case _ => builder.createLoad(procExpr(obj))
+        load.ty match
+          case StructType(name, fields) => {
+            currClass.methods.find(_.decl.name == target) match
+              // todo: define default new
+              // todo: 如果前面替换了param,这里如果是递归调用的话就有问题了
+              case Some(value) => makeCall(value.decl.name)
+              case None => ???
+          }
+          case PointerType(ty) => ???
+          case _ => ???
+      }
       case block: Expr.Block => procBlock(block)
       case Expr.Return(expr) => builder.createReturn(procExpr(expr))
       //      case Expr.Field(expr, ident) => ???
@@ -194,7 +278,7 @@ case class FnToMIR(var globalTable: Map[Ident, Item], var parentModule: Module) 
         builder.insertBasicBlock(afterBB)
         bodyValue
       }
-      case ast.Stmt.Assign(name, value) => builder.createStore(procExpr(value), env(name))
+      case ast.Stmt.Assign(name, value) => builder.createStore(procExpr(value), lookup(name))
       case ast.Stmt.Break() => {
         val br = builder.createBr(nextBasicBlock)
         builder.insertBasicBlock()
