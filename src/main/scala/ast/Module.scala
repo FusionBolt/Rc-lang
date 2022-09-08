@@ -15,12 +15,13 @@ case class RcModule(items: List[Item], name: String = "") extends ASTNode {
 
 sealed class Item extends ASTNode with Typed
 
-case class Method(decl: MethodDecl, body: Block) extends Item{
+case class Method(decl: MethodDecl, body: Block) extends Item {
   def name = decl.name
   override def toString: String = s"Method:${name}\n${body.toString}"
 }
 
 case class Class(name: Ident, parent: Option[Ident], vars: List[FieldDef], methods:List[Method]) extends Item {
+  // todo: lost parent
   def fieldIndex(name: String): Int = {
     vars.indexWhere(v => v.name.str == name)
   }

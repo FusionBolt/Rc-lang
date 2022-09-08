@@ -3,10 +3,10 @@ package ty
 
 import ast.Ident
 import ty.Type
-import tools.GlobalTable
+import tools.{FullName, GlobalTable}
 import ty.Infer
 
-import rclang.mir.NestSpace
+import tools.NestSpace
 
 import scala.collection.immutable.Map
 
@@ -18,6 +18,7 @@ case class TyCtxt() {
   // todo: this should be val? and fix TyCtxtTest
   var global: Map[Ident, Type] = Map()
   var globalTable: GlobalTable = null
+  var fullName: FullName = FullName()
   def setGlobalTable(gt:GlobalTable) = {
     globalTable = gt
     global = globalTable.methodTypeTable.toMap.map((id, item) => id -> Infer(item))
@@ -32,9 +33,17 @@ case class TyCtxt() {
    */
   var local = Map[Ident, Type]()
 
+  // todo: built-in type
+  private def getClassTy(id: Ident) = globalTable.classTable.get(id.str).map(_.astNode.infer)
+
   def lookup(ident: Ident): Option[Type] = {
+    // todo: bad code
+    if(ident.str == "malloc") {
+      return Some(PointerType(getClassTy(Ident(fullName.klass)).get))
+    }
+    // todo: look up local(var + args), field, global var, symbol
     val ty = local.get(ident) orElse outer.find(_.contains(ident)).map(_(ident)) orElse global.get(ident)
-    ty
+    ty orElse getClassTy(ident)
   }
 
   /**
@@ -43,15 +52,19 @@ case class TyCtxt() {
    * @tparam T
    * @return
    */
-  def enter[T](f: => T): T = {
+  def enter[T](newLocal: Map[Ident, Type], f: => T): T = {
     // (1, 2, 3) ::= 4
     // (4, 1, 2, 3)
     outer ::= local
-    local = Map[Ident, Type]()
+    local = newLocal
     val result = f
     local = outer.head
     outer = outer.tail
     result
+  }
+
+  def enter[T](f: => T): T = {
+    enter(Map(), f)
   }
 
   def addLocal(k: Ident, v: Type): Unit = {

@@ -50,6 +50,8 @@ class Intrinsic(intrName: String, args_value: List[Value]) extends Instruction(v
   setOperands(args_value)
   def args = getOperands
   def getArg(i: Int): Value = getOperand(i)
+
+  override def toString: String = s"$intrName: ${args_value.map(_.toString).mkString(" ")}"
 }
 
 def commonTy(lhs: Type, rhs: Type): Type = {
@@ -102,10 +104,10 @@ case class Store(value: Value, ptr: Value) extends Instruction(2) {
   setOperand(1, ptr)
 }
 
-case class GetElementPtr(value: Value, index: Int) extends Instruction(1) {
+case class GetElementPtr(value: Value, offset: Int) extends Instruction(1) {
   setOperand(0, value)
   def align = value.ty match
-    case StructType(name, fields) => fields.values.map(sizeof).min
+    case s: StructType => s.align
     case _ => throw RuntimeException("value should be structure type")
 }
 

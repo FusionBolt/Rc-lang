@@ -12,6 +12,10 @@ class GlobalValue extends Value
 class GlobalVariable extends GlobalValue {
 }
 
+case object NilValue extends GlobalValue {
+  ty = NilType
+}
+
 val varOps = -1
 // todo: use enum NumOps
 enum NumOps:

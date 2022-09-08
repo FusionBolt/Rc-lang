@@ -4,7 +4,7 @@ import ast.Expr.*
 import ast.*
 import ty.*
 import ty.TyCtxt
-
+import scala.collection.immutable.ListMap
 import rclang.mir.intrinsics
 
 case object Infer {
@@ -43,7 +43,10 @@ case object Infer {
   private def infer(item: Item): Type = {
     item match
       case m: Method => infer(m)
-      case _ => ???
+      case k: Class => {
+        // todo:inherit
+        StructType(k.name.str, ListMap.from(k.vars.map(v => v.name.str -> translate(v.ty))))
+      }
   }
 
   private def infer(stmt: Stmt): Type = {
@@ -72,7 +75,13 @@ case object Infer {
         case Some(fBr) => common(true_branch, fBr)
         case None => infer(true_branch)
       case Return(expr) => infer(expr)
-      case Block(stmts) => tyCtxt.enter(infer(stmts.last)) // todo: maybe early return
+      case Block(stmts) => {
+        if(stmts.isEmpty) {
+          NilType
+        } else {
+          tyCtxt.enter(infer(stmts.last))
+        }
+      } // todo: maybe early return
       case Call(target, args) => lookup(target)
       case Lambda(args, block) => ???
       case MethodCall(obj, target, args) => {
@@ -102,8 +111,10 @@ case object Infer {
   }
 
   private def infer(f: Method): Type = {
+    tyCtxt.fullName.fn = f.name.str
     val ret = translate(f.decl.outType)
     val params = f.decl.inputs.params.map(_.ty).map(translate)
+    tyCtxt.fullName.fn = ""
     FnType(ret, params)
   }
 
