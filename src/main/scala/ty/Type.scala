@@ -1,7 +1,10 @@
 package rclang
 package ty
 
-import ast.ASTNode
+import ast.{ASTNode, Class}
+
+import rclang.tools.GlobalTable
+
 import collection.immutable.ListMap
 
 sealed class Type
@@ -24,13 +27,27 @@ case object InferType extends Type
 
 case class ErrType(msg: String) extends Type
 
-case class StructType(name: String, fields: ListMap[String, Type]) extends Type {
+case object TypeBuilder {
+  def fromClass(klass: Class, gt: GlobalTable): StructType = {
+    val name = klass.name
+    fromClass(name.str, gt)
+  }
+
+  def fromClass(name: String, gt: GlobalTable): StructType = {
+    val vars = gt.classTable(name).allInstanceVars(gt)
+    StructType(name, ListMap.from(vars.map(field => field.name.str -> Infer.translate(field.ty))))
+  }
+}
+
+case class StructType(name: String, private var fields: ListMap[String, Type]) extends Type {
   def align = fieldSizes.min
 
   def fieldOffset(field: String) = {
-
     // 1. find index
     // 2. reduce to index
+    fields.zipWithIndex.find(_._1._1 == field) match
+      case Some(value) => fields.slice(0, value._2).values.map(sizeof).sum
+      case None => ???
   }
 
   def fieldSizes = fields.values.map(sizeof)
@@ -38,6 +55,8 @@ case class StructType(name: String, fields: ListMap[String, Type]) extends Type 
   def sizeAfterAlign(align: Int) = {
     fieldSizes.map(size => (size / align + 1) * align)
   }
+
+  override def toString: String = s"StructType($name)"
 }
 
 case class PointerType(ty: Type) extends Type

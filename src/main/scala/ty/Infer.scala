@@ -86,21 +86,15 @@ case object Infer {
       case Lambda(args, block) => ???
       case MethodCall(obj, target, args) => {
         // obj is a constant or obj is a expr
-        obj match
-          case Identifier(ident) => ???
-          case Binary(op, lhs, rhs) => ???
-          case If(cond, true_branch, false_branch) => ???
-          case Lambda(args, block) => ???
-          case Call(target, args) => ???
-          case MethodCall(obj, target, args) => ???
-          case Block(stmts) => ???
-          case Field(expr, ident) => ???
-          case Self => ???
-          case Symbol(ident) => lookup(ident)
-          case Index(expr, i) => ???
-          case _ => throw new RuntimeException(s"unexpected expr $expr")
+        infer(obj)
+        ???
       }
-      case Field(expr, ident) => ???
+      case Field(expr, ident) => {
+        val obj = infer(expr)
+        structTyProc(obj)(s => {
+          ???
+        })
+      }
       case Self => ???
       case Symbol(ident) => ???
       case Index(expr, i) => ???
@@ -140,4 +134,11 @@ case object Infer {
     val rt = infer(rhs)
     if lt == rt then lt else ErrType("failed")
   }
+}
+
+def structTyProc[T](ty: Type)(f: StructType => T) = {
+  ty match
+    case s: StructType => f(s)
+    case PointerType(ty) => ???
+    case _ => ???
 }

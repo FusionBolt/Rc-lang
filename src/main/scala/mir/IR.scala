@@ -43,7 +43,7 @@ case class Module(var name: String = "MainModule", var fnTable: Map[String, Func
   var context: RcContext = null
   def fns = fnTable.values
 
-  override def toString: String = name + "\n" + fnTable.values.map(_.toString).mkString("\n")
+  override def toString: String = name + "\n" + fnTable.values.map(_.toString).mkString("\n\n")
 }
 
 case class RcContext() {

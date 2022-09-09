@@ -1,12 +1,12 @@
 class RcObject
+    def init()
+
+    end
+
     def new()
         var a = malloc()
         init()
         a
-    end
-
-    def init()
-
     end
 end
 
@@ -20,4 +20,5 @@ class Point < RcObject
 end
 
 def main()
+    # var a = Point.new()
 end

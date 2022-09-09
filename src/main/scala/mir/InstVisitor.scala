@@ -8,8 +8,9 @@ def traverse[T, U](list: List[T], f: T => U): List[U] =
 // todo:check instruction(Type and other)
 def traverseInst[T <: Instruction](list: List[T]): List[String] =
   traverse(list, inst => {
-    val user = inst.asInstanceOf[User]
-    s"${inst.getClass.getSimpleName}:${user.ty} ${user.operands.map(_.toString).mkString(" ")}"
+    Printer().visit(inst)
+//    val user = inst.asInstanceOf[User]
+//    s"${inst.getClass.getSimpleName}:${user.ty} ${user.operands.map(_.toString).mkString(" ")}"
   })
 
 trait InstVisitor {
@@ -59,11 +60,33 @@ trait InstVisitor {
 }
 
 class Printer{
-  def visit(inst: Instruction): Unit = {
+  def opsToString(user: User) = {
+    user.operands.map(_.toString).mkString(" ")
+  }
+
+  def instName(inst: Instruction) = {
+    inst.getClass.getSimpleName
+  }
+
+  def visit(inst: Instruction): String = {
+    val user = inst.asInstanceOf[User]
     inst match {
-      case l:Load => "load"
-      case s:Store => "store"
-      case _ =>
+//      case BinaryInstBase(lhsValue, rhsValue) => ???
+//      case UnaryInst(operandValue) => ???
+      case base: CallBase => s"${instName(inst)} ${base.asInstanceOf[Call].func.fnName}:${user.ty} ${opsToString(user)}"
+      case intrinsic: Intrinsic => s"${instName(inst)} ${intrinsic.name}: ${user.ty}"
+//      case CondBranch(condValue, tBranch, fBranch) => ???
+//      case Branch(destBasicBlock) => ???
+//      case Return(value) => ???
+      case Binary(op, lhs_value, rhs_value) => s"${instName(inst)}: ${user.ty} $op($lhs_value, $rhs_value)"
+//      case Alloc(id, typ) => ???
+//      case Load(ptr) => ???
+//      case Store(value, ptr) => ???
+//      case GetElementPtr(value, offset) => ???
+//      case PhiNode(incomings) => ???
+//      case SwitchInst() => ???
+//      case MultiSuccessorsInst(bbs) => ???
+      case _ => s"${instName(inst)}:${user.ty} ${opsToString(user)}"
     }
   }
 }

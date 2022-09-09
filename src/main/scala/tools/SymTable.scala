@@ -50,6 +50,7 @@ class ClassEntry(val astNode: Class) {
     astNode.methods:::parentMethods
   }
 
+  // todo: more complex var table
   def allInstanceVars(gt: GlobalTable): List[FieldDef] = {
     val parentVars = astNode.parent match
       case Some(parent) => gt.classTable(parent).allInstanceVars(gt)

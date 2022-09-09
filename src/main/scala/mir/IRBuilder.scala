@@ -44,5 +44,5 @@ case class IRBuilder() {
   def createStore(value: Value, ptr: Value) : Store = insert(Store(value, ptr))
   def createBinary(op: String, lhs: Value, rhs: Value) : Binary = insert(Binary(op, lhs, rhs))
 
-  def createGEP(obj: Value, offset: Int) = insert(GetElementPtr(obj, offset))
+  def createGEP(obj: Value, offset: Int, targetTy: Type) = insert(GetElementPtr(obj, offset, targetTy))
 }

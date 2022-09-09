@@ -75,7 +75,7 @@ object Driver {
     val (typedModule, table) = typeProc(ast)
     val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
     logf("mir.txt", mirMod)
-    dumpDomTree(mirMod.fnTable.values.head)
+//    dumpDomTree(mirMod.fnTable.values.head)
 //    codegen(mirMod)
   }
 

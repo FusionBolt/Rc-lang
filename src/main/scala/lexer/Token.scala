@@ -29,6 +29,7 @@ enum Keyword extends Token:
   case VARS
 
 enum Punctuation extends Token:
+  case COMMENT
   case EOL
   case COMMA
   case EQL

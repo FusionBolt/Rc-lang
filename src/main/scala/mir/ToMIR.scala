@@ -43,14 +43,23 @@ def mangling(fullName: FullName): String = {
     fullName.names.mkString("_")
 }
 
-// todo: cache fn
+def demangling(name: String): FullName = {
+  FullNameMaker.make(name.split("_"))
+}
+
 case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var klass: String = "") {
   var nestSpace: NestSpace = NestSpace(globalTable, FullName("", klass, parentModule.name))
   def getFun(id: Ident, nestSpace: NestSpace = this.nestSpace): Function = {
-    val fn = nestSpace.lookupFn(id)
-    val newFn = FnToMIR(globalTable, parentModule, klass).procMethod(fn)
-    parentModule.fnTable += (id.str -> newFn)
-    newFn
+    // when call a member method, nestSpace.fullName.fn != id
+    parentModule.fnTable.getOrElse(mangling(nestSpace.fullName.copy(fn = id)), {
+      val fn = nestSpace.lookupFn(id)
+      val newFn = FnToMIR(globalTable, parentModule, klass).procMethod(fn)
+      if(parentModule.fnTable.contains(id.str)) {
+        throw new RuntimeException()
+      }
+      parentModule.fnTable += (id.str -> newFn)
+      newFn
+    })
   }
 
 //  def getFun(id: Ident, prefix: String = ""): Function = {
@@ -193,31 +202,40 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
       }
       case Expr.MethodCall(obj, target, args) => {
         // todo: refactor lookup and getFn
-        val makeCall = (klass: Ident, fname: Ident) => {
-          builder.createCall(
-            getFun(fname, nestSpace.withClass(klass.str)),
-            this.args(0) +: args.map(procExpr))
+        val makeCall = (klass: Ident, fname: Ident, thisPtr: Value) => {
+          val f = getFun(fname, nestSpace.withClass(klass.str))
+          builder.createCall(f, thisPtr +: args.map(procExpr))
         }
-        val load = obj match
+        obj match
+          // class method
+          // todo: remove this ptr
           case Expr.Symbol(klassSym) => {
-            val klass = globalTable.classTable(klassSym)
-            makeCall(klassSym, target)
+//            val klass = globalTable.classTable(klassSym)
+            makeCall(klassSym, target, NilValue)
           }
-          case _ => builder.createLoad(procExpr(obj))
-        load.ty match
-          case StructType(name, fields) => {
-            currClass.methods.find(_.decl.name == target) match
-              // todo: define default new
-              // todo: 如果前面替换了param,这里如果是递归调用的话就有问题了
-              case Some(value) => makeCall(name, value.decl.name)
-              case None => ???
+          // instance method
+          case _ => {
+            val objPtr = builder.createLoad(procExpr(obj))
+            structTyProc(objPtr.ty) { case StructType(name, fields) =>
+              currClass.methods.find(_.decl.name == target) match
+                // todo: define default new
+                // todo: 如果前面替换了param,这里如果是递归调用的话就有问题了
+                case Some(value) => makeCall(name, value.decl.name, objPtr)
+                case None => ???
+            }
           }
-          case PointerType(ty) => ???
-          case _ => ???
       }
       case block: Expr.Block => procBlock(block)
       case Expr.Return(expr) => builder.createReturn(procExpr(expr))
-      case Expr.Field(expr, ident) => builder.createGEP(procExpr(expr), 4) // todo: error
+      case Expr.Field(expr, field) => {
+        val obj = procExpr(expr)
+        // todo: refactor
+        structTyProc(obj.ty) { case StructType(name, _) =>
+          val structType = TypeBuilder.fromClass(name, globalTable)
+          val fieldTy = nestSpace.withClass(name).lookupVar(field).withInfer.ty
+          builder.createGEP(obj, structType.fieldOffset(field), fieldTy)
+        }
+      } // todo: error
       //      case Self => ???
       //      case Expr.Constant(ident) => ???
       //      case Expr.Index(expr, i) => ???

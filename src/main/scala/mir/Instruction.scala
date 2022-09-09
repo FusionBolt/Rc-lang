@@ -104,8 +104,9 @@ case class Store(value: Value, ptr: Value) extends Instruction(2) {
   setOperand(1, ptr)
 }
 
-case class GetElementPtr(value: Value, offset: Int) extends Instruction(1) {
+case class GetElementPtr(value: Value, offset: Int, targetTy: Type) extends Instruction(1) {
   setOperand(0, value)
+  ty = targetTy
   def align = value.ty match
     case s: StructType => s.align
     case _ => throw RuntimeException("value should be structure type")

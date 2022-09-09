@@ -17,7 +17,18 @@ object Lexer extends RegexParsers {
   override def skipWhitespace = false
   override val whiteSpace: Regex = "[ \t\r\f]+".r
 
-  def apply(code: String): Either[RcLexerError, List[Token]] = {
+  def eliminateComment(src: String) = {
+    src.split("\n").map(c => {
+      val begin = c.indexOf("#")
+      if (begin != -1) {
+        c.slice(0, begin)
+      } else {
+        c
+      }
+    }).map(_ + "\n").mkString
+  }
+  def apply(originSrc: String): Either[RcLexerError, List[Token]] = {
+    val code = eliminateComment(originSrc)
     parse(tokens, code) match {
       case NoSuccess(msg, next) => Left(RcLexerError(Location(next.pos.line, next.pos.column), msg))
       case Success(result, next) => Right(result)
@@ -27,7 +38,7 @@ object Lexer extends RegexParsers {
   def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral |
     defStr | endStr | ifStr | thenStr | elsifStr | elseStr | whileStr | breakStr |
     continueStr | classStr | superStr | selfStr | varStr | valStr
-  def symbol: Parser[Token] = comma | eol | dot | at | colon |
+  def symbol: Parser[Token] = comment | comma | eol | dot | at | colon |
     leftParentTheses | rightParentTheses | leftSquare | rightSquare
 
   def value: Parser[Token] = number | upperIdentifier | identifier
@@ -91,6 +102,7 @@ object Lexer extends RegexParsers {
     str ^^^ token
   }
 
+  def comment = NoValueToken("#", COMMENT)
   def eol = NoValueToken("\n", EOL)
   def eql = NoValueToken("=", EQL)
   def comma = NoValueToken(",", COMMA)

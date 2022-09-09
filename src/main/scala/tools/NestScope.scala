@@ -10,6 +10,12 @@ case class FullName(var fn: String = "", var klass: String = "", var module: Str
   def names = List(module, klass, fn).filter(_.nonEmpty)
 }
 
+case object FullNameMaker {
+  def make(names: Seq[String]) = {
+    FullName(names(0), names(1))
+  }
+}
+
 case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
   def withFn(fn: String) = {
     copy(fullName = fullName.copy(fn = fn))
@@ -35,6 +41,8 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
     RcModule(List())
   }
 
+  // todo: if lookupFn before lower, will get fn from SymbolTable
+  // fn in SymbolTable is not be preprocessed
   def lookupFn(id: Ident, recursive: Boolean = false): Method = {
     // 1. fn, used for recursive
     if(recursive && fn.name == id) {
