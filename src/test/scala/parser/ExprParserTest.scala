@@ -104,7 +104,6 @@ class ExprParserTest extends ExprParser with BaseParserTest {
         Index(Identifier("a"), Number(1)))
     }
 
-    // todo:binary op is enum
     it("index is termExpr") {
         expectSuccess(
           List(IDENTIFIER("a"), LEFT_SQUARE, NUMBER(1), OPERATOR("+"), NUMBER(2), RIGHT_SQUARE),
@@ -124,7 +123,6 @@ class ExprParserTest extends ExprParser with BaseParserTest {
     }
   }
   
-  // todo:if without eol is error
   describe("if") {
     it("full succeed") {
       expectSuccess(
@@ -151,7 +149,6 @@ class ExprParserTest extends ExprParser with BaseParserTest {
 }
 
 class BinaryTranslatorTest extends BaseParserTest with BinaryTranslator {
-  // todo:impl convert
   def makeBinary(a: Int, op: String, b: Int) = List(Number(a), OPERATOR(op), Number(b))
   def makeMultiBinary(a: Int, op1: String, b: Int, op2: String, c:Int) =
     List(Number(a), OPERATOR(op1), Number(b), OPERATOR(op2), Number(c))

@@ -4,9 +4,7 @@ package mir
 import ast.*
 import ty.*
 
-// todo:replace with a dsl
 case class IRBuilder() {
-  // todo:global value number
   var idCounter = 0
   def makeId = {
     idCounter += 1

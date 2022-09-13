@@ -74,7 +74,7 @@ case object TypedTranslator {
 
   def methodTrans(method: Method): Method = {
     val inputs = method.decl.inputs.params.map(p => p.name -> Infer.translate(p.ty)).toMap
-    tyCtxt.enter(inputs,
+    tyCtxt.enter(inputs, method.name.str)(
       method.copy(body = exprTrans(method.body).asInstanceOf[Block]).withInfer)
   }
 }

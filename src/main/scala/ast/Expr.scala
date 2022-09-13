@@ -52,7 +52,6 @@ enum Expr extends ASTNode with Typed :
   // false -> elsif | else
   case If(cond: Expr, true_branch: Block, false_branch: Option[Expr])
   case Lambda(args: Params, block: Block)
-  // todo:call a lambda
   case Call(target: Ident, args: List[Expr])
   case MethodCall(obj: Expr, target: Ident, args: List[Expr])
   case Block(stmts: List[Stmt])

@@ -28,7 +28,6 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
 
   def expectFailed(token: Seq[Token]): Unit = {
     apply(token) match {
-    // todo:check failed pos
       case Left(value) => assert(true)
       case Right(value) => assert(false, s"expect failed, value: $value")
     }

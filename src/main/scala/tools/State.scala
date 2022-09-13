@@ -1,7 +1,6 @@
 package rclang
 package tools
 
-// todo:how to convariant
 class State[T](var value: T) {
 
   /** switch to a tmp state and call f

@@ -13,7 +13,6 @@ case class TextSection(var fns: Map[String, List[String]] = Map()) extends Secti
 
   def ident = s".LFE0:\n$indent.ident \"RCC: 0.0.1\"\n"
   def addFn(fn: (String, List[String])) = {
-    // todo:refactor
     fns = fns.updated(fn._1, fn._2)
   }
 }
@@ -81,7 +80,7 @@ object GNUASM {
         case AddrOfValue(relReg) => s"${instStr("lea", relReg)} ${operandToASM(relReg)}, ${operandToASM(target)}"
         case _ => s"${instStr("mov", value)} ${operandToASM(value)}, ${operandToASM(target)}"
       case StoreInst(value, target) => s"${instStr("mov", target)} ${operandToASM(value)}, ${regToASM(target)}"
-      case DynamicAllocInst(target) => "" // todo:error
+      case DynamicAllocInst(target) => ???
       case ReturnInst(value) => "ret"
       case PushInst(value) => s"${instStr("push", value)} ${operandToASM(value)}"
       case PopInst(target) => s"${instStr("pop", target)} ${regToASM(target)}"

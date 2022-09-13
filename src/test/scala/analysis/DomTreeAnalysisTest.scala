@@ -25,7 +25,6 @@ class DomTreeAnalysisTest extends RcTestBase {
   describe("DomTreeBuild") {
     it("success") {
       println(bbs)
-      // todo:fn entry should not null
       val fn = Function("fn", NilType, List(), bbs.values.head, bbs.values.toList)
       CFGRender.rendFn(fn, "DomTree.dot")
       val predMap = predecessorsMap(fn.bbs)

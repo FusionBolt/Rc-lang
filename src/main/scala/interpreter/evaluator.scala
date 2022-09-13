@@ -39,8 +39,8 @@ case class Evaluator(var fenv:Map[Ident, Method] = Map()) {
   }
 
   def run_expr_t[T](expr: Expr): T = {
-    // todo:check by pattern match
-    run_expr(expr).asInstanceOf[T]
+    ???
+//    run_expr(expr).asInstanceOf[T]
   }
 
   def run_expr(expr: Expr): Any = {
@@ -49,7 +49,7 @@ case class Evaluator(var fenv:Map[Ident, Method] = Map()) {
       case Identifier(ident) => run_expr(env(ident))
       case Bool(b) => b
       case Binary(op, lhs, rhs) => {
-        // todo: fix this
+        ???
         val l = run_expr_t[Int](lhs)
         val r = run_expr_t[Int](rhs)
         op match
@@ -64,7 +64,7 @@ case class Evaluator(var fenv:Map[Ident, Method] = Map()) {
       case Str(str) => str
       case If(cond, true_branch, false_branch) => run_expr(cond) match {
         case Bool(true) => run_expr(true_branch)
-        case Bool(false) => false_branch // todo:fix this
+        case Bool(false) => ???
       }
       case Lambda(args, block) => ???
       case Call(target, args) => run_call(target, args)

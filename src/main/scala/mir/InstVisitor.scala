@@ -5,7 +5,6 @@ package mir
 def traverse[T, U](list: List[T], f: T => U): List[U] =
   list.map(f)
 
-// todo:check instruction(Type and other)
 def traverseInst[T <: Instruction](list: List[T]): List[String] =
   traverse(list, inst => {
     Printer().visit(inst)

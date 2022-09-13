@@ -87,7 +87,6 @@ class LexerTest extends AnyFunSpec {
   describe("string") {
     it("succeed") {
       expectSuccess("\"describe str\"", STRING("describe str"))
-      // todo:true error info
       expectFailed("\"describe str")
     }
   }

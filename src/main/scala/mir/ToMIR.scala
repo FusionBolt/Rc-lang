@@ -8,8 +8,6 @@ import ty.*
 
 import tools.*
 
-// todo:不同层的id怎么处理
-// todo:debug info
 case class ToMIR(var globalTable: GlobalTable) {
   var module = Module()
   def proc(rcModule: RcModule): Module = {
@@ -62,18 +60,6 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
     })
   }
 
-//  def getFun(id: Ident, prefix: String = ""): Function = {
-//    nestSpace = NestSpace(globalTable, FullName(id, klass, parentModule.name))
-//    val fn = nestSpace.lookupFn(id)
-//    getFunImpl(fn, prefix)
-//  }
-//
-//  def getFunImpl(fn: Method, prefix: String = ""): Function = {
-//    val newFn = FnToMIR(globalTable, parentModule).procMethod(fn, prefix)
-//    parentModule.fnTable += (fn.decl.name.str -> newFn)
-//    newFn
-//  }
-
   def lookup(id: Ident): Value = {
     // local var
     env.getOrElse(id, args.find(_.name == id.str).getOrElse({
@@ -91,7 +77,6 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
   var nextBasicBlock: BasicBlock = null
 
   var args = List[Argument]()
-  // todo: argument and params
   def procArgument(params: Params): List[Argument] = {
     params.params.map(param => {
       val ty = param.ty
@@ -132,7 +117,6 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
     fn
   }
 
-  // todo:this need block? or add a scope?
   def procBlock(block: Expr.Block): Value = {
     if(block.stmts.isEmpty) {
       NilValue
@@ -140,15 +124,6 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
       block.stmts.map(procStmt).last
     }
   }
-
-  // todo:finish
-//  def getClassMember(id: Ident): Value = {
-//    // get alloca of member var
-//    globalTable.getOrElse(id, throw new Exception(s"undefined variable ${id.str}")) match {
-//      case Class(_, vars, _, _) => vars.find(id).getOrElse(throw new Exception(s"Can not find var ${id.str}"))
-//      case _ => throw new Exception(s"undefined variable ${id.str}")
-//    }
-//  }
 
   def currClass: Class = {
     globalTable.classTable(klass).astNode
@@ -162,7 +137,6 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
       case Expr.Binary(op, lhs, rhs) => {
         val l = procExpr(lhs)
         val r = procExpr(rhs)
-        // todo:op
         builder.createBinary(op.toString, l, r)
       }
       case Expr.Str(str) => {
@@ -196,12 +170,10 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
         if(intrinsics.contains(target.str)) {
           builder.createIntrinsic(target.str, args.map(procExpr))
         } else {
-          // todo: like method call
           builder.createCall(getFun(target), args.map(procExpr))
         }
       }
       case Expr.MethodCall(obj, target, args) => {
-        // todo: refactor lookup and getFn
         val makeCall = (klass: Ident, fname: Ident, thisPtr: Value) => {
           val f = getFun(fname, nestSpace.withClass(klass.str))
           builder.createCall(f, thisPtr +: args.map(procExpr))
@@ -229,16 +201,12 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
       case Expr.Return(expr) => builder.createReturn(procExpr(expr))
       case Expr.Field(expr, field) => {
         val obj = procExpr(expr)
-        // todo: refactor
         structTyProc(obj.ty) { case StructType(name, _) =>
           val structType = TypeBuilder.fromClass(name, globalTable)
-          val fieldTy = nestSpace.withClass(name).lookupVar(field).withInfer.ty
+          val fieldTy = nestSpace.withClass(name).lookupVar(field).ty
           builder.createGEP(obj, structType.fieldOffset(field), fieldTy)
         }
-      } // todo: error
-      //      case Self => ???
-      //      case Expr.Constant(ident) => ???
-      //      case Expr.Index(expr, i) => ???
+      }
       case _ => ???
       // todo:bad design
       if v.ty == InferType then v.withTy(expr.ty) else v

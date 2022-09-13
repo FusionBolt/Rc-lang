@@ -17,12 +17,10 @@ import scala.collection.mutable.Map
  * 3. global data
  */
 object SymScanner extends ASTVisitor {
-  // todo: scan constant
   var currentClass: State[ClassEntry] = new ClassEntry(Class("Kernel", None, List(), List()))
   var currentMethod: State[LocalTable] = new LocalTable(null)
   var classTable:Map[String, ClassEntry] = Map(Def.Kernel -> currentClass.value)
 
-  // todo:can't process nest method or class
   def apply(ast: RcModule): GlobalTable = {
     visit(ast)
     new GlobalTable(classTable)

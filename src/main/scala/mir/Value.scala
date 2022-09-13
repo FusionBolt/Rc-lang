@@ -17,7 +17,6 @@ case object NilValue extends GlobalValue {
 }
 
 val varOps = -1
-// todo: use enum NumOps
 enum NumOps:
   case Fixed(num: Int)
   case Dynamic
@@ -34,6 +33,8 @@ class User(numOps: Int) extends Value {
 }
 
 // todo:implicit cast, use -> value, uses -> values
+
+
 case class Use(var value: Value, var parent: User) {
 //  override def toString: String = s"Use(${toStr(value)} => ${toStr(parent)})"
   override def toString: String = s"Use(${toStr(value)})"

@@ -4,8 +4,10 @@ import ast.Expr.*
 import ast.*
 import ty.*
 import ty.TyCtxt
+
 import scala.collection.immutable.ListMap
 import rclang.mir.intrinsics
+import rclang.tools.{FullName, NestSpace}
 
 case object Infer {
   var tyCtxt: TyCtxt = TyCtxt()
@@ -86,13 +88,21 @@ case object Infer {
       case Lambda(args, block) => ???
       case MethodCall(obj, target, args) => {
         // obj is a constant or obj is a expr
-        infer(obj)
-        ???
+        obj match
+          case Symbol(sym) => {
+            NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = sym.str)).lookupFn(target).ty
+          }
+          case _ => {
+            val ty = infer(obj)
+            structTyProc(ty)(s => {
+              NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = s.name)).lookupFn(target).ty
+            })
+          }
       }
       case Field(expr, ident) => {
         val obj = infer(expr)
         structTyProc(obj)(s => {
-          ???
+          NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = s.name)).lookupVar(ident).ty
         })
       }
       case Self => ???
@@ -136,9 +146,9 @@ case object Infer {
   }
 }
 
-def structTyProc[T](ty: Type)(f: StructType => T) = {
+def structTyProc[T](ty: Type)(f: StructType => T): T = {
   ty match
     case s: StructType => f(s)
-    case PointerType(ty) => ???
+    case PointerType(ty) => structTyProc(ty)(f)
     case _ => ???
 }

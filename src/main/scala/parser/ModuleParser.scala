@@ -26,7 +26,6 @@ trait ModuleParser extends RcBaseParser with ExprParser {
   }
 
   // noneItem should be same level as oneline item
-  // todo: add test
   def item: Parser[Item] = positioned {
     oneline(method | classDefine)
   }
@@ -45,8 +44,6 @@ trait ModuleParser extends RcBaseParser with ExprParser {
     EOL ^^^ Empty
   }
 
-  // todo:refactor
-  // todo:make a EOL filter
   def classDefine: Parser[Item] = positioned {
     oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ log(item | field | noneItem)("class member").* <~ log(END)("class end") ^^ {
       case klass ~ parent ~ defines =>

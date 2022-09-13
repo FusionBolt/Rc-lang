@@ -2,8 +2,11 @@ package rclang
 package tools
 
 import ast.*
+
 import Expr.*
 import ast.ImplicitConversions.*
+
+import rclang.ty.Infer
 
 // todo: not support nest class and module
 case class FullName(var fn: String = "", var klass: String = "", var module: String = Def.DefaultModule) {
@@ -25,7 +28,9 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
     copy(fullName = fullName.copy(klass = klass))
   }
 
-  def localTable = gt.classTable(fullName.klass).methods(fullName.fn)
+  def localTable = {
+    gt.classTable(fullName.klass).methods(fullName.fn)
+  }
 
   def klassTable = gt.classTable(fullName.klass)
 

@@ -8,7 +8,6 @@ import rclang.mir.BasicBlock
 
 class ExprTest extends RcTestBase with ASTBuilder {
   describe("noCapturedLambdaToMethod") {
-    // todo: uuid 不合适
     it("ok") {
       val a = BasicBlock("a")
       val b = BasicBlock("a")

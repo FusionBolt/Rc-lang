@@ -11,8 +11,7 @@ import scala.collection.mutable.Set
 import scala.language.implicitConversions
 
 case class ValidateError(node: ASTNode, reason: String)
-// todo: ErrorType
-// todo: add info into global table
+
 case class Scope(var localTable: Set[Ident] = Set()) {
 
   def add(ident: Ident): Boolean = {
@@ -75,7 +74,6 @@ trait Validate {
 }
 
 trait MethodValidate extends Validate {
-  // todo: ctxt
   var scopes = ScopeManager()
   def analysis(method: Method): Result = {
     checkMethod(method)
@@ -158,8 +156,7 @@ trait ModuleValidate extends Validate with MethodValidate {
   def fieldDefsValid(fields: List[FieldDef]): Result = {
     fields.flatMap(fieldDefValid):::dupNameCheck(fields.map(_.name))
   }
-
-  // todo:id and scope??
+  
   def fieldDefValid(fieldDef: FieldDef): Result = {
     fieldDef.initValue match {
       case Some(expr) => checkExpr(expr)

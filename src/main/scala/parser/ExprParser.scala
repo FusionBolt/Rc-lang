@@ -54,7 +54,6 @@ trait BinaryTranslator {
 trait ExprParser extends RcBaseParser with BinaryTranslator {
   def termExpr: Parser[Expr] = positioned {
     term ~ (operator ~ term).* ^^ {
-          // todo:don't known how to write type
       case term ~ terms => termsToBinary(term, terms.map(a => List(a._1, a._2)))
     }
   }
@@ -67,7 +66,6 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   def num = number ^^ { case NUMBER(int) => Expr.Number(int) }
   def idExpr = id ^^ Expr.Identifier
 
-  // todo:test begin with TermExpr
   // memField: term.x
   // memCall: term.x(
   // arrayIndex: term[
@@ -84,8 +82,6 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
       FALSE ^^ (_ => Expr.Bool(false))
   }
 
-  // todo:call begin with term
-  // todo:process Call / MethodCall
   def call: Parser[Expr.Call] = positioned {
     id ~ parSround(repsep(termExpr, COMMA)) ^^ {
       case id ~ args => Expr.Call(id, args)
@@ -136,7 +132,6 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     oneline(assign
       | whileStmt
       | log(local)("local")
-      // todo: only valid in loop body
       | BREAK ^^^ Stmt.Break()
       | CONTINUE ^^^ Stmt.Continue()
       | expr ^^ Stmt.Expr)

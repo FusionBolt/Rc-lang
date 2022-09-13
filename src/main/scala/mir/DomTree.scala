@@ -22,14 +22,12 @@ class DomTreeNode(var parentTree: DomTree, var basicBlock: BasicBlock, var child
   override def toString: String = s"bb:${basicBlock.name} -> ${children.map(_.basicBlock.toString).mkString(" ")}"
 }
 
-// todo:enum Entry: normal and Post
 object DomEntry extends DomTreeNode(null, null) {
 }
 
 case class DomTree(var parent: Function) {
   var nodes = Map[BasicBlock, DomTreeNode]()
   def entry = nodes(parent.entry)
-//  entry.domChildren = List(addNode(parent.entry))
 
   // todo:finish, should recalc
   def addNode(bb: BasicBlock): DomTreeNode = {
@@ -55,9 +53,7 @@ case class DomTree(var parent: Function) {
 
 extension (i: DomTreeNode) {
   def dom(a: DomTreeNode): Boolean = {
-    // todo:反了??
     a.children.contains(i)
-//    i.children.contains(a)
   }
 
   def sdom(a: DomTreeNode): Boolean = i != a && (i dom a)

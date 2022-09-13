@@ -7,7 +7,6 @@ trait Terminator {
   def successors: List[BasicBlock]
 }
 
-// todo:override is ok?
 case class Argument(nameStr: String, argTy: Type) extends Value {
   name = nameStr
   ty = argTy
@@ -35,7 +34,6 @@ case class UnaryInst(operandValue: Value) extends Instruction(1) {
   setOperand(0, operandValue)
   def operand: Value = getOperand(0)
 }
-// todo: function is a operand?
 class CallBase(func: Function, args_value: List[Value]) extends Instruction(varOps) {
   setOperands(args_value)
   ty = func.retType
@@ -113,7 +111,6 @@ case class GetElementPtr(value: Value, offset: Int, targetTy: Type) extends Inst
 }
 
 case class PhiNode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends Instruction(varOps) {
-  // todo:fix this toString
   // avoid recursive
   private def incomingsStr = incomings.map(x => x._2.map(b => s"${x._1} => ${b.name}").mkString("\n")).mkString("\n")
   override def toString: String = "Phi"

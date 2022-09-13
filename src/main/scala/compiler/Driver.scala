@@ -64,7 +64,6 @@ object Driver {
     am.addAnalysis(DomTreeAnalysis())
     val domTree = am.getResult[DomTreeAnalysis](fn)
     println(domTree)
-    //todo：rend一个支配树
     val loop = am.getResult[LoopAnalysis](fn)
   }
 

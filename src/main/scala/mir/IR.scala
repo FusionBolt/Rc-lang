@@ -29,7 +29,6 @@ case class Function(var fnName: String,
 
   def getBB(name: String): BasicBlock = bbs.find(_.name == name).get
 
-  // todo: dump with basicblock
   override def toString: String = {
     val sign = s"$fnName(${argument.mkString(",")})\n"
     val body = s"${bbs.map(bb => s"BasicBlock:${bb.name}\n${traverseInst(bb.stmts).mkString("\n")})\n").mkString("\n")}"

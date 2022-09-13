@@ -15,5 +15,4 @@ case class Malloc(arg_list: List[Value]) extends Intrinsic("malloc", arg_list) {
   ty = NilType
 }
 
-// todo: simplify this
 val intrinsics = List("print", "open", "malloc")

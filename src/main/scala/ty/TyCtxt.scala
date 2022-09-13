@@ -5,8 +5,9 @@ import ast.Ident
 import ty.Type
 import tools.{FullName, GlobalTable}
 import ty.Infer
-
 import tools.NestSpace
+
+import rclang.ty.Infer.tyCtxt
 
 import scala.collection.immutable.Map
 
@@ -38,7 +39,7 @@ case class TyCtxt() {
 
   def lookup(ident: Ident): Option[Type] = {
     // todo: bad code
-    if(ident.str == "malloc") {
+    if (ident.str == "malloc" || ident.str == "this") {
       return Some(PointerType(getClassTy(Ident(fullName.klass)).get))
     }
     // todo: look up local(var + args), field, global var, symbol
@@ -52,19 +53,24 @@ case class TyCtxt() {
    * @tparam T
    * @return
    */
-  def enter[T](newLocal: Map[Ident, Type], f: => T): T = {
+  def enter[T](newLocal: Map[Ident, Type], fnName: String = "")(f: => T): T = {
     // (1, 2, 3) ::= 4
     // (4, 1, 2, 3)
     outer ::= local
     local = newLocal
+    val oldFullName = fullName
+    if(fnName.nonEmpty) {
+      fullName = fullName.copy(fn = fnName)
+    }
     val result = f
     local = outer.head
     outer = outer.tail
+    fullName = oldFullName
     result
   }
 
   def enter[T](f: => T): T = {
-    enter(Map(), f)
+    enter(Map())(f)
   }
 
   def addLocal(k: Ident, v: Type): Unit = {

@@ -21,7 +21,6 @@ case class Method(decl: MethodDecl, body: Block) extends Item {
 }
 
 case class Class(name: Ident, parent: Option[Ident], vars: List[FieldDef], methods:List[Method]) extends Item {
-  // todo: lost parent
   def fieldIndex(name: String): Int = {
     vars.indexWhere(v => v.name.str == name)
   }

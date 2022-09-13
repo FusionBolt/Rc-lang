@@ -28,7 +28,6 @@ class ModuleValidateTest extends AnyFunSpec with ASTBuilder with ModuleValidate 
 
     }
 
-    // todo: test multi error method
     describe("methodsDeclValid") {
       it("true") {
         val fs = List(
