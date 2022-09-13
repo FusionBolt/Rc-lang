@@ -1,8 +1,0 @@
-def multi(a, b)
-    a * b
-end
-
-def main
-    v = multi(3, 2)
-    put_i(v)
-end

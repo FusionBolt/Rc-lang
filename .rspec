@@ -1,3 +1,0 @@
---require spec_helper
---default-path spec
---pattern */**_spec.rb
