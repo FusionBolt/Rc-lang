@@ -1,0 +1,24 @@
+class RcObject
+    def init()
+
+    end
+
+    def new()
+        var a = malloc()
+        init()
+        a
+    end
+end
+
+class Point < RcObject
+  var x:Int
+  var y:Int
+
+  def move_x(offset: Int)
+    x = x + offset
+  end
+end
+
+def main()
+    # var a = Point.new()
+end

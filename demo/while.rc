@@ -1,0 +1,8 @@
+def main()
+    val a = 1
+    while(a < 5)
+        a = a + 1
+        continue
+    end
+    val b = 2
+end

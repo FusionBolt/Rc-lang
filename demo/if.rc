@@ -1,0 +1,10 @@
+def main()
+  var a = 1
+  if a < 3
+    a = 2
+  elsif a < 5
+    a = 3
+  else
+    a = 4
+  end
+end

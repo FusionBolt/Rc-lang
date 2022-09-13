@@ -1,0 +1,11 @@
+class RcObject
+    def new()
+        var a = malloc()
+        init()
+        a
+    end
+
+    def init()
+
+    end
+end
