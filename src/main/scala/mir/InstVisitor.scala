@@ -72,7 +72,7 @@ class Printer{
     inst match {
 //      case BinaryInstBase(lhsValue, rhsValue) => ???
 //      case UnaryInst(operandValue) => ???
-      case base: CallBase => s"${instName(inst)} ${base.asInstanceOf[Call].func.fnName}:${user.ty} ${opsToString(user)}"
+      case base: CallBase => s"${instName(inst)} ${base.asInstanceOf[Call].func.name}:${user.ty} ${opsToString(user)}"
       case intrinsic: Intrinsic => s"${instName(inst)} ${intrinsic.name}: ${user.ty}"
 //      case CondBranch(condValue, tBranch, fBranch) => ???
 //      case Branch(destBasicBlock) => ???

@@ -7,7 +7,7 @@ trait Terminator {
   def successors: List[BasicBlock]
 }
 
-case class Argument(nameStr: String, argTy: Type) extends Value {
+case class Argument(nameStr: String, private val argTy: Type) extends Value {
   name = nameStr
   ty = argTy
   var default: Option[Value] = None
@@ -23,27 +23,27 @@ type InFunction = In[Function]
 
 sealed class Instruction(numOps: Int) extends User(numOps) with InBasicBlock
 
-case class BinaryInstBase(lhsValue: Value, rhsValue: Value) extends Instruction(2) {
+case class BinaryInstBase(private val lhsValue: Value, private val rhsValue: Value) extends Instruction(2) {
   setOperand(0, lhsValue)
   setOperand(1, rhsValue)
   def lhs: Value = getOperand(0)
   def rhs: Value = getOperand(1)
 }
 
-case class UnaryInst(operandValue: Value) extends Instruction(1) {
+case class UnaryInst(private val operandValue: Value) extends Instruction(1) {
   setOperand(0, operandValue)
   def operand: Value = getOperand(0)
 }
-class CallBase(func: Function, args_value: List[Value]) extends Instruction(varOps) {
+class CallBase(func: Function, private val args_value: List[Value]) extends Instruction(varOps) {
   setOperands(args_value)
   ty = func.retType
   def args = getOperands
   def getArg(i: Int): Value = getOperand(i)
 }
 
-case class Call(func: Function, args_value: List[Value]) extends CallBase(func, args_value)
+case class Call(func: Function, private val args_value: List[Value]) extends CallBase(func, args_value)
 
-class Intrinsic(intrName: String, args_value: List[Value]) extends Instruction(varOps) {
+class Intrinsic(private val intrName: String, private val args_value: List[Value]) extends Instruction(varOps) {
   name = intrName
   setOperands(args_value)
   def args = getOperands
@@ -56,7 +56,7 @@ def commonTy(lhs: Type, rhs: Type): Type = {
   lhs
 }
 
-case class CondBranch(condValue: Value, tBranch: BasicBlock, fBranch: BasicBlock) extends Instruction(3) with Terminator {
+case class CondBranch(private val condValue: Value, private val tBranch: BasicBlock, private val fBranch: BasicBlock) extends Instruction(3) with Terminator {
   setOperand(0, condValue)
   setOperand(1, tBranch)
   setOperand(2, fBranch)
@@ -72,14 +72,15 @@ case class Branch(destBasicBlock: BasicBlock) extends Instruction(1) with Termin
   def successors = List(dest)
 }
 
-case class Return(value: Value) extends Instruction(1) with Terminator {
-  setOperand(0, value)
-  ty = value.ty
+case class Return(private val retValue: Value) extends Instruction(1) with Terminator {
+  setOperand(0, retValue)
+  ty = retValue.ty
   def successors = List()
+
+  def value = getOperand(0)
 }
 
-// todo:这种情况怎么写构造函数
-case class Binary(op: String, lhs_value: Value, rhs_value: Value) extends Instruction(2) {
+case class Binary(op: String, private val lhs_value: Value, private val rhs_value: Value) extends Instruction(2) {
   setOperand(0, lhs_value)
   setOperand(1, rhs_value)
   ty = commonTy(lhs_value.ty, rhs_value.ty)
@@ -87,13 +88,14 @@ case class Binary(op: String, lhs_value: Value, rhs_value: Value) extends Instru
   def rhs = getOperand(1)
 }
 
-case class Alloc(var id: String, typ: Type) extends Instruction(0) {
+case class Alloc(var id: String, private val typ: Type) extends Instruction(0) {
   ty = typ
 }
 
-case class Load(ptr: Value) extends Instruction(1) {
-  ty = ptr.ty
-  setOperand(0, ptr)
+case class Load(private val valuePtr: Value) extends Instruction(1) {
+  ty = valuePtr.ty
+  setOperand(0, valuePtr)
+  def ptr = getOperand(0)
 }
 
 case class Store(value: Value, ptr: Value) extends Instruction(2) {

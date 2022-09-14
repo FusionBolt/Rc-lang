@@ -16,7 +16,7 @@ class BasicBlock(nameStr: String, var stmts: List[Instruction] = List()) extends
   override def toString: String = s"BasicBlock:$name"
 }
 
-case class Function(var fnName: String,
+case class Function(private val fnName: String,
                     var retType: Type,
                     var argument: List[Argument],
                     var entry: BasicBlock,

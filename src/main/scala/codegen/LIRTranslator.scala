@@ -243,7 +243,7 @@ class LIRTranslator() {
   }
 
   def visitCondBranch(branch: CondBranch) = {
-    builder.buildCondBranch(builder.getOperand(branch.cond), branch.tBranch, branch.fBranch)
+    builder.buildCondBranch(builder.getOperand(branch.cond), branch.trueBranch, branch.falseBranch)
   }
 
   def visitBranch(branch: Branch) = {
