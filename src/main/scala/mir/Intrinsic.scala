@@ -1,6 +1,7 @@
 package rclang
 package mir
 import ty.NilType
+import tools.Debugger.*;
 
 case class Print(arg_list: List[Value]) extends Intrinsic("print", arg_list) {
   ty = NilType
@@ -11,7 +12,7 @@ case class Open(arg_list: List[Value]) extends Intrinsic("open", arg_list) {
 }
 
 case class Malloc(arg_list: List[Value]) extends Intrinsic("malloc", arg_list) {
-  // todo: error type, check arg size == 1, only size
+  check(arg_list.size == 1, s"malloc arg size should be 1, but get ${arg_list.size}")
   ty = NilType
 }
 

@@ -16,7 +16,6 @@ import scala.collection.immutable.Map
  * @param global GlobalTypeInfo
  */
 case class TyCtxt() {
-  // todo: this should be val? and fix TyCtxtTest
   var global: Map[Ident, Type] = Map()
   var globalTable: GlobalTable = null
   var fullName: FullName = FullName()
@@ -34,15 +33,12 @@ case class TyCtxt() {
    */
   var local = Map[Ident, Type]()
 
-  // todo: built-in type
   private def getClassTy(id: Ident) = globalTable.classTable.get(id.str).map(_.astNode.infer)
 
   def lookup(ident: Ident): Option[Type] = {
-    // todo: bad code
     if (ident.str == "malloc" || ident.str == "this") {
       return Some(PointerType(getClassTy(Ident(fullName.klass)).get))
     }
-    // todo: look up local(var + args), field, global var, symbol
     val ty = local.get(ident) orElse outer.find(_.contains(ident)).map(_(ident)) orElse global.get(ident)
     ty orElse getClassTy(ident)
   }

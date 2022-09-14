@@ -29,7 +29,6 @@ case class DomTree(var parent: Function) {
   var nodes = Map[BasicBlock, DomTreeNode]()
   def entry = nodes(parent.entry)
 
-  // todo:finish, should recalc
   def addNode(bb: BasicBlock): DomTreeNode = {
     DomTreeNode(this, bb).tap(node =>
       nodes += (bb -> node)

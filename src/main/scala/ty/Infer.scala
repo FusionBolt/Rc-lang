@@ -46,7 +46,6 @@ case object Infer {
     item match
       case m: Method => infer(m)
       case k: Class => {
-        // todo:inherit
         StructType(k.name.str, ListMap.from(k.vars.map(v => v.name.str -> translate(v.ty))))
       }
   }
@@ -83,7 +82,7 @@ case object Infer {
         } else {
           tyCtxt.enter(infer(stmts.last))
         }
-      } // todo: maybe early return
+      }
       case Call(target, args) => lookup(target)
       case Lambda(args, block) => ???
       case MethodCall(obj, target, args) => {
@@ -134,9 +133,7 @@ case object Infer {
       case "Int" => Int32Type
       case "Float" => FloatType
       case "Nil" => NilType
-      // todo: ident should be a Constant
       case _ => lookup(ident)
-    // todo:other good way?
   }
 
   private def common(lhs: Expr, rhs: Expr): Type = {

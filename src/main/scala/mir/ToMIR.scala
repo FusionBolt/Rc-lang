@@ -21,7 +21,6 @@ case class ToMIR(var globalTable: GlobalTable) {
 
   var klass = Def.Kernel
   def procClass(klass: Class) = {
-    // todo:rename fn, how to distinct between normal name and link name
     this.klass = klass.name.str;
     var fns = klass.methods.map(methodPreprocess(klass, _)).map(getFn(_, klass.name.str))
     this.klass = Def.Kernel
@@ -65,18 +64,20 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
     env.getOrElse(id, args.find(_.name == id.str).getOrElse({
       procExpr(nestSpace.lookupVar(id))
 //      throw new RuntimeException()
-    })) // todo: else is field
+    }))
   }
 
   var builder = IRBuilder()
-  // todo: ident order maybe error??
+
   var env = Map[Ident, Value]()
+
+  var args = List[Argument]()
+
   var strTable = List[Str]()
 
   var curHeader: BasicBlock = null
   var nextBasicBlock: BasicBlock = null
 
-  var args = List[Argument]()
   def procArgument(params: Params): List[Argument] = {
     params.params.map(param => {
       val ty = param.ty
@@ -85,7 +86,6 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
     })
   }
 
-  // todo:implicit TypeInfo to Type
   def procMethod(method: Method, prefix: String = ""): Function = {
     nestSpace = NestSpace(globalTable, FullName(method.name.str, klass, parentModule.name))
     // ir builder manages the function
@@ -159,10 +159,9 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
         builder.insertBasicBlock(mergeBB)
         val phi = builder.createPHINode()
         phi.addIncoming(t, trueBB)
-        // todo: map for false
-        if (f.isDefined) {
-          phi.addIncoming(f.get, falseBB)
-        }
+        f match
+          case Some(value) => phi.addIncoming(f.get, falseBB)
+          case None =>
         phi
       }
       //      case Expr.Lambda(args, block) => ???
@@ -180,7 +179,6 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
         }
         obj match
           // class method
-          // todo: remove this ptr
           case Expr.Symbol(klassSym) => {
 //            val klass = globalTable.classTable(klassSym)
             makeCall(klassSym, target, NilValue)
@@ -190,8 +188,6 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
             val objPtr = builder.createLoad(procExpr(obj))
             structTyProc(objPtr.ty) { case StructType(name, fields) =>
               currClass.methods.find(_.decl.name == target) match
-                // todo: define default new
-                // todo: 如果前面替换了param,这里如果是递归调用的话就有问题了
                 case Some(value) => makeCall(name, value.decl.name, objPtr)
                 case None => ???
             }
@@ -208,13 +204,11 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
         }
       }
       case _ => ???
-      // todo:bad design
       if v.ty == InferType then v.withTy(expr.ty) else v
   }
 
   def makeType(tyInfo: TyInfo): Type = {
     tyInfo match
-      // todo:fix this
       case TyInfo.Spec(ty) => Infer.translate(ty)
       case TyInfo.Nil => NilType
       case _ => InferType
@@ -222,7 +216,6 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
 
   def procStmt(stmt: ast.Stmt): Value = {
     stmt match
-      // todo: bad design? init value
       case ast.Stmt.Local(name, tyInfo, value) => {
         val alloc = builder.createAlloc(name.str, stmt.ty)
         builder.createStore(procExpr(value), alloc)

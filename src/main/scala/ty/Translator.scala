@@ -49,7 +49,6 @@ case object TypedTranslator {
       case Call(target, args) => Call(target, args.map(_.withInfer))
       case Return(expr) => Return(expr.withInfer)
       case Lambda(args, block) => ???
-      // todo: TyCtxt.Enter and Infer.Enter
       case MethodCall(obj, target, args) => ???
       case Block(stmts) => tyCtxt.enter(Block(stmts.map(stmtTrans)))
       case Field(expr, ident) => ???
@@ -65,7 +64,6 @@ case object TypedTranslator {
           case TyInfo.Spec(_) => Infer.translate(ty)
           case _ => Infer(value)
         tyCtxt.addLocal(name, localTy)
-        // todo: how to process if ty is Infer
         Local(name, ty, value.withInfer).withTy(localTy)
       case Stmt.Expr(expr) => Stmt.Expr(expr.withInfer)
       case While(cond, body) => While(cond.withInfer, body.withInfer)

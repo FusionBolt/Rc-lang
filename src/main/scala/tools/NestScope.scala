@@ -8,7 +8,6 @@ import ast.ImplicitConversions.*
 
 import rclang.ty.Infer
 
-// todo: not support nest class and module
 case class FullName(var fn: String = "", var klass: String = "", var module: String = Def.DefaultModule) {
   def names = List(module, klass, fn).filter(_.nonEmpty)
 }
@@ -46,7 +45,6 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
     RcModule(List())
   }
 
-  // todo: if lookupFn before lower, will get fn from SymbolTable
   // fn in SymbolTable is not be preprocessed
   def lookupFn(id: Ident, recursive: Boolean = false): Method = {
     // 1. fn, used for recursive
@@ -63,7 +61,6 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
             case Some(value) => value.asInstanceOf[Method]
             case None => throw new RuntimeException(s"$fullName can't find $id"))
     }
-    // todo: lookup kernel
   }
 
   def lookupVar(id: Ident): Expr = {
@@ -76,7 +73,6 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
           case Some(value) => Identifier(value.name)
           case None => {
             // 3. field
-            // todo: if has this ptr
             klassTable.allInstanceVars(gt).find(_.name == id) match
               case Some(value) => Field(Identifier(Def.self), id)
               case None => throw new RuntimeException()

@@ -41,8 +41,5 @@ class TypedTranslatorTest extends AnyFunSpec with ASTBuilder {
       val ty = getFirstMethodFromModule(m).body.stmts.head.asInstanceOf[Stmt.Expr].expr.asInstanceOf[If].ty
       assert(ty == Int32Type)
     }
-
-    // todo:not equal
-    // todo:type prompt
   }
 }

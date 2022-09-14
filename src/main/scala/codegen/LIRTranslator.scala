@@ -49,7 +49,6 @@ class LIRBuilder {
         strTable.getOrElse(str, {
           // move to reg
           // from is a addr
-          // todo:maybe error
           val strReg = getOrCreate(const)
           buildLoad(AddrOfValue(RelativeReg(RIP, Offset.LabelOffset(".LC" + strTable.size.toString))), strReg)
           strTable = strTable + (str -> strReg)
@@ -165,7 +164,6 @@ case class ReturnInst(value: MachineOperand) extends MachineInst
 
 case class PushInst(value: MachineOperand) extends MachineInst
 
-// todo:target is a memory or reg
 case class PopInst(target: Target) extends MachineInst
 
 case class CallInst(target: MachineOperand) extends MachineInst
@@ -194,14 +192,11 @@ class LIRTranslator() {
     var wordLength = 4
     var offset = wordLength
     args.indices.zip(args).foreach((i, arg) => {
-
       if(argPassByStack) {
         val reg = RelativeReg(StackBaseReg, Offset.NumOffset(-offset))
-        // todo:fix this
         builder.valueOperand = builder.valueOperand.updated(arg, reg)
         offset += wordLength
       } else {
-        // todo:alloc value to stack
         builder.registerReg(arg, ParamReg(i, sizeof(arg.ty)))
       }
     })
@@ -263,7 +258,6 @@ class LIRTranslator() {
   }
 
   def visitStore(store: Store) = {
-    // todo:should SSA format??
     val st = builder.buildStore(store.value, store.ptr)
     builder.registerReg(store, st.target)
     st
@@ -285,7 +279,6 @@ class LIRTranslator() {
   }
 
   def visitCall(call: Call) = {
-    // todo:save reg
     pushArgs(call.args)
     builder.registerReg(call)
     builder.buildCall(call.func.name)

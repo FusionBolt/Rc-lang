@@ -3,6 +3,8 @@ package mir
 
 import ty.*
 
+import scala.language.implicitConversions
+
 class Value extends Typed {
   var name: String = ""
 }
@@ -32,8 +34,11 @@ class User(numOps: Int) extends Value {
   def getOperands = uses.map(_.value)
 }
 
-// todo:implicit cast, use -> value, uses -> values
+object ImplicitConversions {
+  implicit def useToValue(use: Use): Value = use.value
 
+  implicit def usesToValues(uses: List[Use]): List[Value] = uses.map(_.value)
+}
 
 case class Use(var value: Value, var parent: User) {
 //  override def toString: String = s"Use(${toStr(value)} => ${toStr(parent)})"
