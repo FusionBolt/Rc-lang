@@ -2,7 +2,7 @@ package rclang
 package mir
 import ty.{FnType, Type}
 
-class BasicBlock(nameStr: String, var stmts: List[Instruction] = List()) extends Value with InFunction {
+class BasicBlock(private val nameStr: String, var stmts: List[Instruction] = List()) extends Value with InFunction {
   name = nameStr
   def terminator: Terminator = stmts.last.asInstanceOf[Terminator]
 

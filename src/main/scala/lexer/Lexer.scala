@@ -18,14 +18,15 @@ object Lexer extends RegexParsers {
   override val whiteSpace: Regex = "[ \t\r\f]+".r
 
   def eliminateComment(src: String) = {
-    src.split("\n").map(c => {
+    val end = if(src.endsWith("\n")) then "\n" else ""
+    (src.split("\n").map(c => {
       val begin = c.indexOf("#")
       if (begin != -1) {
         c.slice(0, begin)
       } else {
         c
       }
-    }).map(_ + "\n").mkString
+    }).mkString("\n")) + end
   }
   def apply(originSrc: String): Either[RcLexerError, List[Token]] = {
     val code = eliminateComment(originSrc)

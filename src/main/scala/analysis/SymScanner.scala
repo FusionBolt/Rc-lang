@@ -17,11 +17,18 @@ import scala.collection.mutable.Map
  * 3. global data
  */
 object SymScanner extends ASTVisitor {
-  var currentClass: State[ClassEntry] = new ClassEntry(Class("Kernel", None, List(), List()))
-  var currentMethod: State[LocalTable] = new LocalTable(null)
-  var classTable:Map[String, ClassEntry] = Map(Def.Kernel -> currentClass.value)
+  var currentClass: State[ClassEntry] = null
+  var currentMethod: State[LocalTable] = null
+  var classTable: Map[String, ClassEntry] = null
+
+  def init = {
+    this.currentClass = new ClassEntry(Class("Kernel", None, List(), List()))
+    this.currentMethod = new LocalTable(null)
+    this.classTable = Map(Def.Kernel -> currentClass.value)
+  }
 
   def apply(ast: RcModule): GlobalTable = {
+    init
     visit(ast)
     new GlobalTable(classTable)
   }

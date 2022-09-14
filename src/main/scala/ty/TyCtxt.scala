@@ -3,9 +3,8 @@ package ty
 
 import ast.Ident
 import ty.Type
-import tools.{FullName, GlobalTable}
+import tools.{ClassEntry, FullName, GlobalTable, NestSpace}
 import ty.Infer
-import tools.NestSpace
 
 import rclang.ty.Infer.tyCtxt
 
@@ -17,7 +16,7 @@ import scala.collection.immutable.Map
  */
 case class TyCtxt() {
   var global: Map[Ident, Type] = Map()
-  var globalTable: GlobalTable = null
+  var globalTable: GlobalTable = GlobalTable(collection.mutable.Map())
   var fullName: FullName = FullName()
   def setGlobalTable(gt:GlobalTable) = {
     globalTable = gt
