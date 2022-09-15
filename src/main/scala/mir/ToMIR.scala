@@ -46,7 +46,7 @@ def demangling(name: String): FullName = {
 
 case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var klass: String = "") {
   var nestSpace: NestSpace = NestSpace(globalTable, FullName("", klass, parentModule.name))
-  
+
   def getFunOuterClass(id: Ident, nestSpace: NestSpace, gt: GlobalTable): Class = {
     nestSpace.klassTable.findMethodInWhichClass(id, gt)
   }
@@ -193,9 +193,7 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
           case _ => {
             val objPtr = builder.createLoad(procExpr(obj))
             structTyProc(objPtr.ty) { case StructType(name, fields) =>
-              currClass.methods.find(_.decl.name == target) match
-                case Some(value) => makeCall(name, value.decl.name, objPtr)
-                case None => ???
+              makeCall(name, target, objPtr)
             }
           }
       }

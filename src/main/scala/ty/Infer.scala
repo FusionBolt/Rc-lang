@@ -53,10 +53,12 @@ case object Infer {
   private def infer(stmt: Stmt): Type = {
     stmt match
       case Stmt.Local(name, ty, value) => {
-        ty match
-          case TyInfo.Spec(ty) => ???
+        val localTy = ty match
+          case TyInfo.Spec(ty) => translate(ty)
           case TyInfo.Infer => infer(value)
           case TyInfo.Nil => NilType
+        tyCtxt.addLocal(name, localTy)
+        localTy
       }
       case Stmt.Expr(expr) => infer(expr)
       case Stmt.While(cond, body) => infer(body)
@@ -80,27 +82,33 @@ case object Infer {
         if(stmts.isEmpty) {
           NilType
         } else {
-          tyCtxt.enter(infer(stmts.last))
+          // must have prev info when infer last
+          tyCtxt.enter(stmts.map(infer).last)
         }
       }
       case Call(target, args) => lookup(target)
       case Lambda(args, block) => ???
       case MethodCall(obj, target, args) => {
+        val makeCallTy = (klass: String) => {
+          NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = klass)).lookupFn(target).ty match
+            case FnType(ret, params) => ret
+            case _ => ???
+        }
         // obj is a constant or obj is a expr
         obj match
           case Symbol(sym) => {
-            NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = sym.str)).lookupFn(target).ty
+            makeCallTy(sym.str)
           }
+          // todo: new的返回类型
           case _ => {
-            val ty = infer(obj)
-            structTyProc(ty)(s => {
-              NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = s.name)).lookupFn(target).ty
+            structTyProc(obj.withInfer)(s => {
+              makeCallTy(s.name)
+//              NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = s.name)).lookupFn(target).ty
             })
           }
       }
       case Field(expr, ident) => {
-        val obj = infer(expr)
-        structTyProc(obj)(s => {
+        structTyProc(expr.withInfer)(s => {
           NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = s.name)).lookupVar(ident).ty
         })
       }
@@ -113,12 +121,28 @@ case object Infer {
     tyCtxt.lookup(ident).getOrElse(ErrType(s"$ident not found"))
   }
 
+//  private def infer(f: Method): Type = {
+//    tyCtxt.fullName.fn = f.name.str
+//    val ret = translate(f.decl.outType)
+//    val params = f.decl.inputs.params.map(_.ty).map(translate)
+//    tyCtxt.fullName.fn = ""
+//    FnType(ret, params)
+//  }
+
   private def infer(f: Method): Type = {
-    tyCtxt.fullName.fn = f.name.str
-    val ret = translate(f.decl.outType)
-    val params = f.decl.inputs.params.map(_.ty).map(translate)
-    tyCtxt.fullName.fn = ""
-    FnType(ret, params)
+    tyCtxt.global.getOrElse(f.name, {
+      // todo:从这里进的function没有local
+      val oldName = tyCtxt.fullName
+      tyCtxt.fullName = tyCtxt.fullName.copy(fn = f.name.str)
+      val ret = if (f.decl.outType == TyInfo.Infer) {
+        Infer(f.body)
+      } else {
+        translate(f.decl.outType)
+      }
+      val params = f.decl.inputs.params.map(_.ty).map(translate)
+      tyCtxt.fullName = oldName
+      FnType(ret, params)
+    })
   }
 
   def translate(info: TyInfo): Type = info match
@@ -141,6 +165,10 @@ case object Infer {
     val rt = infer(rhs)
     if lt == rt then lt else ErrType("failed")
   }
+}
+
+def structTyProc[T](obj: Expr)(f: StructType => T): T = {
+  structTyProc(obj.ty)(f)
 }
 
 def structTyProc[T](ty: Type)(f: StructType => T): T = {

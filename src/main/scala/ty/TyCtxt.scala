@@ -20,7 +20,8 @@ case class TyCtxt() {
   var fullName: FullName = FullName()
   def setGlobalTable(gt:GlobalTable) = {
     globalTable = gt
-    global = globalTable.methodTypeTable.toMap.map((id, item) => id -> Infer(item))
+    // todo: remove this global，这里是因为infer没有设置tyctxt导致的出错
+//    global = globalTable.methodTypeTable.toMap.map((id, item) => id -> Infer(item))
   }
 
   /**

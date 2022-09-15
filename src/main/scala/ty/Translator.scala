@@ -61,12 +61,13 @@ case object TypedTranslator {
 
   def stmtTrans(stmt: Stmt): Stmt =
     (stmt match
-      case Local(name, ty, value) =>
+      case Local(name, ty, value) => {
         val localTy = ty match
           case TyInfo.Spec(_) => Infer.translate(ty)
           case _ => Infer(value)
         tyCtxt.addLocal(name, localTy)
         Local(name, ty, value.withInfer).withTy(localTy)
+      }
       case Stmt.Expr(expr) => Stmt.Expr(expr.withInfer)
       case While(cond, body) => While(cond.withInfer, body.withInfer)
       case Assign(name, value) => Assign(name, value.withInfer))

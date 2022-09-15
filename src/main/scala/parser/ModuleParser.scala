@@ -21,7 +21,7 @@ trait ModuleParser extends RcBaseParser with ExprParser {
 
   def method: Parser[Item] = positioned {
     oneline(DEF ~> id ~ params) ~ block <~ END ^^ {
-      case id ~ params ~ block => Method(MethodDecl(id, params, TyInfo.Nil), block)
+      case id ~ params ~ block => Method(MethodDecl(id, params, TyInfo.Infer), block)
     }
   }
 
