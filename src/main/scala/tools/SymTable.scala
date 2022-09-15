@@ -43,9 +43,22 @@ class ClassEntry(val astNode: Class) {
     methods(localTable.fnName.str) = localTable
   }
 
-  def allMethods(gt: GlobalTable): List[Method] = {
+  def allMethods(gt: GlobalTable): Map[Class, List[Method]] = {
     val parentMethods = astNode.parent match
       case Some(parent) => gt.classTable(parent).allMethods(gt)
+      case None => Map()
+    Map(astNode -> astNode.methods) ++ parentMethods
+  }
+
+  def findMethodInWhichClass(id: Ident, gt: GlobalTable): Class = {
+    allMethods(gt).find(k => k._2.exists(_.name == id)) match
+      case Some(value) => value._1
+      case None => throw new RuntimeException("fn not in any class")
+  }
+
+  def allMethodsList(gt: GlobalTable): List[Method] = {
+    val parentMethods = astNode.parent match
+      case Some(parent) => gt.classTable(parent).allMethodsList(gt)
       case None => List()
     astNode.methods:::parentMethods
   }

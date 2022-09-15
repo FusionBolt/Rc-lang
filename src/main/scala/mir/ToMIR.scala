@@ -46,9 +46,15 @@ def demangling(name: String): FullName = {
 
 case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var klass: String = "") {
   var nestSpace: NestSpace = NestSpace(globalTable, FullName("", klass, parentModule.name))
+  
+  def getFunOuterClass(id: Ident, nestSpace: NestSpace, gt: GlobalTable): Class = {
+    nestSpace.klassTable.findMethodInWhichClass(id, gt)
+  }
+
   def getFun(id: Ident, nestSpace: NestSpace = this.nestSpace): Function = {
     // when call a member method, nestSpace.fullName.fn != id
-    parentModule.fnTable.getOrElse(mangling(nestSpace.fullName.copy(fn = id)), {
+    val klass = getFunOuterClass(id, nestSpace, globalTable).name
+    parentModule.fnTable.getOrElse(mangling(nestSpace.fullName.copy(klass = klass, fn = id)), {
       val fn = nestSpace.lookupFn(id)
       val newFn = FnToMIR(globalTable, parentModule, klass).procMethod(fn)
       if(parentModule.fnTable.contains(id.str)) {
@@ -200,7 +206,7 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
         structTyProc(obj.ty) { case StructType(name, _) =>
           val structType = TypeBuilder.fromClass(name, globalTable)
           val fieldTy = nestSpace.withClass(name).lookupVar(field).ty
-          builder.createGEP(obj, structType.fieldOffset(field), fieldTy)
+          GetElementPtr(obj, structType.fieldOffset(field), fieldTy)
         }
       }
       case _ => ???

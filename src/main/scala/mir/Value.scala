@@ -44,5 +44,6 @@ case class Use(var value: Value, var parent: User) {
 //  override def toString: String = s"Use(${toStr(value)} => ${toStr(parent)})"
   override def toString: String = s"Use(${toStr(value)})"
 
-  private def toStr[T](v: T) = if v == null then "" else v.toString
+//  private def toStr[T](v: T) = if v == null then "" else v.toString
+  private def toStr[T](v: T) = ""
 }

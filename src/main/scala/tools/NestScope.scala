@@ -52,8 +52,8 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
       fn
     } else {
       // 2. class
-      klassTable.allMethods(gt).find(_.name == id)
-        .getOrElse(
+      val klassMethod = klassTable.allMethodsList(gt).find(_.name == id)
+      klassMethod.getOrElse(
         // 3. module
         module.items.find(_ match
           case m: Method => m.name == id
@@ -66,15 +66,15 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
   def lookupVar(id: Ident): Expr = {
     // 1. local
     localTable.locals.get(id) match
-      case Some(value) => Identifier(value.name)
+      case Some(value) => Identifier(value.name).withTy(value.ty)
       // 2. argument
       case None => {
         fn.decl.inputs.params.find(_.name == id) match
-          case Some(value) => Identifier(value.name)
+          case Some(value) => Identifier(value.name).withTy(Infer.translate(value.ty))
           case None => {
             // 3. field
             klassTable.allInstanceVars(gt).find(_.name == id) match
-              case Some(value) => Field(Identifier(Def.self), id)
+              case Some(value) => Field(Identifier(Def.self), id).withTy(Infer.translate(value.ty))
               case None => throw new RuntimeException()
           }
       }

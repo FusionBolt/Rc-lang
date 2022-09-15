@@ -20,5 +20,6 @@ class Point < RcObject
 end
 
 def main()
-    # var a = Point.new()
+    var a = Point.new()
+    a.move_x(5)
 end

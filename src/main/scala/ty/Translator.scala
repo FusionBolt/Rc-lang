@@ -30,8 +30,10 @@ case object TypedTranslator {
   }
 
   def classTrans(klass: Class): Class = {
+    var oldName = tyCtxt.fullName
     tyCtxt.fullName.klass = klass.name.str
     val methods = klass.methods.map(methodTrans)
+    tyCtxt.fullName = oldName
     klass.copy(methods = methods)
   }
 

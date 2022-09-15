@@ -16,6 +16,10 @@ class BasicBlock(private val nameStr: String, var stmts: List[Instruction] = Lis
   override def toString: String = s"BasicBlock:$name"
 }
 
+def bbToStr(bb: BasicBlock): String = {
+  s"--- BasicBlock:${bb.name} ---\n${traverseInst(bb.stmts).mkString("\n")}"
+}
+
 case class Function(private val fnName: String,
                     var retType: Type,
                     var argument: List[Argument],
@@ -31,7 +35,7 @@ case class Function(private val fnName: String,
 
   override def toString: String = {
     val sign = s"$fnName(${argument.mkString(",")})\n"
-    val body = s"${bbs.map(bb => s"BasicBlock:${bb.name}\n${traverseInst(bb.stmts).mkString("\n")})\n").mkString("\n")}"
+    val body = s"{\n${bbs.map(bbToStr).mkString("\n")}\n}"
     sign + body
   }
 }
