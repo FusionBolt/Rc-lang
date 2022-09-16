@@ -2,6 +2,7 @@ package rclang
 package mir
 
 import ty.*
+import tools.Debugger.*
 
 trait Terminator {
   def successors: List[BasicBlock]
@@ -41,7 +42,9 @@ class CallBase(func: Function, private val args_value: List[Value]) extends Inst
   def getArg(i: Int): Value = getOperand(i)
 }
 
-case class Call(func: Function, private val args_value: List[Value]) extends CallBase(func, args_value)
+case class Call(func: Function, private val args_value: List[Value]) extends CallBase(func, args_value) {
+  override def toString: String = Printer().visit(this)
+}
 
 class Intrinsic(private val intrName: String, private val args_value: List[Value]) extends Instruction(varOps) {
   name = intrName
@@ -117,6 +120,8 @@ case class PhiNode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends I
   private def incomingsStr = incomings.map(x => x._2.map(b => s"${x._1} => ${b.name}").mkString("\n")).mkString("\n")
   override def toString: String = "Phi"
   def addIncoming(value: Value, block: BasicBlock): Unit = {
+    ty = value.ty
+    check(value.ty == ty, "phi incoming ty should be same")
     incomings = incomings.updated(value, incomings.getOrElse(value, Set()) + block)
   }
 }

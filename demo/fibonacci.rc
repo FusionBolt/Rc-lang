@@ -1,0 +1,12 @@
+def f(x: Int): Int
+  if x < 3
+    x
+  else
+    f(x-1) + f(x-2)
+  end
+end
+
+def main()
+  print("fibonacci(8) result is:")
+  print(f(8))
+end

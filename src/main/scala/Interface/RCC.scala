@@ -4,4 +4,4 @@ import Interface.*
 
 import compiler.CompileOption
 
-@main def rcc = compiler.Driver(CompileOption("demo/oop.rc"))
+@main def rcc = compiler.Driver(CompileOption("demo/fibonacci.rc"))

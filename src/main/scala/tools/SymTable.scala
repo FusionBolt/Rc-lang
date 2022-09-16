@@ -10,7 +10,7 @@ import scala.collection.mutable
 import scala.collection.mutable.Map
 
 // because of id should carry position info, key' type should be String
-class GlobalTable(var classTable: Map[String, ClassEntry]) {
+class GlobalTable(var classTable: Map[String, ClassEntry], var module: RcModule) {
   def classes = classTable.keys
 
   def kernel = classTable(Def.Kernel)
@@ -43,17 +43,15 @@ class ClassEntry(val astNode: Class) {
     methods(localTable.fnName.str) = localTable
   }
 
-  def allMethods(gt: GlobalTable): Map[Class, List[Method]] = {
+  private def allMethodsImpl(gt: GlobalTable): Map[Class, List[Method]] = {
     val parentMethods = astNode.parent match
       case Some(parent) => gt.classTable(parent).allMethods(gt)
       case None => Map()
     Map(astNode -> astNode.methods) ++ parentMethods
   }
 
-  def findMethodInWhichClass(id: Ident, gt: GlobalTable): Class = {
-    allMethods(gt).find(k => k._2.exists(_.name == id)) match
-      case Some(value) => value._1
-      case None => throw new RuntimeException("fn not in any class")
+  def allMethods(gt: GlobalTable): Map[Class, List[Method]] = {
+    allMethodsImpl(gt) ++ Map()
   }
 
   def allMethodsList(gt: GlobalTable): List[Method] = {

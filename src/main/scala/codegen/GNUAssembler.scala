@@ -90,9 +90,11 @@ object GNUASM {
   }
 
   def arithInstToASM(op: String, lhs: MachineOperand, rhs: MachineOperand): String = {
+    def toStr(op: String) = s"${instStr(op, lhs)} ${operandToASM(lhs)}, ${operandToASM(rhs)}"
     op match
-      case "Add" => s"${instStr("add", lhs)} ${operandToASM(lhs)}, ${operandToASM(rhs)}"
-      case _ => ???
+      case "Add" => toStr("add")
+      case "LT" => toStr("cmp")
+      case "GT" => toStr("cmp")
   }
 
   def operandToASM(operand: MachineOperand): String = {

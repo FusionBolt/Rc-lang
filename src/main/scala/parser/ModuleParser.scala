@@ -20,8 +20,11 @@ trait ModuleParser extends RcBaseParser with ExprParser {
   }
 
   def method: Parser[Item] = positioned {
-    oneline(DEF ~> id ~ params) ~ block <~ END ^^ {
-      case id ~ params ~ block => Method(MethodDecl(id, params, TyInfo.Infer), block)
+    oneline(DEF ~> id ~ params ~ typeLimit.?) ~ block <~ END ^^ {
+      case id ~ params ~ ty ~ block => {
+        val tyInfo = ty.getOrElse(TyInfo.Infer)
+        Method(MethodDecl(id, params, tyInfo), block)
+      }
     }
   }
 

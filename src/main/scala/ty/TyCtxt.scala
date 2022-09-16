@@ -16,7 +16,7 @@ import scala.collection.immutable.Map
  */
 case class TyCtxt() {
   var global: Map[Ident, Type] = Map()
-  var globalTable: GlobalTable = GlobalTable(collection.mutable.Map())
+  var globalTable: GlobalTable = GlobalTable(collection.mutable.Map(), null)
   var fullName: FullName = FullName()
   def setGlobalTable(gt:GlobalTable) = {
     globalTable = gt
@@ -38,6 +38,9 @@ case class TyCtxt() {
   def lookup(ident: Ident): Option[Type] = {
     if (ident.str == "malloc" || ident.str == "this") {
       return Some(PointerType(getClassTy(Ident(fullName.klass)).get))
+    }
+    if (ident.str == "print") {
+      return Some(NilType)
     }
     val ty = local.get(ident) orElse outer.find(_.contains(ident)).map(_(ident)) orElse global.get(ident)
     ty orElse getClassTy(ident)

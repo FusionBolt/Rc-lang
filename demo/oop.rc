@@ -14,7 +14,7 @@ class Point < RcObject
   var x:Int
   var y:Int
 
-  def move_x(offset: Int)
+  def move_x(offset: Int): Int
     x = x + offset
   end
 end

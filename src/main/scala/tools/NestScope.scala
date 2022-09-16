@@ -80,4 +80,18 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
           }
       }
   }
+  def findMethodInWhichClass(id: Ident, gt: GlobalTable): Class = {
+    findMethodInWhichClassImpl(klassTable, id, gt) getOrElse {
+//      findMethodInWhichClassImpl(gt.classTable(Def.Kernel), id, gt)
+      gt.module.items.find(_ match
+        case m:Method => m.name == id
+        case _ => false) match
+          case Some(value) => gt.classTable(Def.Kernel).astNode
+          case None => throw new RuntimeException("fn not in any class")
+    }
+  }
+
+  private def findMethodInWhichClassImpl(klass: ClassEntry, id: Ident, gt: GlobalTable): Option[Class] = {
+    klass.allMethods(gt).find(k => k._2.exists(_.name == id)).map(_._1)
+  }
 }

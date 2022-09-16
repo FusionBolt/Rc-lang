@@ -48,7 +48,7 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
   var nestSpace: NestSpace = NestSpace(globalTable, FullName("", klass, parentModule.name))
 
   def getFunOuterClass(id: Ident, nestSpace: NestSpace, gt: GlobalTable): Class = {
-    nestSpace.klassTable.findMethodInWhichClass(id, gt)
+    nestSpace.findMethodInWhichClass(id, gt)
   }
 
   def getFun(id: Ident, nestSpace: NestSpace = this.nestSpace): Function = {

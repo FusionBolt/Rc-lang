@@ -22,7 +22,7 @@ object SymScanner extends ASTVisitor {
   var classTable: Map[String, ClassEntry] = null
 
   def init = {
-    this.currentClass = new ClassEntry(Class("Kernel", None, List(), List()))
+    this.currentClass = new ClassEntry(Class(Def.Kernel, None, List(), List()))
     this.currentMethod = new LocalTable(null)
     this.classTable = Map(Def.Kernel -> currentClass.value)
   }
@@ -30,7 +30,7 @@ object SymScanner extends ASTVisitor {
   def apply(ast: RcModule): GlobalTable = {
     init
     visit(ast)
-    new GlobalTable(classTable)
+    new GlobalTable(classTable, ast)
   }
 
   /**

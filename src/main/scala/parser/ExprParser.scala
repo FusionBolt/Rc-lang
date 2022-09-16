@@ -52,6 +52,8 @@ trait BinaryTranslator {
 }
 
 trait ExprParser extends RcBaseParser with BinaryTranslator {
+  def typeLimit = COLON ~> ty
+
   def termExpr: Parser[Expr] = positioned {
     term ~ (operator ~ term).* ^^ {
       case term ~ terms => termsToBinary(term, terms.map(a => List(a._1, a._2)))
