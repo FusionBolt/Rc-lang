@@ -2,14 +2,14 @@ package rclang
 package mir
 
 
-def traverse[T, U](list: List[T], f: T => U): List[U] =
+def traverse[T, U](list: List[T])(f: T => U): List[U] =
   list.map(f)
 
 def traverseInst[T <: Instruction](list: List[T]): List[String] =
-  traverse(list, inst => {
+  traverse(list)(inst => {
     Printer().visit(inst)
-//    val user = inst.asInstanceOf[User]
-//    s"${inst.getClass.getSimpleName}:${user.ty} ${user.operands.map(_.toString).mkString(" ")}"
+    //    val user = inst.asInstanceOf[User]
+    //    s"${inst.getClass.getSimpleName}:${user.ty} ${user.operands.map(_.toString).mkString(" ")}"
   })
 
 trait InstVisitor {
@@ -70,21 +70,20 @@ class Printer{
   def visit(inst: Instruction): String = {
     val user = inst.asInstanceOf[User]
     inst match {
-//      case BinaryInstBase(lhsValue, rhsValue) => ???
-//      case UnaryInst(operandValue) => ???
-      case base: CallBase => s"${instName(inst)} ${base.asInstanceOf[Call].func.name}:${user.ty} ${opsToString(user)}"
+      //      case BinaryInstBase(lhsValue, rhsValue) => ???
+      //      case UnaryInst(operandValue) => ???
       case intrinsic: Intrinsic => s"${instName(inst)} ${intrinsic.name}: ${user.ty}"
-      case CondBranch(condValue, tBranch, fBranch) => s"CondBranch ${tBranch.name} ${fBranch.name}"
-      case Branch(destBasicBlock) => s"Branch ${destBasicBlock.name}"
-//      case Return(value) => ???
-      case Binary(op, lhs_value, rhs_value) => s"${instName(inst)}: ${user.ty} $op($lhs_value, $rhs_value)"
-//      case Alloc(id, typ) => ???
-//      case Load(ptr) => ???
-//      case Store(value, ptr) => ???
-//      case GetElementPtr(value, offset) => ???
-//      case PhiNode(incomings) => ???
-//      case SwitchInst() => ???
-//      case MultiSuccessorsInst(bbs) => ???
+      //      case CondBranch(condValue, tBranch, fBranch) => ???
+      //      case Branch(destBasicBlock) => ???
+      //      case Return(value) => ???
+      case bn @ Binary(op, lhs_value, rhs_value) => s"${instName(inst)}: ${user.ty} $op(${bn.lhs}, ${bn.rhs})"
+      //      case Alloc(id, typ) => ???
+      //      case Load(ptr) => ???
+      case st @ Store(value, ptr) => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
+      //      case GetElementPtr(value, offset) => ???
+      //      case PhiNode(incomings) => ???
+      //      case SwitchInst() => ???
+      //      case MultiSuccessorsInst(bbs) => ???
       case _ => s"${instName(inst)}:${user.ty} ${opsToString(user)}"
     }
   }

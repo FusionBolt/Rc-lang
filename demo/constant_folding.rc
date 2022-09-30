@@ -1,0 +1,4 @@
+def main()
+    val a = 1 + 1
+    val b = a + 1
+end

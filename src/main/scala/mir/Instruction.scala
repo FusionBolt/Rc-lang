@@ -2,7 +2,6 @@ package rclang
 package mir
 
 import ty.*
-import tools.Debugger.*
 
 trait Terminator {
   def successors: List[BasicBlock]
@@ -22,7 +21,11 @@ trait In[T] {
 type InBasicBlock = In[BasicBlock]
 type InFunction = In[Function]
 
-sealed class Instruction(numOps: Int) extends User(numOps) with InBasicBlock
+sealed class Instruction(numOps: Int) extends User(numOps) with InBasicBlock {
+  def removeFromParent = {
+    parent.stmts = parent.stmts.filterNot(_ == this)
+  }
+}
 
 case class BinaryInstBase(private val lhsValue: Value, private val rhsValue: Value) extends Instruction(2) {
   setOperand(0, lhsValue)
@@ -42,9 +45,7 @@ class CallBase(func: Function, private val args_value: List[Value]) extends Inst
   def getArg(i: Int): Value = getOperand(i)
 }
 
-case class Call(func: Function, private val args_value: List[Value]) extends CallBase(func, args_value) {
-  override def toString: String = Printer().visit(this)
-}
+case class Call(func: Function, private val args_value: List[Value]) extends CallBase(func, args_value)
 
 class Intrinsic(private val intrName: String, private val args_value: List[Value]) extends Instruction(varOps) {
   name = intrName
@@ -101,10 +102,12 @@ case class Load(private val valuePtr: Value) extends Instruction(1) {
   def ptr = getOperand(0)
 }
 
-case class Store(value: Value, ptr: Value) extends Instruction(2) {
-  ty = value.ty
-  setOperand(0, value)
-  setOperand(1, ptr)
+case class Store(private var valueV: Value, private var ptrV: Value) extends Instruction(2) {
+  ty = valueV.ty
+  setOperand(0, valueV)
+  setOperand(1, ptrV)
+  def value = getOperand(0)
+  def ptr = getOperand(1)
 }
 
 case class GetElementPtr(value: Value, offset: Int, targetTy: Type) extends Instruction(1) {
@@ -120,8 +123,6 @@ case class PhiNode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends I
   private def incomingsStr = incomings.map(x => x._2.map(b => s"${x._1} => ${b.name}").mkString("\n")).mkString("\n")
   override def toString: String = "Phi"
   def addIncoming(value: Value, block: BasicBlock): Unit = {
-    ty = value.ty
-    check(value.ty == ty, "phi incoming ty should be same")
     incomings = incomings.updated(value, incomings.getOrElse(value, Set()) + block)
   }
 }
@@ -146,14 +147,31 @@ case class MultiSuccessorsInst(var bbs: List[BasicBlock] = List()) extends Instr
   override def successors: List[BasicBlock] = bbs
 }
 
-sealed class Constant(typ: Type) extends User(0)
+sealed class Constant(typ: Type) extends User(0) {
+  ty = typ
+  def isZero: Boolean = false
+  def isOne: Boolean = false
+}
 
-case class Integer(value: Int) extends Constant(Int32Type) {
-  ty = Int32Type
+sealed class Number(typ: Type) extends Constant(typ) {
 }
-case class Str(str: String) extends Constant(StringType) {
-  ty = StringType
+
+case class Integer(value: Int) extends Number(Int32Type) {
+  override def isZero: Boolean = value == 0
+
+  override def isOne: Boolean = value == 1
 }
-case class Bool(bool: Boolean) extends Constant(BooleanType) {
-  ty = BooleanType
+
+object ImplicitConversions {
+  implicit def toInteger(int: Int): Integer = Integer(int)
+  implicit def toFP(fp: Float): FP = FP(fp)
 }
+
+case class FP(value: Float) extends Number(FloatType) {
+  override def isZero: Boolean = value == 0
+  override def isOne: Boolean = value == 1
+}
+
+case class Str(str: String) extends Constant(StringType)
+
+case class Bool(bool: Boolean) extends Constant(BooleanType)

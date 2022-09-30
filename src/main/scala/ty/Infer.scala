@@ -182,5 +182,5 @@ def structTyProc[T](ty: Type, default: T)(f: StructType => T): T = {
   ty match
     case s: StructType => f(s)
     case PointerType(ty) => structTyProc(ty)(f)
-    case _ => T
+    case _ => ???
 }
