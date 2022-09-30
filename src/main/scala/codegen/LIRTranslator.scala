@@ -91,7 +91,7 @@ class LIRBuilder {
   }
 
   def buildCondBranch(cond: MachineOperand, trueBB: BasicBlock, falseBB: BasicBlock) = {
-    insert(BrCondInst(cond, trueBB.name, falseBB.name))
+    insert(CondBrInst(cond, trueBB.name, falseBB.name))
   }
 
   def buildPhi(phi: PhiNode) = {
@@ -172,7 +172,7 @@ case class InlineASM(content: String) extends MachineInst
 
 case class BranchInst(target: Label) extends MachineInst
 
-case class BrCondInst(cond: MachineOperand, trueBranch: Label, falseBranch: Label) extends MachineInst
+case class CondBrInst(cond: MachineOperand, trueBranch: Label, falseBranch: Label) extends MachineInst
 
 case class PhiInst(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends MachineInst
 

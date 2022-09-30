@@ -177,3 +177,10 @@ def structTyProc[T](ty: Type)(f: StructType => T): T = {
     case PointerType(ty) => structTyProc(ty)(f)
     case _ => ???
 }
+
+def structTyProc[T](ty: Type, default: T)(f: StructType => T): T = {
+  ty match
+    case s: StructType => f(s)
+    case PointerType(ty) => structTyProc(ty)(f)
+    case _ => T
+}

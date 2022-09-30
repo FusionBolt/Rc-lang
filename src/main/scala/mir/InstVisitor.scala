@@ -74,8 +74,8 @@ class Printer{
 //      case UnaryInst(operandValue) => ???
       case base: CallBase => s"${instName(inst)} ${base.asInstanceOf[Call].func.name}:${user.ty} ${opsToString(user)}"
       case intrinsic: Intrinsic => s"${instName(inst)} ${intrinsic.name}: ${user.ty}"
-//      case CondBranch(condValue, tBranch, fBranch) => ???
-//      case Branch(destBasicBlock) => ???
+      case CondBranch(condValue, tBranch, fBranch) => s"CondBranch ${tBranch.name} ${fBranch.name}"
+      case Branch(destBasicBlock) => s"Branch ${destBasicBlock.name}"
 //      case Return(value) => ???
       case Binary(op, lhs_value, rhs_value) => s"${instName(inst)}: ${user.ty} $op($lhs_value, $rhs_value)"
 //      case Alloc(id, typ) => ???
