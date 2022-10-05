@@ -22,7 +22,9 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
   def expectSuccess(token: Seq[Token], expect: Item): Unit = {
     apply(token) match {
       case Left(value) => assert(false, value.msg)
-      case Right(value) => assert(value == expect)
+      case Right(value) => {
+        assert(value == expect)
+      }
     }
   }
 

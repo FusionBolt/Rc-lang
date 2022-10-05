@@ -17,7 +17,7 @@ class SimpleTest extends RcTestBase {
     codegen(getModule(src))
   }
 
-  describe("print") {
+  ignore("print") {
     val src = """def main()
                 |    print("Hello world")
                 |end
@@ -46,7 +46,7 @@ class SimpleTest extends RcTestBase {
     }
   }
 
-  describe("add") {
+  ignore("add") {
     val src = """def add(a: Int, b: Int)
                 |  a + b
                 |end

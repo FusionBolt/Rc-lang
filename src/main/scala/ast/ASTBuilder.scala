@@ -23,7 +23,7 @@ trait ASTBuilder {
   def makeLocal(name: String, value: Expr): Stmt.Local = Stmt.Local(name, TyInfo.Infer, value)
   def makeASTMethod(name: String,
                     params: List[Param] = List(),
-                    retType:TyInfo = TyInfo.Nil,
+                    retType:TyInfo = TyInfo.Infer,
                     block: List[Stmt] = List()): Method = {
     Method(MethodDecl(name, Params(params), retType), Block(block))
   }
