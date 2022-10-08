@@ -4,10 +4,12 @@ package mir
 import ty.*
 
 class Value extends Typed {
-  var uses: List[Use] = List()
+  var users: List[Use] = List()
   var name: String = ""
-  def addUser(v: User) = {
-    uses = Use(this, v)::uses
+  def addUser(v: User): Use = {
+    val u = Use(this, v)
+    users = u::users
+    u
   }
 }
 
@@ -28,26 +30,26 @@ enum NumOps:
 class User(numOps: Int) extends Value {
   var operands: List[Use] = List.fill(numOps)(Use(null, null))
   def setOperands(ops: List[Value]) = {
-    operands = ops.map(Use(_, this))
-    ops.foreach(op => {
-      op.addUser(this)
-    })
+    operands = ops.map(_.addUser(this))
+//    ops.foreach(op => {
+//      op.addUser(this)
+//    })
   }
 
+  // increment users of value
   def setOperand(i: Int, v: Value) = {
-    operands = operands.updated(i, Use(v, this))
-    v.addUser(this)
+    operands = operands.updated(i, v.addUser(this))
   }
 
   def getOperand(i: Int) = operands(i).value
   def getOperands = operands.map(_.value)
 
   def replaceAllUseWith(v: Value) = {
-    uses.foreach(use => {
+    users.foreach(use => {
       assert(use.value == this)
       use.value = v
     })
-    uses.foreach(use => {
+    users.foreach(use => {
       assert(use.value != this)
     })
   }

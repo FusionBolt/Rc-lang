@@ -79,7 +79,8 @@ class Printer{
       case bn @ Binary(op, lhs_value, rhs_value) => s"${instName(inst)}: ${user.ty} $op(${bn.lhs}, ${bn.rhs})"
       //      case Alloc(id, typ) => ???
       //      case Load(ptr) => ???
-      case st @ Store(value, ptr) => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
+//      case st @ Store(value, ptr) => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
+      case st: Store => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
       //      case GetElementPtr(value, offset) => ???
       //      case PhiNode(incomings) => ???
       //      case SwitchInst() => ???

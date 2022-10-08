@@ -10,7 +10,8 @@ class ConstantFoldingTest extends RcTestBase {
     it("should run") {
       val fn = getDemoFirstFn("constant_folding.rc")
       ConstantFolding().run(fn, AnalysisManager())
-      println(fn)
+      assert(!fn.instructions.exists(_.isInstanceOf[Binary]))
+      assert(fn.instructions.takeRight(2).head.getOperand(0).asInstanceOf[Integer].value == 2)
     }
   }
 }

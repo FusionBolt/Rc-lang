@@ -22,7 +22,7 @@ type InBasicBlock = In[BasicBlock]
 type InFunction = In[Function]
 
 sealed class Instruction(numOps: Int) extends User(numOps) with InBasicBlock {
-  def removeFromParent = {
+  def eraseFromParent = {
     parent.stmts = parent.stmts.filterNot(_ == this)
   }
 }
@@ -76,7 +76,7 @@ case class Branch(destBasicBlock: BasicBlock) extends Instruction(1) with Termin
   def successors = List(dest)
 }
 
-case class Return(private val retValue: Value) extends Instruction(1) with Terminator {
+class Return(retValue: Value) extends Instruction(1) with Terminator {
   setOperand(0, retValue)
   ty = retValue.ty
   def successors = List()
@@ -92,17 +92,17 @@ case class Binary(op: String, private val lhs_value: Value, private val rhs_valu
   def rhs = getOperand(1)
 }
 
-case class Alloc(var id: String, private val typ: Type) extends Instruction(0) {
+class Alloc(var id: String, typ: Type) extends Instruction(0) {
   ty = typ
 }
 
-case class Load(private val valuePtr: Value) extends Instruction(1) {
+class Load(valuePtr: Value) extends Instruction(1) {
   ty = valuePtr.ty
   setOperand(0, valuePtr)
   def ptr = getOperand(0)
 }
 
-case class Store(private var valueV: Value, private var ptrV: Value) extends Instruction(2) {
+class Store(valueV: Value, ptrV: Value) extends Instruction(2) {
   ty = valueV.ty
   setOperand(0, valueV)
   setOperand(1, ptrV)
@@ -175,3 +175,27 @@ case class FP(value: Float) extends Number(FloatType) {
 case class Str(str: String) extends Constant(StringType)
 
 case class Bool(bool: Boolean) extends Constant(BooleanType)
+
+object Load {
+  def unapply(inst: Value): Option[Value] = {
+    inst match
+      case ld:Load => Some(ld.ptr)
+      case _ => None
+  }
+}
+
+object Store {
+  def unapply(inst: Value): Option[(Value, Value)] = {
+    inst match
+      case st:Store => Some(st.value, st.ptr)
+      case _ => None
+  }
+}
+
+object Return {
+  def unapply(inst: Value): Option[Value] = {
+    inst match
+      case rt:Return => Some(rt.value)
+      case _ => None
+  }
+}

@@ -59,10 +59,11 @@ def eval(value: Value): Option[Value] = {
 def evalInst(inst: Instruction): Option[Value] = {
   inst match
     case UnaryInst(operandValue) => ???
-    case Return(retValue) => eval(retValue).map(Return)
+    case Return(retValue) => eval(retValue).map(Return(_))
     case bn: Binary => foldBinaryInstruction(bn)
-    case Load(valuePtr) => eval(valuePtr).map(Load)
+    case Load(valuePtr) => eval(valuePtr).map(Load(_))
     case Store(value, ptr) => eval(value).map(Store(_, ptr))
+//    case st:Store => eval(st.value).map(Store(_, st.ptr))
     case alloc: Alloc => {
       val stores = alloc.operands.filter(use => use.parent.isInstanceOf[Store])
       // store only once
@@ -132,12 +133,13 @@ class ConstantFolding extends Transform[Function] {
     traverse(iRUnitT.instructions)(inst => {
         evalInst(inst) match
           case Some(after) => {
-            println("replace")
-            println(inst)
-            println(after)
+//            println("replace")
+//            println(inst)
+//            println(after)
             assert(inst != after)
-            println("--")
+//            println("--")
             inst.replaceAllUseWith(after)
+            inst.eraseFromParent
           }
           case None =>
     })
