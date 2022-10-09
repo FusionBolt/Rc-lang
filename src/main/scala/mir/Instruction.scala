@@ -84,7 +84,7 @@ class Return(retValue: Value) extends Instruction(1) with Terminator {
   def value = getOperand(0)
 }
 
-case class Binary(op: String, private val lhs_value: Value, private val rhs_value: Value) extends Instruction(2) {
+class Binary(op: String, lhs_value: Value, rhs_value: Value) extends Instruction(2) {
   setOperand(0, lhs_value)
   setOperand(1, rhs_value)
   ty = commonTy(lhs_value.ty, rhs_value.ty)
@@ -188,6 +188,14 @@ object Store {
   def unapply(inst: Value): Option[(Value, Value)] = {
     inst match
       case st:Store => Some(st.value, st.ptr)
+      case _ => None
+  }
+}
+
+object Binary {
+  def unapply(inst: Value): Option[(Value, Value)] = {
+    inst match
+      case bn:Binary => Some(bn.lhs, bn.rhs)
       case _ => None
   }
 }

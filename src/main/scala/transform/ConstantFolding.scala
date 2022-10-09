@@ -61,15 +61,24 @@ def evalInst(inst: Instruction): Option[Value] = {
     case UnaryInst(operandValue) => ???
     case Return(retValue) => eval(retValue).map(Return(_))
     case bn: Binary => foldBinaryInstruction(bn)
-    case Load(valuePtr) => eval(valuePtr).map(Load(_))
+    case Load(valuePtr) => valuePtr match
+      case c: Constant => Some(c)
+      case _ => eval(valuePtr).map(Load(_))
     case Store(value, ptr) => eval(value).map(Store(_, ptr))
-//    case st:Store => eval(st.value).map(Store(_, st.ptr))
     case alloc: Alloc => {
-      val stores = alloc.operands.filter(use => use.parent.isInstanceOf[Store])
+      val stores = alloc.users.filter(use => use.parent.isInstanceOf[Store])
       // store only once
       if (stores.size == 1) {
         val store = stores.head.parent.asInstanceOf[Store]
-        evalInst(store)
+        // store is constant, then alloc replace with value
+        evalInst(store) match
+          case Some(value) => value.asInstanceOf[Store].value match
+            case c: Constant => {
+              store.eraseFromParent
+              Some(c)
+            }
+            case _ => None
+          case None => None
       } else {
         None
       }
@@ -128,21 +137,26 @@ def foldBinaryInstruction(bn: Binary): Option[Value] = {
 // 3. replace -> find uses
 class ConstantFolding extends Transform[Function] {
   // binary -> x +- 0, x */ 1
-  override def run(iRUnitT: Function, AM: AnalysisManager[Function]): Unit = {
-    println(iRUnitT)
-    traverse(iRUnitT.instructions)(inst => {
-        evalInst(inst) match
-          case Some(after) => {
-//            println("replace")
-//            println(inst)
-//            println(after)
-            assert(inst != after)
-//            println("--")
-            inst.replaceAllUseWith(after)
-            inst.eraseFromParent
-          }
-          case None =>
+
+  def fold(IRUnit: Function): Unit = {
+    println(IRUnit)
+    traverse(IRUnit.instructions)(inst => {
+      evalInst(inst) match
+        case Some(after) => {
+          println("replace")
+          println(inst)
+          println(after)
+          assert(inst != after)
+          println("--")
+          inst.replaceAllUseWith(after)
+          inst.eraseFromParent
+        }
+        case None =>
     })
+  }
+  override def run(iRUnitT: Function, AM: AnalysisManager[Function]): Unit = {
+    fold(iRUnitT)
+    fold(iRUnitT)
 //    workList.foreach(inst => inst.replaceAllUseWith(eval(inst)))
   }
 }
