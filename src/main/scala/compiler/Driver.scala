@@ -5,12 +5,13 @@ import analysis.{BasicAA, DomTreeAnalysis, LoopAnalysis, SymScanner}
 import lexer.Lexer
 import mir.*
 import parser.RcParser
-import pass.{AnalysisManager, PassManager, CFGSimplify}
+import pass.{AnalysisManager, PassManager}
 import tools.*
 import ast.ClassesRender
 import ty.{Infer, TyCtxt, Type, TypeCheck, TypedTranslator}
 import tools.RcLogger.{log, logf, warning}
 import codegen.MachineFunction
+import rclang.transform.CFGSimplify
 //import analysis.Analysis.`given`
 import analysis.Analysis.given_DomTreeAnalysis
 import analysis.Analysis.given_LoopAnalysis

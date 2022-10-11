@@ -1,7 +1,8 @@
 package rclang
-package pass
+package transform
 
 import mir.*
+import pass.{AnalysisManager, Transform}
 
 def removeUnreachedBasicBlock(IRUnit: Function): Unit = {
   val bbs = dfsBasicBlocks(IRUnit.entry).toSet

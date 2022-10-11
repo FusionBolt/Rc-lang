@@ -31,4 +31,8 @@ class RcTestBase extends AnyFunSpec with BeforeAndAfter with Matchers {
   def getDemoFirstFn(name: String) = {
     getFirstFn("demo" / name)
   }
+  
+  def getOptDemoFirstFn(name: String) = {
+    getFirstFn("demo" / "opt" / name)
+  }
 }

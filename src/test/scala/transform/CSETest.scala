@@ -8,7 +8,7 @@ import tools.RcLogger.*
 class CSETest extends RcTestBase {
   describe("simple cse") {
     it("should run") {
-      val fn = getDemoFirstFn("cse.rc")
+      val fn = getOptDemoFirstFn("cse.rc")
       CSE().run(fn, AnalysisManager())
       logf("after_cse.txt", fn)
       assert(fn.instructions.count(_.isInstanceOf[Binary]) == 2)

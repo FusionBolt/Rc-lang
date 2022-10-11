@@ -9,7 +9,7 @@ class ConstantFoldingTest extends RcTestBase {
 
   describe("ConstantFoldingTest") {
     it("should run") {
-      val fn = getDemoFirstFn("constant_folding.rc")
+      val fn = getOptDemoFirstFn("constant_folding.rc")
       ConstantFolding().run(fn, AnalysisManager())
       logf("after_fold_fn.txt", fn)
       // alloc + store + return
