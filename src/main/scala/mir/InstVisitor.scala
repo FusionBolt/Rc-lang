@@ -76,7 +76,7 @@ class Printer{
       //      case CondBranch(condValue, tBranch, fBranch) => ???
       //      case Branch(destBasicBlock) => ???
       //      case Return(value) => ???
-      case bn @ Binary(op, lhs_value, rhs_value) => s"${instName(inst)}: ${user.ty} $op(${bn.lhs}, ${bn.rhs})"
+      case bn @ Binary(op, lhs, rhs) => s"${instName(inst)}: ${user.ty} $op(${lhs}, ${rhs})"
       //      case Alloc(id, typ) => ???
       //      case Load(ptr) => ???
 //      case st @ Store(value, ptr) => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
