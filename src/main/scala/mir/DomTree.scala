@@ -27,6 +27,7 @@ object DomEntry extends DomTreeNode(null, null) {
 
 case class DomTree(var parent: Function) {
   var nodes = Map[BasicBlock, DomTreeNode]()
+
   def entry = nodes(parent.entry)
 
   def addNode(bb: BasicBlock): DomTreeNode = {
@@ -36,6 +37,7 @@ case class DomTree(var parent: Function) {
   }
 
   def apply(bb: BasicBlock) = node(bb)
+
   def node(bb: BasicBlock): DomTreeNode = nodes(bb)
 
   override def toString: String = {
@@ -43,7 +45,7 @@ case class DomTree(var parent: Function) {
   }
 
   def serialize: List[DomTreeNode] = dfsBasicBlocks(parent.entry).map(b => nodes(b))
-  
+
   def visit[T](f: DomTreeNode => T): List[T] = {
     serialize.map(f)
   }
@@ -57,7 +59,7 @@ extension (i: DomTreeNode) {
 
   def sdom(a: DomTreeNode): Boolean = i != a && (i dom a)
 
-  def idom(a: DomTreeNode): Boolean = i.iDom == a
+  def idom(a: DomTreeNode): Boolean = a.iDom == i
 }
 
 def allReach(a: BasicBlock, b: BasicBlock): Boolean = {
@@ -78,6 +80,7 @@ case class DomTreeBuilder() {
   }
 
   var dumpCompute = true
+
   def computeLog(str: String) = {
     if (dumpCompute)
       println(str)
@@ -122,7 +125,7 @@ case class DomTreeBuilder() {
     makeTree(Domin, root.parent)
   }
 
-  def makeTree(Domin: DomInfoType, f: Function) : DomTree = {
+  def makeTree(Domin: DomInfoType, f: Function): DomTree = {
     val tree = DomTree(f)
     Domin.foreach(d => {
       tree.addNode(d._1)
@@ -139,7 +142,17 @@ def idomComputeLog(str: String) = {
     println(str)
 }
 
-def iDomCompute(N: LinkedHashSet[Node], Domin: DomInfoType, root: Node): Map[Node, Node] = {
+def iDomCompute(tree: DomTree, root: Node): DomTree = {
+  val domInfo: DomInfoType = tree.nodes.map(node => node._1 -> LinkedHashSet.from(node._2.children.map(_.basicBlock))).toMap
+  val idoms = iDomComputeImpl(LinkedHashSet.from(tree.nodes.keys), domInfo, root)
+
+  idoms.foreach(idom => {
+    tree(idom._1).iDom = tree(idom._2)
+  })
+  tree
+}
+
+def iDomComputeImpl(N: LinkedHashSet[Node], Domin: DomInfoType, root: Node): Map[Node, Node] = {
   var tmp = N.foldLeft(Map[Node, LinkedHashSet[Node]]())((acc, n) =>
     acc.updated(n, Domin(n) - n)
   )
@@ -158,7 +171,7 @@ def iDomCompute(N: LinkedHashSet[Node], Domin: DomInfoType, root: Node): Map[Nod
       idomComputeLog("b: " + b.name)
       (tmp(a) - b).foreach(c => {
         // if c dom b, then is not idom, should remove from tmp
-        if(tmp(c).contains(b)) {
+        if (tmp(c).contains(b)) {
           idomComputeLog("c: " + c.name)
           idomComputeLog("reduce: " + b.name)
           tmp = tmp.updated(a, tmp(a) - b)
