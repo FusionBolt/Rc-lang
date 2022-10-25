@@ -22,6 +22,20 @@ def mkBBs(connections: (String, String)*): BBsType = {
   bbMap
 }
 
+def mkBBsByOrder(order: List[Int], connections: (String, String)*): BBsType = {
+  // sorted by name
+  val set = LinkedHashSet.from(order.map(_.toString)).map(mkBB).filter(b => b.name != "entry" && b.name != "exit")
+  println(set)
+  var bbMap = LinkedHashMap("entry" -> mkBB("entry"))
+  val bbInFn = LinkedHashMap.from(set.map(s => s.name -> s))
+  bbMap = bbMap ++ bbInFn
+  bbMap("exit") = mkBB("exit")
+  connections.foreach((begin, end) => {
+    bbMap(begin).terminator.asInstanceOf[MultiSuccessorsInst].add(bbMap(end))
+  })
+  bbMap
+}
+
 def canReach(a: BasicBlock, b: BasicBlock): Boolean = {
   if (a == b) return true
   a.successors.exists(canReach(_, b))

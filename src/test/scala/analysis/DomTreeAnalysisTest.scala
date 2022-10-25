@@ -7,7 +7,19 @@ import tools.DumpManager
 
 class DomTreeAnalysisTest extends RcTestBase with MIRTestUtil {
   describe("DomTreeBuild") {
+    val bbs = mkBBs(
+      "entry" -> "1",
+      "1" -> "2",
+      "2" -> "exit",
+      "1" -> "3",
+      "3" -> "4",
+      "4" -> "5",
+      "5" -> "exit",
+      "4" -> "6",
+      "6" -> "4"
+    )
     it("success") {
+      given BBsType = bbs
       val tree = mkTree
       given DomTree = tree
 
@@ -31,17 +43,51 @@ class DomTreeAnalysisTest extends RcTestBase with MIRTestUtil {
     }
   }
 
+  describe("build") {
+    val order = List(0, 1, 2, 5, 6, 8, 7, 3, 4)
+    val bbs = mkBBsByOrder(
+      order,
+      "entry" -> "0",
+      "0" -> "1",
+      "1" -> "2",
+      "2" -> "3",
+      "1" -> "5",
+      "5" -> "6",
+      "6" -> "7",
+      "5" -> "8",
+      "8" -> "7",
+      "7" -> "3",
+      "3" -> "1",
+      "3" -> "4",
+      "4" -> "exit",
+    )
+    it("succeed") {
+      given BBsType = bbs
+      val tree = mkTree
+      given DomTree = tree
+      "0" isDom ("0")
+      "1" isDom ("0", "1")
+      "2" isDom ("0", "1", "2")
+      "3" isDom ("0", "1", "3")
+      "4" isDom ("0", "1", "3", "4")
+      "5" isDom ("0", "1", "5")
+      "6" isDom ("0", "1", "5", "6")
+      "7" isDom ("0", "1", "5", "7")
+      "8" isDom ("0", "1", "5", "8")
+    }
+  }
+
   extension (n: String) {
-    def isDom(children: String*)(using tree: DomTree): Unit = {
+    def isDom(children: String*)(using tree: DomTree)(using bbs: BBsType): Unit = {
       val expect = (children.toList ::: List(n, "entry")).toSet
       tree(n).children.map(_.name).toSet should be(expect)
     }
 
-    def isIDom(child: String)(using tree: DomTree): Unit = {
+    def isIDom(child: String)(using tree: DomTree)(using bbs: BBsType): Unit = {
       tree(child) idom tree(n)
     }
 
-    def noOtherDom(using tree: DomTree): Unit = {
+    def noOtherDom(using tree: DomTree)(using bbs: BBsType): Unit = {
       isDom()
     }
   }

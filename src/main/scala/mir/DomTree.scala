@@ -51,8 +51,12 @@ case class DomTree(var parent: Function) {
   }
 }
 
-
 extension (i: DomTreeNode) {
+  // entry
+  //   \
+  //    i
+  //     \
+  //      a
   def dom(a: DomTreeNode): Boolean = {
     a.children.contains(i)
   }
