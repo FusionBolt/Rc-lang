@@ -14,7 +14,7 @@ class LifeTimeAnalysis {
     // 针对每个inst的def进行分析
     mf.instructions.zipWithIndex.foreach((inst, i) => {
       // 每个inst在不同的bb中的时间
-      if (inst.dstList.nonEmpty) {
+      if (inst.operands.nonEmpty) {
         regMap(i)(i) = 1
       }
       // todo: split with bb

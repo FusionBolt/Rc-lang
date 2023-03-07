@@ -6,10 +6,6 @@ class MachineIRBuilder() {
 
   def insert(inst: MachineInstruction) = {
     mbb.insert(inst)
-    (inst.ops:::inst.dstList).foreach(op => {
-      op.instParent = inst
-    })
-    inst
   }
 
   def insertFrameIndexInst(dst: Dst, index: Int) = insert(FrameIndexInst(dst, Imm(index)))

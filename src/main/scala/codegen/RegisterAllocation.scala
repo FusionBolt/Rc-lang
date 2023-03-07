@@ -30,7 +30,7 @@ class RegisterAllocation {
 
   //  val regMap = Map[MachineFunction, Int]()
   def run(mf: MachineFunction): Unit = {
-    val list = mf.instructions.map(inst => inst.ops ++ inst.dstList)
+    val list = mf.instructions.map(inst => inst.operands)
     // todo: 考虑分支的情况
     list.foreach((operand) => {
       // 找到当前列表中结束生命周期的位置释放掉

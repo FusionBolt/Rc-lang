@@ -15,6 +15,6 @@ class MachineIRPrinter {
   }
 
   def print(inst: MachineInstruction): Unit = {
-    println(s"${inst.getClass.getName.split('.').last} ${inst.dstList} = ${inst.ops}")
+    println(s"${inst.getClass.getName.split('.').last} ${inst.operands} = ")
   }
 }
