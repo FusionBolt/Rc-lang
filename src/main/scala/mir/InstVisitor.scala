@@ -82,7 +82,7 @@ class Printer{
 //      case st @ Store(value, ptr) => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
       case st: Store => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
       //      case GetElementPtr(value, offset) => ???
-      //      case PhiNode(incomings) => ???
+      case PhiNode(incomings) => s"PhiNode: ${incomings.map((v, bb) => (v, bb.toString))}${user.ty}"
       //      case SwitchInst() => ???
       //      case MultiSuccessorsInst(bbs) => ???
       case _ => s"${instName(inst)}:${user.ty} ${opsToString(user)}"

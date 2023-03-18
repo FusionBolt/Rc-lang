@@ -118,12 +118,14 @@ case class GetElementPtr(value: Value, offset: Int, targetTy: Type) extends Inst
     case _ => throw RuntimeException("value should be structure type")
 }
 
-case class PhiNode(var incomings: Map[Value, Set[BasicBlock]] = Map()) extends Instruction(varOps) {
+case class PhiNode(var incomings: Map[Value, BasicBlock] = Map()) extends Instruction(varOps) {
   // avoid recursive
-  private def incomingsStr = incomings.map(x => x._2.map(b => s"${x._1} => ${b.name}").mkString("\n")).mkString("\n")
+//  private def incomingsStr = incomings.map(x => x._2.map(b => s"${x._1} => ${b.name}").mkString("\n")).mkString("\n")
+  private def incomingStr = "incomings"
+
   override def toString: String = "Phi"
   def addIncoming(value: Value, block: BasicBlock): Unit = {
-    incomings = incomings.updated(value, incomings.getOrElse(value, Set()) + block)
+    incomings = incomings.updated(value, block)
   }
 }
 
