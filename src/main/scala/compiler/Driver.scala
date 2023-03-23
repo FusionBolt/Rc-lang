@@ -78,13 +78,9 @@ object Driver {
   }
 
   def codegen(mirMod: Module) = {
-    val fn = IRTranslator().visit(mirMod.fns.head)
-    MachineIRPrinter().print(fn)
-
-    LifeTimeAnalysis().run(fn)
-//    val fns = log(toLIR(mirMod), "ToLIR")
-//    logf("LIR.txt", fns.mkString("\n\n"))
-    genASM(List(fn))
+    val fns = mirMod.fns.map(IRTranslator().visit).toList
+    fns.foreach(MachineIRPrinter().print)
+    genASM(fns)
 //    genELF(mirMod.fnTable.contains("main"))
   }
 
@@ -100,9 +96,10 @@ object Driver {
 
   def genASM(fns: List[MachineFunction]) = {
     val text = TextSection()
-//    val strTable = fns.flatMap(fn => (0 until fn.strTable.size).zip(fn.strTable.keys).map((i, str) => StrSection(i, List(str))))
-    val rdata = RDataSection(List())
-    fns.foreach(fn => text.addFn(fn.name -> fn.instructions.map(GNUASM.toASM)))
+    val strTable = fns.flatMap(fn => fn.origin.strTable.zipWithIndex.map((str, i) => StrSection(i, List(str.str))))
+    val rdata = RDataSection(strTable)
+
+    fns.foreach(fn => text.addFn(fn.name -> GNUASM.toASM(fn)))
     val asm = text.asm + rdata.asm
     logf("asm.s", asm)
     asm

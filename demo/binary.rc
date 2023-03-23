@@ -1,5 +1,5 @@
 def binary()
-    val a = 1 + 1
+    val a = 1
     val b = a + 1
     val c = a + b
     val d = a + c

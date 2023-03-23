@@ -57,12 +57,13 @@ case class GNUAssembler() {
 }
 
 object GNUASM {
-  def toASM(fn: MachineFunction): String = {
-    toASM(fn.instructions)
+  def toASM(fn: MachineFunction): List[String] = {
+    val start = List("pushq %rbp", "movq %rsp, %rbp")
+    start:::toASM(fn.instructions)
   }
 
-  def toASM(insts: List[MachineInstruction]): String = {
-    insts.map(toASM).mkString("\n")
+  private def toASM(insts: List[MachineInstruction]): List[String] = {
+    insts.map(toASM)
   }
 
   def instStr(inst: String, operand: MachineOperand): String = {
@@ -74,27 +75,47 @@ object GNUASM {
   }
 
   // mov src dst
-  def toASM(inst: MachineInstruction): String = {
+  private def toASM(inst: MachineInstruction): String = {
     inst match
       case BinaryInst(op, dst, lhs, rhs) => binaryInstToASM(op.toString, dst, lhs, rhs)
       case LoadInst(target, value) => value match
 //        case AddrOfValue(relReg) => s"${instStr("lea", relReg)} ${operandToASM(relReg)}, ${operandToASM(target)}"
+// todo: when target is label, call param is also need load
+        case Label(label) => s"leaq ${label}(%rip), ${operandToASM(target)}"
         case _ => s"${instStr("mov", value)} ${operandToASM(value)}, ${operandToASM(target)}"
       case StoreInst(value, target) => s"${instStr("mov", target)} ${operandToASM(value)}, ${operandToASM(target)}"
 //      case DynamicAllocInst(target) => "mov"
-      case ReturnInst(value) => s"${instStr("mov", value)} %eax ${operandToASM(value)}\nret"
+      case ReturnInst(value) => s"${instStr("mov", value)} ${operandToASM(value)}, %eax\npopq %rbp\nret"
 //      case PushInst(value) => s"${instStr("push", value)} ${operandToASM(value)}"
 //      case PopInst(target) => s"${instStr("pop", target)} ${regToASM(target)}"
-      case CallInst(target, _) => s"call $target"
+
+      case CallInst(target, _, args) => {
+        // todo: fix this, reg error
+        val argList = args.zipWithIndex.map((value, i) => value match
+          case Label(label) => s"leaq ${label}(%rip), ${paramReg(i, 8)}"
+          case _ => s"${instStr("mov", value)} ${operandToASM(value)}, ${paramReg(i, 4)}").reverse.mkString("\n")
+        val call = s"\ncall $target"
+        argList + call
+      }
       case InlineASM(content) => content
 //      case BranchInst(label) => s"jmp $label"
 //      case CondBrInst(cond, trueBranch, falseBranch) => ("cmp")
-      case FrameIndexInst(dst, index) => s"movl ${-(index.value*4)}(%rbp) ${operandToASM(dst)}"
+      case FrameIndexInst(dst, index) => s"movl ${-((index.value + 1)*4)}(%rbp), ${operandToASM(dst)}"
       case x => println(x.getClass.toString); ???
   }
 
   def binaryInstToASM(op: String, dst: MachineOperand, lhs: MachineOperand, rhs: MachineOperand): String = {
-    def toStr(op: String) = s"${instStr(op, lhs)} ${operandToASM(lhs)}, ${operandToASM(rhs)}"
+    var infactLhs = lhs
+    var infactRhs = rhs
+    if(!rhs.isInstanceOf[VReg]) {
+      infactLhs = rhs
+      infactRhs = lhs
+    }
+    def toStr(op: String) = {
+      val bn = s"${instStr(op, infactLhs)} ${operandToASM(infactLhs)}, ${operandToASM(infactRhs)}\n"
+      val mv = s"${instStr("mov", dst)} ${operandToASM(infactRhs)}, ${operandToASM(dst)}"
+      bn + mv
+    }
     op match
       case "Add" => toStr("add")
       case "Sub" => toStr("sub")
@@ -108,7 +129,7 @@ object GNUASM {
       case r: VReg => regToASM(r)
 //      case RelativeReg(reg, offset) => s"${offsetToASM(offset)}(${regToASM(reg)})"
 //      case AddrOfValue(v) => v.toString
-//      case Label(name) => name
+      case Label(name) => name
       case _ => ???
   }
 
@@ -154,16 +175,16 @@ object GNUASM {
       case 3 => "edx"
       case 4 => "esi"
       case 5 => "edi"
-      case 6 => "ebp" // ebp
-      case 7 => "esp" // esp
-      case 8 => "r8d"
-      case 9 => "r9d"
-      case 10 => "r10d"
-      case 11 => "r11d"
-      case 12 => "r12d"
-      case 13 => "r13d"
-      case 14 => "r14d"
-      case 15 => "r15d"
+//      case 6 => "ebp" // ebp
+//      case 7 => "esp" // esp
+      case 6 => "r8d"
+      case 7 => "r9d"
+      case 8 => "r10d"
+      case 9 => "r11d"
+      case 10 => "r12d"
+      case 11 => "r13d"
+      case 12 => "r14d"
+      case 13 => "r15d"
       case _ => "out"
     "%" + name
   }

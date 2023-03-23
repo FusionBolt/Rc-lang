@@ -1,0 +1,9 @@
+def add(a: Int, b: Int)
+    a + b
+end
+
+def call()
+    var a = 1
+    var b = 2
+    add(a, b)
+end

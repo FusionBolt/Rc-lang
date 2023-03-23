@@ -1,7 +1,7 @@
 package rclang
 package codegen
 
-import mir.{Alloc, BasicBlock, Binary, Bool, Constant, Function, Instruction, Integer, Load, Return, Store, Str, Value}
+import mir.*
 
 class VRegisterManager {
   var vregMap = Map[Value, VReg]()
@@ -17,6 +17,10 @@ class VRegisterManager {
   def getVReg(value: Value): Option[VReg] = vregMap.get(value)
 
   def getOrCreateVReg(value: Value): VReg = vregMap.getOrElse(value, createVReg(value))
+
+  def registerReg(value: Value, reg: VReg): Unit = {
+    vregMap = vregMap.updated(value, reg)
+  }
 }
 
 class IRTranslator {
@@ -24,6 +28,7 @@ class IRTranslator {
   val currentFn: MachineFunction = null
   val builder = MachineIRBuilder()
   var localVarMap = Map[Instruction, Int]()
+  var strTable = Map[String, Label]()
 
   private def getVReg(value: Value): Option[VReg] = vregManager.getVReg(value)
 
@@ -32,6 +37,10 @@ class IRTranslator {
   private def createVReg(value: Value): VReg = {
     vregManager.getVReg(value)
     vregManager.createVReg(value)
+  }
+
+  private def registerReg(value: Value, reg: VReg): Unit = {
+    vregManager.registerReg(value, reg)
   }
 
   def visit(fn: Function): MachineFunction = {
@@ -52,18 +61,18 @@ class IRTranslator {
     val inst = i match
       //      case inst: BinaryInstBase => visitBinaryInstBase(inst)
       //      case inst: UnaryInst => visitUnaryInst(inst)
-      //      case inst: Call => visitCall(inst)
-      //      case inst: CondBranch => visitCondBranch(inst)
-      //      case inst: Branch => visitBranch(inst)
+      case inst: Call => visitCall(inst)
+      case inst: CondBranch => visitCondBranch(inst)
+      case inst: Branch => visitBranch(inst)
       case inst: Return => visitReturn(inst)
       case inst: Binary => visitBinary(inst)
       case inst: Alloc => visitAlloc(inst)
       case inst: Load => visitLoad(inst)
       case inst: Store => visitStore(inst)
-      //      case inst: Intrinsic => visitIntrinsic(inst)
-      //      case inst: PhiNode => visitPhiNode(inst)
+      case inst: Intrinsic => visitIntrinsic(inst)
+      case inst: PhiNode => visitPhiNode(inst)
       //      case inst: SwitchInst => visitSwitchInst(inst)
-      //      case inst: MultiSuccessorsInst => visitMultiSuccessorsInst(inst)
+      case inst: MultiSuccessorsInst => ??? // invalid
       case _ => println(i); ???
     inst.origin = i
     inst
@@ -75,11 +84,20 @@ class IRTranslator {
       case _ => getOrCreateVReg(value)
   }
 
-  def getConstant(constant: Constant) = {
+  def getConstant(constant: Constant): Src = {
     constant match
       case int: Integer => Imm(int.value)
-      case Str(str) => ???
-      case Bool(bool) => ???
+      case Str(str) => {
+        strTable.getOrElse(str, {
+          // todo: avoid label repeat for str and bb
+          strTable.getOrElse(str, {
+            val label = Label(".LC" + strTable.size.toString)
+            strTable = strTable + (str -> label)
+            label
+          })
+        })
+      }
+      case Bool(bool) => Imm(if (bool) 1 else 0)
       case _ => ???
   }
 
@@ -98,16 +116,16 @@ class IRTranslator {
   }
 
   def visitLoad(load: Load): MachineInstruction = {
-    val addr = getVReg(load.ptr) match
-      case Some(value) => value
-      case None => ???
+    val addr = getOperand(load.ptr)
     builder.buildLoadInst(createVReg(load), addr)
   }
 
   def visitStore(store: Store): MachineInstruction = {
     val src = getOperand(store.value)
     val addr = getOrCreateVReg(store.ptr)
-    builder.buildStoreInst(addr, src)
+    // other value use store, but reg of addr is not same as store
+    registerReg(store, addr)
+    builder.buildStoreInst(src, addr)
   }
 
   def visitAlloc(alloc: Alloc): MachineInstruction = {
@@ -115,8 +133,44 @@ class IRTranslator {
     builder.buildFrameIndexInst(createVReg(alloc), idx)
   }
 
+  def visitCall(call: Call) = {
+    val params = call.args.map(getOrCreateVReg)
+    val target = call.func.name
+    val dst = createVReg(call)
+    builder.buildCallInst(target, dst, params)
+  }
+
   def visitReturn(ret: Return): MachineInstruction = {
-    val value = getOrCreateVReg(ret.value)
-    builder.buildRetInst(value)
+    // ret.value is store
+    // 绑定store的addr到store上，但这是store的target构造的，而不是store本身构造的
+    val value = getVReg(ret.value) match
+      case Some(reg) => reg
+      case None => ???
+    builder.buildReturnInst(value)
+  }
+
+  def visitCondBranch(condBr: CondBranch) = {
+    val cond = getOrCreateVReg(condBr.cond)
+    val trueBr = condBr.trueBranch.name
+    val falseBr = condBr.falseBranch.name
+    builder.buildCondBrInst(cond, Label(trueBr), Label(falseBr))
+  }
+
+  def visitBranch(br: Branch) = {
+    builder.buildBranchInst(Label(br.dest.name))
+  }
+
+  def visitPhiNode(phiNode: PhiNode) = {
+    val dst = createVReg(phiNode)
+    builder.buildPhiInst(dst)
+  }
+
+  def visitIntrinsic(inst: Intrinsic) = {
+    val f = inst.name match
+      case "open" => ???
+      case "print" => "printf@PLT"
+      case _ => ???
+    val params = inst.args.map(getOperand)
+    builder.buildCallInst(f, createVReg(inst), params)
   }
 }

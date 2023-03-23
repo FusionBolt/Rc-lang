@@ -1,0 +1,5 @@
+def main()
+    val a = 1
+    val b = a + 2
+    print("%d %d", a, b)
+end
