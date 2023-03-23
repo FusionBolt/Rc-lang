@@ -2,6 +2,7 @@ package rclang
 package mir
 
 import ty.*
+import tools.In
 
 trait Terminator {
   def successors: List[BasicBlock]
@@ -14,9 +15,6 @@ case class Argument(nameStr: String, private val argTy: Type) extends Value {
   var passByRef: Boolean = true
 }
 
-trait In[T] {
-  var parent: T = null.asInstanceOf[T]
-}
 
 type InBasicBlock = In[BasicBlock]
 type InFunction = In[Function]

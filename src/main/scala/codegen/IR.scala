@@ -1,70 +1,90 @@
 package rclang
 package codegen
 
-import codegen.MachineOperand
+import mir.*
+import tools.In
 
-import scala.collection.immutable.Map
-import scala.collection.immutable.ListMap
-import mir.Value
-import ty.Type
+trait MapOrigin[T] {
+  var origin: T = null.asInstanceOf[T]
+}
 
-class MachineBasicBlock(var nameStr: String, var stmts: List[MachineInst] = List(), var successors: List[MachineBasicBlock] = List()) {
-  def insert[T <: MachineInst](inst: T): T = {
-    stmts = stmts :+ inst
-    inst
+
+type InMF = In[MachineFunction]
+type InMBB = In[MachineBasicBlock]
+
+class MachineFunction(var bbs: List[MachineBasicBlock], f: Function) extends MapOrigin[Function] {
+  origin = f
+
+  def name = f.name
+
+  def instructions = bbs.flatMap(_.instList)
+}
+
+class MachineBasicBlock(var instList: List[MachineInstruction], f: MachineFunction, bb: BasicBlock) extends InMF with MapOrigin[BasicBlock] with Src {
+  parent = f
+  origin = bb
+
+  def name = bb.name
+}
+
+class MachineOperand()
+
+trait Src extends MachineOperand
+
+trait Dst extends MachineOperand
+
+case class VReg(num: Int) extends Src with Dst
+
+case class Imm(value: Int) extends Src
+
+
+trait MachineInstruction extends InMBB with MapOrigin[Value] {
+  //  dst: List[Dst], ops: List[Src], mbb: MachineBasicBlock, private val value: Value)
+  //  parent = mbb
+  //  origin = value
+  var dstList: List[Dst]
+  var ops: List[Src]
+
+  def useIt(inst: MachineInstruction) = {
+    ops.nonEmpty && inst.dstList.nonEmpty && ops.contains(inst.dstList.head)
   }
 }
 
-class MachineFunction(var name: String, var bbs: List[MachineBasicBlock], var regMap: Map[Value, Reg], var strTable: Map[String, MachineOperand] = Map()) {
-  def instructions = bbs.flatMap(_.stmts)
-  override def toString: String = {
-    val inst = s"$name()\n${instructions.map(_.toString).mkString("\n")}"
-    val reg = "RegMap\n" + regMap.map((k, v) => s"${k} -> ${v}").mkString("\n")
-    inst + "\n\n" + reg + "\n"
-  }
+case class FrameIndexInst(reg: Dst, index: Imm) extends MachineInstruction() {
+  override var dstList: List[Dst] = List(reg)
+  override var ops: List[Src] = List(index)
 }
 
-case class ISAInst(name: String = "", fields: ListMap[String, Int] = ListMap()) {
-
+case class LoadInst(dst: Dst, addr: Src) extends MachineInstruction() {
+  override var dstList = List(dst)
+  override var ops = List(addr)
 }
 
-case class ISA(var instSet: List[ISAInst] = List()) {
-  def addInst(inst: ISAInst): ISAInst = {
-    instSet = instSet :+ inst
-    inst
-  }
+case class StoreInst(addr: Src, src: Src) extends MachineInstruction() {
+  override var dstList: List[Dst] = List()
+  override var ops: List[Src] = List(addr, src)
 }
 
-class MachineOperand() {
-
+case class CallInst(dst: Dst, params: List[Src]) extends MachineInstruction() {
+  override var dstList = List(dst)
+  override var ops = params
 }
 
-case class Imm(value: Int) extends MachineOperand()
-
-enum Offset:
-  case NumOffset(int: Int)
-  case LabelOffset(str: String)
-
-case class RelativeReg(reg: Reg, offset: Offset) extends MachineOperand
-
-case class AddrOfValue(value: MachineOperand) extends MachineOperand
-
-case class Label(name: String) extends MachineOperand
-
-implicit def strToLabel(str: String): Label = Label(str)
-
-val wordLength = 4
-def sizeof(operand: MachineOperand): Int = {
-  operand match
-    case reg1: Reg => reg1.length
-    case RelativeReg(reg, offset) => reg.length
-    case AddrOfValue(value) => sizeof(value)
-    case Imm(value) => wordLength
-    case _ => 0
+case class ReturnInst(value: Src) extends MachineInstruction() {
+  override var dstList = List()
+  override var ops = List(value)
 }
-//case class Stack() {
-//  var objects = List[Reg]()
-//  def getFromStack(offset: Int, ty: Type): LoadInst = {
-//
-//  }
-//}
+
+case class InlineASM(str: String) extends MachineInstruction() {
+  override var dstList = List()
+  override var ops = List()
+}
+
+case class BinaryInst(op: BinaryOperator, dst: Dst, lhs: Src, rhs: Src) extends MachineInstruction() {
+  override var dstList = List(dst)
+  override var ops = List(lhs, rhs)
+}
+
+enum BinaryOperator:
+  case Add
+  case Sub

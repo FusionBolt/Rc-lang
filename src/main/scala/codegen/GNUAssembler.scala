@@ -30,14 +30,14 @@ case class StrSection(count: Int, var strs: List[String] = List()) {
   def asm = s"$decls\n$label\n$strsASM\n"
 }
 
-case class GNUAssembler() extends Assembler {
+case class GNUAssembler() {
   def file: String = ""
   var dataSection: List[String] = List()
   var textSection: List[String] = List()
   var bssSection: List[String] = List()
-//  def global: Unit
-//  def label: Unit
-//  def comment: Unit
+  //  def global: Unit
+  //  def label: Unit
+  //  def comment: Unit
 
   def serialize: String = {
     s".file \"${file}\"\n" + textSection + dataSection
@@ -61,38 +61,43 @@ object GNUASM {
     toASM(fn.instructions)
   }
 
-  def toASM(insts: List[MachineInst]): String = {
+  def toASM(insts: List[MachineInstruction]): String = {
     insts.map(toASM).mkString("\n")
   }
 
   def instStr(inst: String, operand: MachineOperand): String = {
-    inst + instTy(sizeof(operand))
+    inst + instTy(4)
   }
 
   def instTy(size: Int): String = {
     if size == 4 then "l" else "q"
   }
 
-  def toASM(inst: MachineInst): String = {
+  // mov src dst
+  def toASM(inst: MachineInstruction): String = {
     inst match
-      case ArithInst(op, lhs, rhs) => arithInstToASM(op, lhs, rhs)
+      case BinaryInst(op, dst, lhs, rhs) => binaryInstToASM(op.toString, dst, lhs, rhs)
       case LoadInst(target, value) => value match
-        case AddrOfValue(relReg) => s"${instStr("lea", relReg)} ${operandToASM(relReg)}, ${operandToASM(target)}"
+//        case AddrOfValue(relReg) => s"${instStr("lea", relReg)} ${operandToASM(relReg)}, ${operandToASM(target)}"
         case _ => s"${instStr("mov", value)} ${operandToASM(value)}, ${operandToASM(target)}"
-      case StoreInst(value, target) => s"${instStr("mov", target)} ${operandToASM(value)}, ${regToASM(target)}"
-      case DynamicAllocInst(target) => ???
-      case ReturnInst(value) => "ret"
-      case PushInst(value) => s"${instStr("push", value)} ${operandToASM(value)}"
-      case PopInst(target) => s"${instStr("pop", target)} ${regToASM(target)}"
-      case CallInst(target) => s"call $target"
+      case StoreInst(value, target) => s"${instStr("mov", target)} ${operandToASM(value)}, ${operandToASM(target)}"
+//      case DynamicAllocInst(target) => "mov"
+      case ReturnInst(value) => s"${instStr("mov", value)} %eax ${operandToASM(value)}\nret"
+//      case PushInst(value) => s"${instStr("push", value)} ${operandToASM(value)}"
+//      case PopInst(target) => s"${instStr("pop", target)} ${regToASM(target)}"
+      case CallInst(target, _) => s"call $target"
       case InlineASM(content) => content
-      case _ => ???
+//      case BranchInst(label) => s"jmp $label"
+//      case CondBrInst(cond, trueBranch, falseBranch) => ("cmp")
+      case FrameIndexInst(dst, index) => s"movl ${-(index.value*4)}(%rbp) ${operandToASM(dst)}"
+      case x => println(x.getClass.toString); ???
   }
 
-  def arithInstToASM(op: String, lhs: MachineOperand, rhs: MachineOperand): String = {
+  def binaryInstToASM(op: String, dst: MachineOperand, lhs: MachineOperand, rhs: MachineOperand): String = {
     def toStr(op: String) = s"${instStr(op, lhs)} ${operandToASM(lhs)}, ${operandToASM(rhs)}"
     op match
       case "Add" => toStr("add")
+      case "Sub" => toStr("sub")
       case "LT" => toStr("cmp")
       case "GT" => toStr("cmp")
   }
@@ -100,23 +105,24 @@ object GNUASM {
   def operandToASM(operand: MachineOperand): String = {
     operand match
       case Imm(value) => "$"+{value.toString}
-      case r: Reg => regToASM(r)
-      case RelativeReg(reg, offset) => s"${offsetToASM(offset)}(${regToASM(reg)})"
-      case AddrOfValue(v) => v.toString
-      case Label(name) => name
+      case r: VReg => regToASM(r)
+//      case RelativeReg(reg, offset) => s"${offsetToASM(offset)}(${regToASM(reg)})"
+//      case AddrOfValue(v) => v.toString
+//      case Label(name) => name
       case _ => ???
   }
 
-  def offsetToASM(offset: Offset): String = {
-    offset match
-      case Offset.NumOffset(int) => int.toString
-      case Offset.LabelOffset(str) => str
-  }
+//  def offsetToASM(offset: Offset): String = {
+//    offset match
+//      case Offset.NumOffset(int) => int.toString
+//      case Offset.LabelOffset(str) => str
+//  }
 
-  def regToASM(reg: Reg): String = {
-    reg match
-      case ParamReg(num, len) => paramReg(num, len)
-      case _ => if reg.length == 4 then reg4ToASM(reg) else reg8ToASM(reg)
+  def regToASM(reg: VReg): String = {
+    reg4ToASM(reg)
+//    reg match
+//      case ParamReg(num, len) => paramReg(num, len)
+//      case _ => if reg.length == 4 then reg4ToASM(reg) else reg8ToASM(reg)
   }
 
   // rdi, rsi, rdx, rcx, r8/r8d, r9/r9d
@@ -140,8 +146,8 @@ object GNUASM {
     "%" + name
   }
 
-  def reg4ToASM(reg: Reg): String = {
-    val name = reg.number match
+  def reg4ToASM(reg: VReg): String = {
+    val name = reg.num match
       case 0 => "eax"
       case 1 => "ebx"
       case 2 => "ecx"
@@ -162,8 +168,8 @@ object GNUASM {
     "%" + name
   }
 
-  def reg8ToASM(reg: Reg): String = {
-    val name = reg.number match
+  def reg8ToASM(reg: VReg): String = {
+    val name = reg.num match
       case 0 => "rax"
       case 1 => "rbx"
       case 2 => "rcx"

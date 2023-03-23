@@ -10,14 +10,12 @@ import tools.*
 import ast.ClassesRender
 import ty.{Infer, TyCtxt, Type, TypeCheck, TypedTranslator}
 import tools.RcLogger.{log, logf, warning}
-import codegen.MachineFunction
 import rclang.transform.CFGSimplify
 //import analysis.Analysis.`given`
 import analysis.Analysis.given_DomTreeAnalysis
 import analysis.Analysis.given_LoopAnalysis
 import ast.{Class, Ident, Item, RcModule}
-import codegen.{GNUAssembler, GNUASM, RDataSection, StrSection, TextSection, toLIR}
-
+import codegen.*
 import scala.sys.process.*
 import scala.io.Source
 import java.io.File
@@ -74,16 +72,20 @@ object Driver {
     val ast = parse(src)
     val (typedModule, table) = typeProc(ast)
     val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
-    logf("mir.txt", mirMod)
+//    logf("mir.txt", mirMod)
 //    dumpDomTree(mirMod.fnTable.values.head)
     codegen(mirMod)
   }
 
   def codegen(mirMod: Module) = {
-    val fns = log(toLIR(mirMod), "ToLIR")
-    logf("LIR.txt", fns.mkString("\n\n"))
-    genASM(fns)
-    genELF(mirMod.fnTable.contains("main"))
+    val fn = IRTranslator().visit(mirMod.fns.head)
+    MachineIRPrinter().print(fn)
+
+    LifeTimeAnalysis().run(fn)
+//    val fns = log(toLIR(mirMod), "ToLIR")
+//    logf("LIR.txt", fns.mkString("\n\n"))
+    genASM(List(fn))
+//    genELF(mirMod.fnTable.contains("main"))
   }
 
 
@@ -98,8 +100,8 @@ object Driver {
 
   def genASM(fns: List[MachineFunction]) = {
     val text = TextSection()
-    val strTable = fns.flatMap(fn => (0 until fn.strTable.size).zip(fn.strTable.keys).map((i, str) => StrSection(i, List(str))))
-    val rdata = RDataSection(strTable)
+//    val strTable = fns.flatMap(fn => (0 until fn.strTable.size).zip(fn.strTable.keys).map((i, str) => StrSection(i, List(str))))
+    val rdata = RDataSection(List())
     fns.foreach(fn => text.addFn(fn.name -> fn.instructions.map(GNUASM.toASM)))
     val asm = text.asm + rdata.asm
     logf("asm.s", asm)
