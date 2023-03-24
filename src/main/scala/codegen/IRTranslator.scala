@@ -29,6 +29,7 @@ class IRTranslator {
   val builder = MachineIRBuilder()
   var localVarMap = Map[Instruction, Int]()
   var strTable = Map[String, Label]()
+  var bbMap = Map[BasicBlock, MachineBasicBlock]()
 
   private def getVReg(value: Value): Option[VReg] = vregManager.getVReg(value)
 
@@ -52,12 +53,14 @@ class IRTranslator {
 
   def visitBB(bb: BasicBlock): MachineBasicBlock = {
     builder.mbb = MachineBasicBlock(List(), currentFn, bb)
-    val instList = bb.stmts.map(visitInst)
-    builder.mbb.instList = instList
+    bbMap = bbMap.updated(bb, builder.mbb)
+    bb.stmts.foreach(visitInst)
+//    val instList = bb.stmts.map(visitInst)
+//    builder.mbb.instList = instList
     builder.mbb
   }
 
-  def visitInst(i: Instruction): MachineInstruction = {
+  def visitInst(i: Instruction) = {
     val inst = i match
       //      case inst: BinaryInstBase => visitBinaryInstBase(inst)
       //      case inst: UnaryInst => visitUnaryInst(inst)
@@ -105,64 +108,63 @@ class IRTranslator {
     fn.instructions.filter(inst => inst.isInstanceOf[Alloc]).zipWithIndex.toMap
   }
 
-  def findIndex(alloc: Alloc): Int = {
-    localVarMap(alloc)
-  }
+  def findIndex(alloc: Alloc): Int = localVarMap(alloc)
 
-  def visitBinary(binary: Binary): MachineInstruction = {
+  def visitBinary(binary: Binary) = {
     val lhs = getOperand(binary.lhs)
     val rhs = getOperand(binary.rhs)
-    builder.buildBinaryInst(BinaryOperator.Add, createVReg(binary), lhs, rhs)
+    builder.insertBinaryInst(BinaryOperator.valueOf(binary.op), createVReg(binary), lhs, rhs)
   }
 
-  def visitLoad(load: Load): MachineInstruction = {
+  def visitLoad(load: Load) = {
     val addr = getOperand(load.ptr)
-    builder.buildLoadInst(createVReg(load), addr)
+    builder.insertLoadInst(createVReg(load), addr)
   }
 
-  def visitStore(store: Store): MachineInstruction = {
+  def visitStore(store: Store) = {
     val src = getOperand(store.value)
     val addr = getOrCreateVReg(store.ptr)
     // other value use store, but reg of addr is not same as store
     registerReg(store, addr)
-    builder.buildStoreInst(src, addr)
+    builder.insertStoreInst(src, addr)
   }
 
-  def visitAlloc(alloc: Alloc): MachineInstruction = {
+  def visitAlloc(alloc: Alloc) = {
     val idx = findIndex(alloc)
-    builder.buildFrameIndexInst(createVReg(alloc), idx)
+    builder.insertFrameIndexInst(createVReg(alloc), idx)
   }
 
   def visitCall(call: Call) = {
     val params = call.args.map(getOrCreateVReg)
     val target = call.func.name
     val dst = createVReg(call)
-    builder.buildCallInst(target, dst, params)
+    builder.insertCallInst(target, dst, params)
   }
 
-  def visitReturn(ret: Return): MachineInstruction = {
+  def visitReturn(ret: Return) = {
     // ret.value is store
     // 绑定store的addr到store上，但这是store的target构造的，而不是store本身构造的
     val value = getVReg(ret.value) match
       case Some(reg) => reg
       case None => ???
-    builder.buildReturnInst(value)
+    builder.insertReturnInst(value)
   }
 
   def visitCondBranch(condBr: CondBranch) = {
     val cond = getOrCreateVReg(condBr.cond)
-    val trueBr = condBr.trueBranch.name
-    val falseBr = condBr.falseBranch.name
-    builder.buildCondBrInst(cond, Label(trueBr), Label(falseBr))
+    // compare reg
+    builder.insrtCondBrInst(cond, Label(bbNameTranslate(condBr.trueBranch.name)))
+    builder.insertBranchInst(Label(bbNameTranslate(condBr.falseBranch.name)))
   }
 
   def visitBranch(br: Branch) = {
-    builder.buildBranchInst(Label(br.dest.name))
+    builder.insertBranchInst(Label(bbNameTranslate(br.dest.name)))
   }
 
   def visitPhiNode(phiNode: PhiNode) = {
+    val incoming = phiNode.incomings.map((v, bb) => (getOperand(v) -> bbMap(bb))).toMap
     val dst = createVReg(phiNode)
-    builder.buildPhiInst(dst)
+    builder.insertPhiInst(dst, incoming)
   }
 
   def visitIntrinsic(inst: Intrinsic) = {
@@ -171,6 +173,6 @@ class IRTranslator {
       case "print" => "printf@PLT"
       case _ => ???
     val params = inst.args.map(getOperand)
-    builder.buildCallInst(f, createVReg(inst), params)
+    builder.insertCallInst(f, createVReg(inst), params)
   }
 }

@@ -1,6 +1,8 @@
 package rclang
 package codegen
 
+import tools.RcLogger.logf
+
 trait Section
 
 val indent = "  "
@@ -59,11 +61,11 @@ case class GNUAssembler() {
 object GNUASM {
   def toASM(fn: MachineFunction): List[String] = {
     val start = List("pushq %rbp", "movq %rsp, %rbp")
-    start:::toASM(fn.instructions)
+    start:::fn.bbs.flatMap(toASM)
   }
 
-  private def toASM(insts: List[MachineInstruction]): List[String] = {
-    insts.map(toASM)
+  private def toASM(mbb: MachineBasicBlock): List[String] = {
+    List(s".${mbb.name}:"):::mbb.instList.map(toASM)
   }
 
   def instStr(inst: String, operand: MachineOperand): String = {
@@ -79,15 +81,10 @@ object GNUASM {
     inst match
       case BinaryInst(op, dst, lhs, rhs) => binaryInstToASM(op.toString, dst, lhs, rhs)
       case LoadInst(target, value) => value match
-//        case AddrOfValue(relReg) => s"${instStr("lea", relReg)} ${operandToASM(relReg)}, ${operandToASM(target)}"
-// todo: when target is label, call param is also need load
         case Label(label) => s"leaq ${label}(%rip), ${operandToASM(target)}"
         case _ => s"${instStr("mov", value)} ${operandToASM(value)}, ${operandToASM(target)}"
       case StoreInst(value, target) => s"${instStr("mov", target)} ${operandToASM(value)}, ${operandToASM(target)}"
-//      case DynamicAllocInst(target) => "mov"
       case ReturnInst(value) => s"${instStr("mov", value)} ${operandToASM(value)}, %eax\npopq %rbp\nret"
-//      case PushInst(value) => s"${instStr("push", value)} ${operandToASM(value)}"
-//      case PopInst(target) => s"${instStr("pop", target)} ${regToASM(target)}"
 
       case CallInst(target, _, args) => {
         // todo: fix this, reg error
@@ -98,13 +95,15 @@ object GNUASM {
         argList + call
       }
       case InlineASM(content) => content
-//      case BranchInst(label) => s"jmp $label"
-//      case CondBrInst(cond, trueBranch, falseBranch) => ("cmp")
+      case BranchInst(label) => s"jmp .${operandToASM(label)}"
+      case CondBrInst(cond, addr) => s"jne .${operandToASM(addr)}\n"
       case FrameIndexInst(dst, index) => s"movl ${-((index.value + 1)*4)}(%rbp), ${operandToASM(dst)}"
+      case PhiInst(dst, _) => throw new Exception()
       case x => println(x.getClass.toString); ???
   }
 
   def binaryInstToASM(op: String, dst: MachineOperand, lhs: MachineOperand, rhs: MachineOperand): String = {
+    // todo: reorder is bad
     var infactLhs = lhs
     var infactRhs = rhs
     if(!rhs.isInstanceOf[VReg]) {
@@ -127,23 +126,12 @@ object GNUASM {
     operand match
       case Imm(value) => "$"+{value.toString}
       case r: VReg => regToASM(r)
-//      case RelativeReg(reg, offset) => s"${offsetToASM(offset)}(${regToASM(reg)})"
-//      case AddrOfValue(v) => v.toString
       case Label(name) => name
       case _ => ???
   }
 
-//  def offsetToASM(offset: Offset): String = {
-//    offset match
-//      case Offset.NumOffset(int) => int.toString
-//      case Offset.LabelOffset(str) => str
-//  }
-
   def regToASM(reg: VReg): String = {
     reg4ToASM(reg)
-//    reg match
-//      case ParamReg(num, len) => paramReg(num, len)
-//      case _ => if reg.length == 4 then reg4ToASM(reg) else reg8ToASM(reg)
   }
 
   // rdi, rsi, rdx, rcx, r8/r8d, r9/r9d
@@ -211,4 +199,15 @@ object GNUASM {
       case _ => "out"
     "%" + name
   }
+}
+
+def genASM(fns: List[MachineFunction]) = {
+  val text = TextSection()
+  val strTable = fns.flatMap(fn => fn.origin.strTable.zipWithIndex.map((str, i) => StrSection(i, List(str.str))))
+  val rdata = RDataSection(strTable)
+
+  fns.foreach(fn => text.addFn(fn.name -> GNUASM.toASM(fn)))
+  val asm = text.asm + rdata.asm
+  logf("asm.s", asm)
+  asm
 }

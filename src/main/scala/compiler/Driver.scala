@@ -84,7 +84,6 @@ object Driver {
 //    genELF(mirMod.fnTable.contains("main"))
   }
 
-
   def genELF(hasMain: Boolean) = {
     val o = log(as(DumpManager.getDumpRoot / "asm.s", DumpManager.getDumpRoot / "tmp.o"), "As")
     if (hasMain) {
@@ -92,17 +91,6 @@ object Driver {
     } else {
       warning("don't has main")
     }
-  }
-
-  def genASM(fns: List[MachineFunction]) = {
-    val text = TextSection()
-    val strTable = fns.flatMap(fn => fn.origin.strTable.zipWithIndex.map((str, i) => StrSection(i, List(str.str))))
-    val rdata = RDataSection(strTable)
-
-    fns.foreach(fn => text.addFn(fn.name -> GNUASM.toASM(fn)))
-    val asm = text.asm + rdata.asm
-    logf("asm.s", asm)
-    asm
   }
 
   def as(srcPath: String, destPath: String): Option[String] = {

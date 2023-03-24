@@ -4,28 +4,28 @@ package codegen
 class MachineIRBuilder() {
   var mbb: MachineBasicBlock = null
 
-  def build(inst: MachineInstruction) = {
-    inst.parent = mbb
+  def insert(inst: MachineInstruction) = {
+    mbb.insert(inst)
     inst
   }
 
-  def buildFrameIndexInst(dst: Dst, index: Int) = build(FrameIndexInst(dst, Imm(index)))
+  def insertFrameIndexInst(dst: Dst, index: Int) = insert(FrameIndexInst(dst, Imm(index)))
 
-  def buildLoadInst(dst: Dst, addr: Src) = build(LoadInst(dst, addr))
+  def insertLoadInst(dst: Dst, addr: Src) = insert(LoadInst(dst, addr))
 
-  def buildStoreInst(src: Src, addr: Src) = build(StoreInst(src, addr))
+  def insertStoreInst(src: Src, addr: Src) = insert(StoreInst(src, addr))
 
-  def buildCallInst(targetFn: String, dst: Dst, params: List[Src]) = build(CallInst(targetFn, dst, params))
+  def insertCallInst(targetFn: String, dst: Dst, params: List[Src]) = insert(CallInst(targetFn, dst, params))
 
-  def buildReturnInst(src: Src) = build(ReturnInst(src))
+  def insertReturnInst(src: Src) = insert(ReturnInst(src))
 
-  def buildBinaryInst(op: BinaryOperator, dst: Dst, lhs: Src, rhs: Src) = build(BinaryInst(op, dst, lhs, rhs))
+  def insertBinaryInst(op: BinaryOperator, dst: Dst, lhs: Src, rhs: Src) = insert(BinaryInst(op, dst, lhs, rhs))
 
-  def buildBranchInst(addr: Src) = build(BranchInst(addr))
+  def insertBranchInst(addr: Src) = insert(BranchInst(addr))
 
-  def buildCondBrInst(cond: Src, trueAddr: Src, falseAddr: Src) = build(CondBrInst(cond, trueAddr, falseAddr))
+  def insrtCondBrInst(cond: Src, addr: Src) = insert(CondBrInst(cond, addr))
 
-  def buildPhiInst(dst: Dst) = build(PhiInst(dst))
+  def insertPhiInst(dst: Dst, incoming: Map[Src, MachineBasicBlock]) = insert(PhiInst(dst, incoming))
 
-  def buildInlineASM(str: String) = build(InlineASM(str))
+  def insrtInlineASM(str: String) = insert(InlineASM(str))
 }

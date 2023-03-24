@@ -20,11 +20,18 @@ class MachineFunction(var bbs: List[MachineBasicBlock], f: Function) extends Map
   def instructions = bbs.flatMap(_.instList)
 }
 
+def bbNameTranslate(oldName: String) = s"L$oldName"
+
 class MachineBasicBlock(var instList: List[MachineInstruction], f: MachineFunction, bb: BasicBlock) extends InMF with MapOrigin[BasicBlock] with Src {
   parent = f
   origin = bb
 
-  def name = bb.name
+  def name = bbNameTranslate(bb.name)
+
+  def insert(inst: MachineInstruction) = {
+    instList = instList.appended(inst)
+    inst.parent = this
+  }
 }
 
 class MachineOperand()
@@ -81,9 +88,9 @@ case class BinaryInst(op: BinaryOperator, dst: Dst, lhs: Src, rhs: Src) extends 
   override var ops = List(lhs, rhs)
 }
 
-case class CondBrInst(cond: Src, trueAddr: Src, falseAddr: Src) extends MachineInstruction {
+case class CondBrInst(cond: Src, addr: Src) extends MachineInstruction {
   override var dstList = List()
-  override var ops = List(cond, trueAddr, falseAddr)
+  override var ops = List(cond, addr)
 }
 
 case class BranchInst(addr: Src) extends MachineInstruction {
@@ -91,7 +98,7 @@ case class BranchInst(addr: Src) extends MachineInstruction {
   override var ops = List(addr)
 }
 
-case class PhiInst(dst: Dst) extends MachineInstruction {
+case class PhiInst(dst: Dst, incoming: Map[Src, MachineBasicBlock]) extends MachineInstruction {
   override var dstList = List(dst)
   override var ops = List()
 }
@@ -104,3 +111,5 @@ case class InlineASM(str: String) extends MachineInstruction() {
 enum BinaryOperator:
   case Add
   case Sub
+  case GT
+  case LT
