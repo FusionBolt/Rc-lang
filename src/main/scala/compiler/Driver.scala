@@ -80,6 +80,8 @@ object Driver {
   def codegen(mirMod: Module) = {
     val fns = mirMod.fns.map(IRTranslator().visit).toList
     fns.foreach(MachineIRPrinter().print)
+    PhiEliminate().run(fns.head)
+    fns.foreach(MachineIRPrinter().print)
     genASM(fns)
 //    genELF(mirMod.fnTable.contains("main"))
   }

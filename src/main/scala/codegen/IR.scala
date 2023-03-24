@@ -4,6 +4,8 @@ package codegen
 import mir.*
 import tools.In
 
+import cats.effect.kernel.Par.instance.T
+
 trait MapOrigin[T] {
   var origin: T = null.asInstanceOf[T]
 }
@@ -32,9 +34,16 @@ class MachineBasicBlock(var instList: List[MachineInstruction], f: MachineFuncti
     instList = instList.appended(inst)
     inst.parent = this
   }
+
+  def insertAtFirst(inst: MachineInstruction) = {
+    instList = inst::instList
+    inst.parent = this
+  }
 }
 
-class MachineOperand()
+trait MachineOperand {
+  var instParent: MachineInstruction = null.asInstanceOf[MachineInstruction]
+}
 
 trait Src extends MachineOperand
 
@@ -55,6 +64,10 @@ trait MachineInstruction extends InMBB with MapOrigin[Value] {
 
   def useIt(inst: MachineInstruction) = {
     ops.nonEmpty && inst.dstList.nonEmpty && ops.contains(inst.dstList.head)
+  }
+
+  def removeFromParent() = {
+    parent.instList = parent.instList.filter(_ != this)
   }
 }
 
@@ -98,7 +111,7 @@ case class BranchInst(addr: Src) extends MachineInstruction {
   override var ops = List(addr)
 }
 
-case class PhiInst(dst: Dst, incoming: Map[Src, MachineBasicBlock]) extends MachineInstruction {
+case class PhiInst(dst: Dst, incomings: Map[Src, MachineBasicBlock]) extends MachineInstruction {
   override var dstList = List(dst)
   override var ops = List()
 }
