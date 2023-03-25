@@ -12,4 +12,6 @@ object Def {
   val NewMethod = Method(MethodDecl("new", Params(List()), TyInfo.Nil), Expr.Block(List()))
   val RcObject = Class("RcObject", None, List(), List())
 //  def selfObj(klass: String) = Param(self, TyInfo.Spec(klass))
+
+  val version = "RCC: 0.0.1"
 }

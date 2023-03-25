@@ -44,7 +44,7 @@ case class Module(var name: String = "MainModule", var fnTable: Map[String, Func
   var globalVariables: List[GlobalVariable] = List()
   var types: Set[Type] = Set()
   var context: RcContext = null
-  def fns = fnTable.values
+  def fns = fnTable.values.toList
 
   override def toString: String = name + "\n" + fnTable.values.map(_.toString).mkString("\n\n")
 }

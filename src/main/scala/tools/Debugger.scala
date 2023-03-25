@@ -7,4 +7,9 @@ object Debugger {
       throw new RuntimeException(msg)
     }
   }
+  
+  def unImpl[T](v: T) = {
+    println(v.getClass)
+    ???
+  }
 }

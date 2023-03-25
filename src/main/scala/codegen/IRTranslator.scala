@@ -44,14 +44,18 @@ class IRTranslator {
     vregManager.registerReg(value, reg)
   }
 
-  def visit(fn: Function): MachineFunction = {
+  def visit(fns: List[Function]): List[MachineFunction] = {
+    fns.map(visit)
+  }
+
+  private def visit(fn: Function): MachineFunction = {
     localVarMap = getLocalVarMap(fn)
     val bbs = fn.bbs.map(visitBB)
     localVarMap = null
     MachineFunction(bbs, fn)
   }
 
-  def visitBB(bb: BasicBlock): MachineBasicBlock = {
+  private def visitBB(bb: BasicBlock): MachineBasicBlock = {
     builder.mbb = MachineBasicBlock(List(), currentFn, bb)
     bbMap = bbMap.updated(bb, builder.mbb)
     bb.stmts.foreach(visitInst)
@@ -60,7 +64,7 @@ class IRTranslator {
     builder.mbb
   }
 
-  def visitInst(i: Instruction) = {
+  private def visitInst(i: Instruction) = {
     val inst = i match
       //      case inst: BinaryInstBase => visitBinaryInstBase(inst)
       //      case inst: UnaryInst => visitUnaryInst(inst)
