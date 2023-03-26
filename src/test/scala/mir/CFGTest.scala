@@ -15,8 +15,6 @@ class CFGTest extends RcTestBase {
     "2" -> "4",
     "3" -> "4",
     )
-    println(bbs.values.map(_.name))
-    CFGRender.rendBBs(bbs.values.toList, "CFGTest")
   }
 
   describe("canReach") {
