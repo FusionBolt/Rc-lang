@@ -1,7 +1,7 @@
 package rclang
 package compiler
 
-import analysis.{BasicAA, DomTreeAnalysis, LoopAnalysis, SymScanner}
+import analysis.*
 import lexer.Lexer
 import mir.*
 import parser.RcParser
