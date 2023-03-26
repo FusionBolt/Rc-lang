@@ -11,7 +11,6 @@ class ConstantFoldingTest extends RcTestBase {
     it("should run") {
       val fn = getOptDemoFirstFn("constant_folding.rc")
       ConstantFolding().run(fn, AnalysisManager())
-      logf("after_fold_fn.txt", fn)
       // alloc + store + return
       assert(!fn.instructions.exists(_.isInstanceOf[Binary]))
       assert(fn.instructions.size == 3)

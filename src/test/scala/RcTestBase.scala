@@ -18,7 +18,6 @@ class RcTestBase extends AnyFunSpec with BeforeAndAfter with Matchers {
     val ast = parse(src)
     val (typedModule, table) = typeProc(ast)
     val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
-    logf("mir.txt", mirMod)
     mirMod
   }
 
