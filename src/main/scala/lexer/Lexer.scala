@@ -38,7 +38,7 @@ object Lexer extends RegexParsers {
 
   def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral |
     defStr | endStr | ifStr | thenStr | elsifStr | elseStr | whileStr | breakStr |
-    continueStr | classStr | superStr | selfStr | varStr | valStr
+    continueStr | classStr | superStr | selfStr | varStr | valStr | importStr
   def symbol: Parser[Token] = comment | comma | eol | dot | at | colon |
     leftParentTheses | rightParentTheses | leftSquare | rightSquare
 
@@ -133,6 +133,8 @@ object Lexer extends RegexParsers {
   def selfStr = NoValueToken("self", SELF)
   def varsStr = NoValueToken("vars", VARS)
   def methods = NoValueToken("methods", METHODS)
+  
+  def importStr = NoValueToken("import", IMPORT)
 
   def leftParentTheses = NoValueToken("(", LEFT_PARENT_THESES)
   def rightParentTheses = NoValueToken(")", RIGHT_PARENT_THESES)

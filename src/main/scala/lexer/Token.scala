@@ -27,6 +27,8 @@ enum Keyword extends Token:
   case SELF
   case METHODS
   case VARS
+  // module
+  case IMPORT
 
 enum Punctuation extends Token:
   case COMMENT

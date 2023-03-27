@@ -34,7 +34,9 @@ trait ModuleParser extends RcBaseParser with ExprParser {
   }
 
   def module: Parser[RcModule] = positioned {
-    (item | noneItem).* ^^ { items => RcModule(items.filter(_ != Empty).map(_.asInstanceOf[Item])) }
+    (importModule).* ~ (item | noneItem).* ^^ {
+      case refs ~ items => RcModule(items.filter(_ != Empty).map(_.asInstanceOf[Item]), "", refs.map(_.str))
+    }
   }
 
   def field: Parser[FieldDef] = positioned {
@@ -54,5 +56,9 @@ trait ModuleParser extends RcBaseParser with ExprParser {
           defines.filter(_.isInstanceOf[FieldDef]).map(_.asInstanceOf[FieldDef]),
           defines.filter(_.isInstanceOf[Method]).map(_.asInstanceOf[Method])).asInstanceOf[Item]
     }
+  }
+
+  def importModule: Parser[STRING] = positioned {
+    oneline(IMPORT ~> stringLiteral) ^^ { str => str }
   }
 }
