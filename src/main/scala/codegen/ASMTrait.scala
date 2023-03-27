@@ -44,7 +44,7 @@ case class TextSection(mfs: List[MFText]) extends Section {
 }
 
 case class StringSection(strTable: Map[String, Label]) extends Section {
-  override def getASMString: String = strTable.map((str, label) => s"${label.name}\n$indent.string $str\n").mkString("\n")
+  override def getASMString: String = strTable.map((str, label) => s"${label.name}:\n$indent.string \"$str\"").mkString("\n")
 
   override def decl: String = ".rodata"
 }
