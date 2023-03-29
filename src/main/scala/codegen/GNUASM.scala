@@ -15,9 +15,10 @@ class GeneralX64Machine extends TargetMachine {
 class GNUASMEmiter extends ASMEmiter {
   override def emitMF(mf: MachineFunction): MFText = {
     // impl convert
+    val label = ASMLabel(s"${mf.name}:")
     val saveRBP = ASMInstr("pushq %rbp")
     val setRBP = ASMInstr("movq %rsp, %rbp")
-    val asm = List(saveRBP, setRBP) ::: mf.bbs.flatMap(emitMBB)
+    val asm = List(label, saveRBP, setRBP) ::: mf.bbs.flatMap(emitMBB)
     MFText(asm, mf)
   }
 

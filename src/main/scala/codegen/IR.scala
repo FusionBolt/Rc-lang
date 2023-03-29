@@ -22,7 +22,11 @@ class MachineFunction(var bbs: List[MachineBasicBlock], f: Function) extends Map
   def instructions = bbs.flatMap(_.instList)
 }
 
-def bbNameTranslate(oldName: String) = s"L$oldName"
+var globalBBIndex = -1
+def bbNameTranslate(oldName: String) = {
+  globalBBIndex = globalBBIndex + 1
+  s"L$oldName$globalBBIndex"
+}
 
 class MachineBasicBlock(var instList: List[MachineInstruction], f: MachineFunction, bb: BasicBlock) extends InMF with MapOrigin[BasicBlock] with Src {
   parent = f

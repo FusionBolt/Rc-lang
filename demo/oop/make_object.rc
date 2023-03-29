@@ -1,0 +1,16 @@
+class RcObject
+    def new()
+        var a = malloc()
+        print("new a%p", a)
+        init()
+        a
+    end
+
+    def init()
+        print("init")
+    end
+end
+
+def main()
+    var obj = RcObject.new()
+end

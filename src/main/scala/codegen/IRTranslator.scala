@@ -24,9 +24,9 @@ class VRegisterManager {
 }
 
 class IRTranslator {
-  val vregManager = VRegisterManager()
-  val currentFn: MachineFunction = null
-  val builder = MachineIRBuilder()
+  var vregManager = VRegisterManager()
+  var currentFn: MachineFunction = null
+  var builder = MachineIRBuilder()
   var localVarMap = Map[Instruction, Int]()
   var strTable = Map[String, Label]()
   var bbMap = Map[BasicBlock, MachineBasicBlock]()
@@ -36,7 +36,6 @@ class IRTranslator {
   private def getOrCreateVReg(value: Value): VReg = vregManager.getOrCreateVReg(value)
 
   private def createVReg(value: Value): VReg = {
-    vregManager.getVReg(value)
     vregManager.createVReg(value)
   }
 
@@ -49,18 +48,22 @@ class IRTranslator {
   }
 
   private def visit(fn: Function): MachineFunction = {
+    val mf = MachineFunction(List(), fn)
+    vregManager = VRegisterManager()
+    currentFn = mf
+    builder = MachineIRBuilder()
+    bbMap = Map[BasicBlock, MachineBasicBlock]()
     localVarMap = getLocalVarMap(fn)
     val bbs = fn.bbs.map(visitBB)
+    mf.bbs = bbs
     localVarMap = null
-    MachineFunction(bbs, fn)
+    mf
   }
 
   private def visitBB(bb: BasicBlock): MachineBasicBlock = {
     builder.mbb = MachineBasicBlock(List(), currentFn, bb)
     bbMap = bbMap.updated(bb, builder.mbb)
     bb.stmts.foreach(visitInst)
-//    val instList = bb.stmts.map(visitInst)
-//    builder.mbb.instList = instList
     builder.mbb
   }
 
@@ -78,6 +81,7 @@ class IRTranslator {
       case inst: Store => visitStore(inst)
       case inst: Intrinsic => visitIntrinsic(inst)
       case inst: PhiNode => visitPhiNode(inst)
+      case inst: GetElementPtr => visitGetElementPtr(inst)
       //      case inst: SwitchInst => visitSwitchInst(inst)
       case inst: MultiSuccessorsInst => ??? // invalid
       case _ => println(i); ???
@@ -88,6 +92,7 @@ class IRTranslator {
   def getOperand(value: Value): Src = {
     value match
       case const: Constant => getConstant(const)
+      case NilValue => Imm(0)
       case _ => getOrCreateVReg(value)
   }
 
@@ -148,9 +153,7 @@ class IRTranslator {
   def visitReturn(ret: Return) = {
     // ret.value is store
     // 绑定store的addr到store上，但这是store的target构造的，而不是store本身构造的
-    val value = getVReg(ret.value) match
-      case Some(reg) => reg
-      case None => ???
+    val value = getOperand(ret.value)
     builder.insertReturnInst(value)
   }
 
@@ -175,8 +178,18 @@ class IRTranslator {
     val f = inst.name match
       case "open" => ???
       case "print" => "printf@PLT"
+      case "malloc" => "malloc@PLT"
       case _ => ???
     val params = inst.args.map(getOperand)
     builder.insertCallInst(f, createVReg(inst), params)
+  }
+
+  def visitGetElementPtr(inst: GetElementPtr) = {
+    val objAddr = getOrCreateVReg(inst.value)
+    val expr = Binary("Add", inst.value, Integer(inst.offset))
+    val fieldAddr = createVReg(expr)
+    builder.insertBinaryInst(BinaryOperator.Add, fieldAddr, objAddr, Imm(inst.offset))
+    val target = createVReg(inst)
+    builder.insertLoadInst(target, fieldAddr)
   }
 }
