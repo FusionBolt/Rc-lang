@@ -115,6 +115,7 @@ case object Infer {
       case Self => ???
       case Symbol(ident) => ???
       case Index(expr, i) => ???
+      case Array(len) => ???
   }
 
   private def lookup(ident: Ident): Type = {

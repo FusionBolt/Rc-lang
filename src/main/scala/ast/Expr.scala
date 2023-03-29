@@ -61,6 +61,7 @@ enum Expr extends ASTNode with Typed :
   // symbol
   case Symbol(ident: Ident)
   case Index(expr: Expr, i: Expr)
+  case Array(len: Int, initValues: List[Expr])
 
   override def toString: String = this match
     case Expr.Block(stmts) => s"{\n${stmts.mkString("\n")}\n}"

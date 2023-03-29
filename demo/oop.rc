@@ -16,6 +16,7 @@ class Point < RcObject
 
   def move_x(offset: Int): Int
     x = x + offset
+    print("a.x: %d", x)
   end
 end
 

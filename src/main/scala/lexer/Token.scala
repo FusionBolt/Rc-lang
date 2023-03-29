@@ -19,6 +19,7 @@ enum Keyword extends Token:
   case ELSIF
   case ELSE
   case WHILE
+  case FOR
   case BREAK
   case CONTINUE
   // class
@@ -38,6 +39,7 @@ enum Punctuation extends Token:
   case SPACE
   case DOT
   case COLON
+  case SEMICOLON
   case AT
   case OPERATOR(op: String)
 
@@ -52,6 +54,8 @@ enum Delimiter extends Token:
   case RIGHT_PARENT_THESES
   case LEFT_SQUARE
   case RIGHT_SQUARE
+  case LEFT_BRACKET
+  case RIGHT_BRACKET
 
 enum Ident extends Token:
   case IDENTIFIER(str: String)

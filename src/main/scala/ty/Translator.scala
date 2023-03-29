@@ -70,7 +70,8 @@ case object TypedTranslator {
       }
       case Stmt.Expr(expr) => Stmt.Expr(expr.withInfer)
       case While(cond, body) => While(cond.withInfer, body.withInfer)
-      case Assign(name, value) => Assign(name, value.withInfer))
+      case Assign(name, value) => Assign(name, value.withInfer)
+      case For(init, cond, incr, body) => ???)
     .withInfer
 
   def methodTrans(method: Method): Method = {

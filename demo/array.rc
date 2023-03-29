@@ -1,0 +1,4 @@
+def main()
+    var n = 0
+    var a = Int[5] { 1, 2, n }
+end

@@ -38,9 +38,9 @@ object Lexer extends RegexParsers {
 
   def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral |
     defStr | endStr | ifStr | thenStr | elsifStr | elseStr | whileStr | breakStr |
-    continueStr | classStr | superStr | selfStr | varStr | valStr | importStr
-  def symbol: Parser[Token] = comment | comma | eol | dot | at | colon |
-    leftParentTheses | rightParentTheses | leftSquare | rightSquare
+    continueStr | classStr | superStr | selfStr | varStr | valStr | importStr | forStr
+  def symbol: Parser[Token] = comment | comma | eol | dot | at | colon | semicolon |
+    leftParentTheses | rightParentTheses | leftSquare | rightSquare | leftBracket | rightBracket
 
   def value: Parser[Token] = number | upperIdentifier | identifier
 
@@ -109,6 +109,7 @@ object Lexer extends RegexParsers {
   def comma = NoValueToken(",", COMMA)
   def dot = NoValueToken(".", DOT)
   def colon = NoValueToken(":", COLON)
+  def semicolon = NoValueToken(";", SEMICOLON)
   def at = NoValueToken("@", AT)
 
   def trueLiteral = NoValueToken("true", TRUE)
@@ -125,6 +126,7 @@ object Lexer extends RegexParsers {
   def elsifStr = NoValueToken("elsif", ELSIF)
   def elseStr = NoValueToken("else", ELSE)
   def whileStr = NoValueToken("while", WHILE)
+  def forStr = NoValueToken("for", FOR)
   def breakStr = NoValueToken("break", BREAK)
   def continueStr = NoValueToken("continue", CONTINUE)
 
@@ -133,11 +135,13 @@ object Lexer extends RegexParsers {
   def selfStr = NoValueToken("self", SELF)
   def varsStr = NoValueToken("vars", VARS)
   def methods = NoValueToken("methods", METHODS)
-  
+
   def importStr = NoValueToken("import", IMPORT)
 
   def leftParentTheses = NoValueToken("(", LEFT_PARENT_THESES)
   def rightParentTheses = NoValueToken(")", RIGHT_PARENT_THESES)
   def leftSquare = NoValueToken("[", LEFT_SQUARE)
   def rightSquare = NoValueToken("]", RIGHT_SQUARE)
+  def leftBracket = NoValueToken("{", LEFT_BRACKET)
+  def rightBracket = NoValueToken("}", RIGHT_BRACKET)
 }

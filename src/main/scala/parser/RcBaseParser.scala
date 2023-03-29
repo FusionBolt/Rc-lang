@@ -85,6 +85,8 @@ trait RcBaseParser extends PackratParsers {
   protected def parSround[T](p: Parser[T]) = LEFT_PARENT_THESES ~> p <~ RIGHT_PARENT_THESES
 
   protected def squareSround[T](p: Parser[T]) = LEFT_SQUARE ~> p <~ RIGHT_SQUARE
+  
+  protected def bracketSround[T](p: Parser[T]) = LEFT_BRACKET ~> p <~ RIGHT_BRACKET
 
   protected def noOrder[T](p1: Parser[T], p2: Parser[T]): Parser[T ~ T] = p1 ~ p2 | p2 ~ p1
 

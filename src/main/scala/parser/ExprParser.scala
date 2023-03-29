@@ -10,6 +10,8 @@ import lexer.Ident.*
 import lexer.Token
 import ast.Expr.{Block, If, Return}
 
+import rclang.ty.Infer
+
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
 import scala.language.postfixOps
@@ -64,15 +66,28 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     multiLineIf | termExpr | ret
   }
 
+  def array: Parser[Expr] = positioned {
+    ty ~ squareSround(number) ~ bracketSround(repsep(termExpr, COMMA)) ^^ {
+      case ty ~ NUMBER(size) ~ values => {
+        val arr = Expr.Array(size, values)
+        arr.ty = Infer.translate(ty)
+        arr
+      }
+    }
+  }
+
   def string = stringLiteral ^^ { case STRING(str) => Expr.Str(str) }
   def num = number ^^ { case NUMBER(int) => Expr.Number(int) }
   def idExpr = id ^^ Expr.Identifier
+
+
+  // term expr, ID也应该放在这里
 
   // memField: term.x
   // memCall: term.x(
   // arrayIndex: term[
   lazy val beginWithTerm: PackratParser[Expr] = positioned {
-    memCall | memField | arrayIndex
+    memCall | memField | array | arrayIndex
   }
 
   def term: Parser[Expr] = positioned {
@@ -133,6 +148,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   def statement: Parser[Stmt] = positioned {
     oneline(assign
       | whileStmt
+      | log(forStmt)("forStmt")
       | log(local)("local")
       | BREAK ^^^ Stmt.Break()
       | CONTINUE ^^^ Stmt.Continue()
@@ -154,7 +170,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def assign: Parser[Stmt.Assign] = positioned {
-    (id <~ EQL) ~ termExpr ^^ {
+    (id <~ EQL) ~ log(termExpr)("stmt assign") ^^ {
       case id ~ expr => Stmt.Assign(id, expr)
     }
   }
@@ -162,6 +178,12 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   def whileStmt: Parser[Stmt.While] = positioned {
     oneline(WHILE ~> parSround(termExpr)) ~ block <~ log(END)("end while") ^^ {
       case cond ~ body => Stmt.While(cond, body)
+    }
+  }
+
+  def forStmt: Parser[Stmt.For] = positioned {
+    oneline(FOR ~> parSround(log(local)("init") ~ SEMICOLON ~ log(expr)("cond") ~ SEMICOLON ~ log(assign)("update"))) ~ block <~ END ^^ {
+      case init ~ _ ~ cond ~ _ ~ incr ~ body => Stmt.For(init, cond, incr, body)
     }
   }
 }

@@ -2,8 +2,9 @@ def add(a: Int, b: Int)
     a + b
 end
 
-def call()
+def main()
     var a = 1
     var b = 2
-    add(a, b)
+    val c = add(a, b)
+    print("c:%d", c)
 end
