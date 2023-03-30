@@ -81,7 +81,9 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
 
   var strTable = List[Str]()
 
+  // used for continue
   var curHeader: BasicBlock = null
+  // used for break
   var nextBasicBlock: BasicBlock = null
 
   def procArgument(params: Params): List[Argument] = {
@@ -204,8 +206,18 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
         structTyProc(obj.ty) { case StructType(name, _) =>
           val structType = TypeBuilder.fromClass(name, globalTable)
           val fieldTy = nestSpace.withClass(name).lookupVar(field).ty
-          GetElementPtr(obj, structType.fieldOffset(field), fieldTy)
+          GetElementPtr(obj, Integer(structType.fieldOffset(field)), fieldTy)
         }
+      }
+      case Expr.Array(len, initValues) => {
+        ConstantArray(len, initValues.map(procExpr))
+      }
+      case Expr.Index(arr, i) => {
+        val index = builder.createLoad(procExpr(i))
+        val array = procExpr(arr)
+        // index is value
+        // src ty, target ty
+        GetElementPtr(array, index, array.ty)
       }
       case _ => ???
       if v.ty == InferType then v.withTy(expr.ty) else v
@@ -244,6 +256,44 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
         val bodyValue = procBlock(body)
         // after
         builder.createBr(header)
+        builder.insertBasicBlock(afterBB)
+        bodyValue
+      }
+      case ast.Stmt.For(init, cond, incr, body) => {
+        // xxx
+        // init -> cond
+        // header:
+        // incr
+        // condBB:
+        // cmp body, afterBody
+        // body:
+        //    continue -> header
+        //    continue -> header
+        // afterBody:
+        // xxx
+
+        val header = builder.createBB()
+        val condBB = builder.createBB()
+        val bodyBB = builder.createBB()
+        val afterBB = builder.createBB()
+
+        curHeader = header
+        nextBasicBlock = afterBB
+        // prevBB
+        procStmt(init)
+        builder.createBr(condBB)
+        // header: begin with incr
+        builder.insertBasicBlock(header)
+        procStmt(incr)
+        // condBB
+        builder.insertBasicBlock(condBB)
+        val condValue = procExpr(cond)
+        builder.createCondBr(condValue, bodyBB, afterBB)
+        // body
+        builder.insertBasicBlock(bodyBB)
+        val bodyValue = procBlock(body)
+        builder.createBr(header)
+        // after
         builder.insertBasicBlock(afterBB)
         bodyValue
       }

@@ -108,8 +108,9 @@ class Store(valueV: Value, ptrV: Value) extends Instruction(2) {
   def ptr = getOperand(1)
 }
 
-case class GetElementPtr(value: Value, offset: Int, targetTy: Type) extends Instruction(1) {
+case class GetElementPtr(value: Value, offset: Value, targetTy: Type) extends Instruction(1) {
   setOperand(0, value)
+  setOperand(1, offset)
   ty = targetTy
   def align = value.ty match
     case s: StructType => s.align
@@ -161,6 +162,8 @@ case class Integer(value: Int) extends Number(Int32Type) {
 
   override def isOne: Boolean = value == 1
 }
+
+case class ConstantArray(len: Int, values: List[Value]) extends Constant(ArrayType(Int32Type))
 
 object ImplicitConversions {
   implicit def toInteger(int: Int): Integer = Integer(int)

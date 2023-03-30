@@ -25,6 +25,8 @@ case class FnType(ret: Type, params: List[Type]) extends Type
 
 case object InferType extends Type
 
+case class ArrayType(valueT: Type) extends Type
+
 case class ErrType(msg: String) extends Type
 
 case object TypeBuilder {

@@ -62,6 +62,7 @@ case object Infer {
       }
       case Stmt.Expr(expr) => infer(expr)
       case Stmt.While(cond, body) => infer(body)
+      case Stmt.For(_, _, _, body) => infer(body)
       case Stmt.Assign(name, value) => lookup(name)
       case Stmt.Break() => NilType
       case Stmt.Continue() => NilType
@@ -114,8 +115,11 @@ case object Infer {
       }
       case Self => ???
       case Symbol(ident) => ???
-      case Index(expr, i) => ???
-      case Array(len) => ???
+      case Index(expr, _) => infer(expr) match
+        case ArrayType(valueT) => valueT
+        case _ => ErrType("failed")
+        // todo: array type
+      case Array(_, initValues) => ArrayType(common(initValues))
   }
 
   private def lookup(ident: Ident): Type = {
@@ -158,7 +162,14 @@ case object Infer {
       case "Int" => Int32Type
       case "Float" => FloatType
       case "Nil" => NilType
+      // todo: Handle type
       case _ => lookup(ident)
+  }
+
+  private def common(exprList: List[Expr]): Type = {
+    val tyList = exprList.map(infer)
+    val isSame = tyList.forall(_ != tyList.head)
+    if isSame then tyList.head else ErrType("failed")
   }
 
   private def common(lhs: Expr, rhs: Expr): Type = {

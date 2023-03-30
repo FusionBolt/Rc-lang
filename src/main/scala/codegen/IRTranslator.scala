@@ -186,9 +186,10 @@ class IRTranslator {
 
   def visitGetElementPtr(inst: GetElementPtr) = {
     val objAddr = getOrCreateVReg(inst.value)
-    val expr = Binary("Add", inst.value, Integer(inst.offset))
+    val offset = getOperand(inst.offset)
+    val expr = Binary("Add", inst.value, inst.offset)
     val fieldAddr = createVReg(expr)
-    builder.insertBinaryInst(BinaryOperator.Add, fieldAddr, objAddr, Imm(inst.offset))
+    builder.insertBinaryInst(BinaryOperator.Add, fieldAddr, objAddr, offset)
     val target = createVReg(inst)
     builder.insertLoadInst(target, fieldAddr)
   }
