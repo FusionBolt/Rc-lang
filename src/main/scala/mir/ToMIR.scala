@@ -37,8 +37,7 @@ case class ToMIR(globalTable: GlobalTable) {
 }
 
 def mangling(fullName: FullName): String = {
-  val fnName = fullName.fn.name.str
-  s"_Z1${fullName.klass}_${fnName.length}${fnName}_${fullName.fn.inputs.params.map(_.ty).mkString}"
+  tools.mangling(fullName.fn, List(fullName.module, fullName.klass))
 }
 
 case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass: String = "") {
