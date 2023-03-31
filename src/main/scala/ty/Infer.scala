@@ -162,7 +162,7 @@ case object Infer {
       case "Int" => Int32Type
       case "Float" => FloatType
       case "Nil" => NilType
-      // todo: Handle type
+      case "Handle" => PointerType(Int64Type)
       case _ => lookup(ident)
   }
 

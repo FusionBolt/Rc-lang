@@ -108,7 +108,7 @@ class Store(valueV: Value, ptrV: Value) extends Instruction(2) {
   def ptr = getOperand(1)
 }
 
-case class GetElementPtr(value: Value, offset: Value, targetTy: Type) extends Instruction(1) {
+case class GetElementPtr(value: Value, offset: Value, targetTy: Type) extends Instruction(2) {
   setOperand(0, value)
   setOperand(1, offset)
   ty = targetTy

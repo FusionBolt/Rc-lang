@@ -131,11 +131,23 @@ class IRTranslator {
   }
 
   def visitStore(store: Store) = {
-    val src = getOperand(store.value)
-    val addr = getOrCreateVReg(store.ptr)
-    // other value use store, but reg of addr is not same as store
-    registerReg(store, addr)
-    builder.insertStoreInst(src, addr)
+    store.value match
+      case ConstantArray(len, values) => {
+        val addr = getOrCreateVReg(store.ptr)
+        registerReg(store, addr)
+        values.map(getOperand).foreach(v => {
+          // todo: addr: 4, 8, 12, 16
+          builder.insertStoreInst(v, addr)
+        })
+        builder.mbb.instList.last
+      }
+      case _ => {
+        val src = getOperand(store.value)
+        val addr = getOrCreateVReg(store.ptr)
+        // other value use store, but reg of addr is not same as store
+        registerReg(store, addr)
+        builder.insertStoreInst(src, addr)
+      }
   }
 
   def visitAlloc(alloc: Alloc) = {
