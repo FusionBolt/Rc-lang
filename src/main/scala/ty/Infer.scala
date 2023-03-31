@@ -138,7 +138,7 @@ case object Infer {
     tyCtxt.global.getOrElse(f.name, {
       // todo:从这里进的function没有local
       val oldName = tyCtxt.fullName
-      tyCtxt.fullName = tyCtxt.fullName.copy(fn = f.name.str)
+      tyCtxt.fullName = tyCtxt.fullName.copy(fn = f.decl)
       val ret = if (f.decl.outType == TyInfo.Infer) {
         Infer(f.body)
       } else {

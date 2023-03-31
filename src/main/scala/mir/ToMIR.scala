@@ -8,7 +8,7 @@ import ty.*
 
 import tools.*
 
-case class ToMIR(var globalTable: GlobalTable) {
+case class ToMIR(globalTable: GlobalTable) {
   var module = Module()
   def proc(rcModule: RcModule): Module = {
     module.name = rcModule.name
@@ -37,24 +37,22 @@ case class ToMIR(var globalTable: GlobalTable) {
 }
 
 def mangling(fullName: FullName): String = {
-    fullName.names.mkString("_")
+  val fnName = fullName.fn.name.str
+  s"_Z1${fullName.klass}_${fnName.length}${fnName}_${fullName.fn.inputs.params.map(_.ty).mkString}"
 }
 
-def demangling(name: String): FullName = {
-  FullNameMaker.make(name.split("_"))
-}
-
-case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var klass: String = "") {
-  var nestSpace: NestSpace = NestSpace(globalTable, FullName("", klass, parentModule.name))
+case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass: String = "") {
+  var nestSpace: NestSpace = NestSpace(globalTable, FullName(MethodDecl("", Params(List()), TyInfo.Nil), klass, parentModule.name))
 
   def getFunOuterClass(id: Ident, nestSpace: NestSpace, gt: GlobalTable): Class = {
     nestSpace.findMethodInWhichClass(id, gt)
   }
 
   def getFun(id: Ident, nestSpace: NestSpace = this.nestSpace): Function = {
+    val decl = globalTable.classTable(nestSpace.klass.name).methods(id).astNode.decl
     // when call a member method, nestSpace.fullName.fn != id
     val klass = getFunOuterClass(id, nestSpace, globalTable).name
-    parentModule.fnTable.getOrElse(mangling(nestSpace.fullName.copy(klass = klass, fn = id)), {
+    parentModule.fnTable.getOrElse(mangling(nestSpace.fullName.copy(klass = klass, fn = decl)), {
       val fn = nestSpace.lookupFn(id)
       val newFn = FnToMIR(globalTable, parentModule, klass).procMethod(fn)
       if(parentModule.fnTable.contains(id.str)) {
@@ -95,11 +93,10 @@ case class FnToMIR(var globalTable: GlobalTable, var parentModule: Module, var k
   }
 
   def procMethod(method: Method, prefix: String = ""): Function = {
-    nestSpace = NestSpace(globalTable, FullName(method.name.str, klass, parentModule.name))
+    nestSpace = NestSpace(globalTable, FullName(method.decl, klass, parentModule.name))
     // ir builder manages the function
     args = procArgument(method.decl.inputs)
     env = args.map(arg => Ident(arg.name) -> arg).toMap
-//    val fnName = s"${prefix}_${method.decl.name.str}"
     val fnName = mangling(nestSpace.fullName)
     builder = IRBuilder()
     val fn = Function(fnName, makeType(method.decl.outType), args, builder.currentBasicBlock)

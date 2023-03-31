@@ -8,27 +8,17 @@ import ast.ImplicitConversions.*
 
 import rclang.ty.Infer
 
-case class FullName(var fn: String = "", var klass: String = "", var module: String = Def.DefaultModule) {
-  def names = List(module, klass, fn).filter(_.nonEmpty)
-}
-
-case object FullNameMaker {
-  def make(names: Seq[String]) = {
-    FullName(names(0), names(1))
-  }
+case class FullName(var fn: MethodDecl = MethodDecl("", Params(List()), TyInfo.Nil), var klass: String = "", var module: String = Def.DefaultModule) {
+  def names = List(module, klass, fn.name.str).filter(_.nonEmpty)
 }
 
 case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
-  def withFn(fn: String) = {
-    copy(fullName = fullName.copy(fn = fn))
-  }
-
   def withClass(klass: String) = {
     copy(fullName = fullName.copy(klass = klass))
   }
 
   def localTable = {
-    gt.classTable(fullName.klass).methods(fullName.fn)
+    gt.classTable(fullName.klass).methods(fullName.fn.name)
   }
 
   def klassTable = gt.classTable(fullName.klass)

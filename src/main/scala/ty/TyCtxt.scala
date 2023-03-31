@@ -1,7 +1,7 @@
 package rclang
 package ty
 
-import ast.Ident
+import ast.{Ident, MethodDecl, Params, TyInfo}
 import ty.Type
 import tools.{ClassEntry, FullName, GlobalTable, NestSpace}
 import ty.Infer
@@ -52,15 +52,13 @@ case class TyCtxt() {
    * @tparam T
    * @return
    */
-  def enter[T](newLocal: Map[Ident, Type], fnName: String = "")(f: => T): T = {
+  def enter[T](newLocal: Map[Ident, Type], fnDecl: MethodDecl)(f: => T): T = {
     // (1, 2, 3) ::= 4
     // (4, 1, 2, 3)
     outer ::= local
     local = newLocal
     val oldFullName = fullName
-    if(fnName.nonEmpty) {
-      fullName = fullName.copy(fn = fnName)
-    }
+    fullName = fullName.copy(fn = fnDecl)
     val result = f
     local = outer.head
     outer = outer.tail
@@ -69,7 +67,7 @@ case class TyCtxt() {
   }
 
   def enter[T](f: => T): T = {
-    enter(Map())(f)
+    enter(Map(), MethodDecl(Ident(""), Params(List()), TyInfo.Nil))(f)
   }
 
   def addLocal(k: Ident, v: Type): Unit = {
