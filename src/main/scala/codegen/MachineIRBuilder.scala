@@ -7,9 +7,7 @@ class MachineIRBuilder() {
   def insert(inst: MachineInstruction) = {
     mbb.insert(inst)
   }
-
-  def insertFrameIndexInst(dst: Dst, index: Int) = insert(FrameIndexInst(dst, Imm(index)))
-
+  
   def insertLoadInst(dst: Dst, addr: Src) = insert(LoadInst(dst, addr))
 
   def insertStoreInst(src: Src, addr: Src) = insert(StoreInst(src, addr))

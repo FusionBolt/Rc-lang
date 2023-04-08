@@ -60,6 +60,10 @@ trait Dst extends MachineOperand
 
 case class VReg(num: Int) extends Src with Dst
 
+case class FrameIndex(index: Int) extends Src with Dst
+
+case class TargetIndex()
+
 case class Imm(value: Int) extends Src
 
 case class Label(name: String) extends Src
@@ -87,27 +91,6 @@ sealed trait MachineInstruction extends InMBB with MapOrigin[Value] {
   }
 
   def initOperands = operands.foreach(op => op.instParent = this)
-}
-
-case class FrameIndexInst(private val _reg: Dst, private val _index: Imm) extends MachineInstruction() {
-  operands = List(_reg, _index)
-  initOperands
-
-  def reg: Dst = getOperand(0)
-
-  def reg_=(nReg: Dst) = setOperand(nReg, 0)
-
-  def index: Imm = getOperand(1)
-
-  def index_=(nIndex: Imm) = setOperand(nIndex, 1)
-}
-
-object FrameIndexInst {
-  def unapply(inst: MachineInstruction): Option[(Dst, Imm)] = {
-    inst match
-      case f: FrameIndexInst => Some(f.reg, f.index)
-      case _ => None
-  }
 }
 
 case class LoadInst(private var _dst: Dst, private var _addr: Src) extends MachineInstruction() {

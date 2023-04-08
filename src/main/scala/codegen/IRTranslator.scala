@@ -152,7 +152,7 @@ class IRTranslator {
 
   def visitAlloc(alloc: Alloc) = {
     val idx = findIndex(alloc)
-    builder.insertFrameIndexInst(createVReg(alloc), idx)
+    builder.insertLoadInst(createVReg(alloc), FrameIndex(idx))
   }
 
   def visitCall(call: Call) = {

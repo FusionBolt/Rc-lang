@@ -45,7 +45,6 @@ class GNUASMEmiter extends ASMEmiter {
       case InlineASM(content) => List(content)
       case BranchInst(label) => List(s"jmp .${operandToASM(label)}")
       case CondBrInst(cond, addr) => List(s"jne .${operandToASM(addr)}")
-      case FrameIndexInst(dst, index) => List(s"movl ${-((index.value + 1) * 4)}(%rbp), ${operandToASM(dst)}")
       case PhiInst(dst, _) => throw new Exception()
       case x => println(x.getClass.toString); ???
   }
@@ -57,6 +56,7 @@ class GNUASMEmiter extends ASMEmiter {
       }
       case r: VReg => regToASM(r)
       case Label(name) => name
+      case FrameIndex(index) => s"${-((index + 1) * 4)}(%rbp)"
       case _ => ???
   }
 
