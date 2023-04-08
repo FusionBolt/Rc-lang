@@ -44,7 +44,7 @@ object Driver {
     tyCtxt.setGlobalTable(table)
     val typedModule = TypedTranslator(tyCtxt)(ast)
     logf("typedModule.txt", typedModule)
-    ClassesRender().rendClasses("classes.dot", DumpManager.getDumpRoot, typedModule.items collect { case i: Class => i })
+//    ClassesRender().rendClasses("classes.dot", DumpManager.getDumpRoot, typedModule.items collect { case i: Class => i })
     TypeCheck(typedModule)
     (typedModule, tyCtxt.globalTable)
   }
