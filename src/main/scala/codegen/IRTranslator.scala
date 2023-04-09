@@ -3,6 +3,8 @@ package codegen
 
 import mir.*
 
+import rclang.ty.sizeof
+
 class VRegisterManager {
   var vregMap = Map[Value, VReg]()
   var count = 0
@@ -30,6 +32,7 @@ class IRTranslator {
   var localVarMap = Map[Instruction, Int]()
   var strTable = Map[String, Label]()
   var bbMap = Map[BasicBlock, MachineBasicBlock]()
+  var frameInfo = MachineFrameInfo()
 
   private def getVReg(value: Value): Option[VReg] = vregManager.getVReg(value)
 
@@ -48,7 +51,11 @@ class IRTranslator {
   }
 
   private def visit(fn: Function): MachineFunction = {
-    val mf = MachineFunction(List(), fn)
+    frameInfo = MachineFrameInfo()
+    val mf = MachineFunction(List(), fn, frameInfo)
+    fn.argument.foreach(arg => {
+      frameInfo.addItem(ArgItem(sizeof(arg.ty), arg))
+    })
     vregManager = VRegisterManager()
     currentFn = mf
     builder = MachineIRBuilder()
@@ -57,6 +64,7 @@ class IRTranslator {
     val bbs = fn.bbs.map(visitBB)
     mf.bbs = bbs
     localVarMap = null
+    frameInfo = null
     mf
   }
 
@@ -152,6 +160,7 @@ class IRTranslator {
 
   def visitAlloc(alloc: Alloc) = {
     val idx = findIndex(alloc)
+    frameInfo.addItem(LocalItem(sizeof(alloc.ty), alloc))
     builder.insertLoadInst(createVReg(alloc), FrameIndex(idx))
   }
 

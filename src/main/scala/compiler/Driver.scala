@@ -83,8 +83,10 @@ object Driver {
     MachineIRPrinter().print(fns)
     fns.foreach(PhiEliminate().run)
     MachineIRPrinter().print(fns)
+    fns.foreach(StackRegisterAllocation().run)
+    MachineIRPrinter().print(fns)
+    fns.foreach(fn => println(fn.frameInfo.toString))
     generateASM(fns, translator.strTable, DumpManager.getDumpRoot / "asm.s")
-//    genELF(mirMod.fnTable.contains("main"))
   }
 
   def genELF(hasMain: Boolean) = {

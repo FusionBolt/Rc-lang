@@ -54,3 +54,18 @@ class RegisterAllocation {
     list.filter(allocator.hasAlloc)
   }
 }
+
+class StackRegisterAllocation {
+  def run(mf: MachineFunction): Unit = {
+    val frameInfo = mf.frameInfo
+    val allVReg = mf.instructions.flatMap(m => m.operands).map(_ match
+      case v: VReg => Some(v)
+      case _ => None).filter(_.isDefined).map(_.get)
+    allVReg.foreach(reg => {
+      // 2. update FrameInfo
+      val item = frameInfo.addItem(TmpItem(4))
+      // 3. replace operand
+      reg.replaceFromParent(FrameIndex(item.offset))
+    })
+  }
+}

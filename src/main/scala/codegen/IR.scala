@@ -13,7 +13,7 @@ trait MapOrigin[T] {
 type InMF = In[MachineFunction]
 type InMBB = In[MachineBasicBlock]
 
-class MachineFunction(var bbs: List[MachineBasicBlock], f: Function) extends MapOrigin[Function] {
+class MachineFunction(var bbs: List[MachineBasicBlock], f: Function, val frameInfo: MachineFrameInfo) extends MapOrigin[Function] {
   origin = f
 
   def name = f.name
@@ -61,8 +61,6 @@ trait Dst extends MachineOperand
 case class VReg(num: Int) extends Src with Dst
 
 case class FrameIndex(index: Int) extends Src with Dst
-
-case class TargetIndex()
 
 case class Imm(value: Int) extends Src
 

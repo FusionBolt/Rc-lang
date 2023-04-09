@@ -36,6 +36,7 @@ case class UnaryInst(private val operandValue: Value) extends Instruction(1) {
   setOperand(0, operandValue)
   def operand: Value = getOperand(0)
 }
+
 class CallBase(func: Function, private val args_value: List[Value]) extends Instruction(varOps) {
   setOperands(args_value)
   ty = func.retType
@@ -91,6 +92,7 @@ class Binary(var op: String, lhs_value: Value, rhs_value: Value) extends Instruc
 }
 
 class Alloc(var id: String, typ: Type) extends Instruction(0) {
+  name = id
   ty = typ
 }
 
