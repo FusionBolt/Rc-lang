@@ -10,7 +10,7 @@ class MachineIRBuilder() {
   
   def insertLoadInst(dst: Dst, addr: Src) = insert(LoadInst(dst, addr))
 
-  def insertStoreInst(src: Src, addr: Src) = insert(StoreInst(src, addr))
+  def insertStoreInst(addr: Dst, src: Src) = insert(StoreInst(addr, src))
 
   def insertCallInst(targetFn: String, dst: Dst, params: List[Src]) = insert(CallInst(targetFn, dst, params))
 

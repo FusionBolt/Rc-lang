@@ -2,7 +2,6 @@ package rclang
 package codegen
 
 import codegen.CallingConvention.x86_64
-import codegen.ImplicitConversions.strToASMInstr
 
 class GeneralX64Machine extends TargetMachine {
   val cpu = "general"
@@ -19,9 +18,9 @@ class GNUASMEmiter extends ASMEmiter {
     val label = ASMLabel(s"${mf.name}:")
     val saveRBP = ASMInstr("pushq %rbp")
     val setRBP = ASMInstr("movq %rsp, %rbp")
-    val allocStackFrame = ASMInstr(s"subl %rsp, ${mf.frameInfo.length}, %rsp")
+    val allocStackFrame = ASMInstr("subq $" + s"${mf.frameInfo.alignLength}, %rsp")
     val initArg = mf.frameInfo.args.zipWithIndex.map((item, i) => {
-      ASMInstr(s"${instStr("mov", item.len)} ${paramReg(i, item.len)}, ${item.offset}(%rsp)")
+      ASMInstr(s"${instStr("mov", item.len)} ${paramReg(i, item.len)}, ${-item.offset}(%rbp)")
     })
     val asm = List(label, saveRBP, setRBP, allocStackFrame) ::: initArg ::: mf.bbs.flatMap(emitMBB)
     MFText(asm, mf)
@@ -38,16 +37,27 @@ class GNUASMEmiter extends ASMEmiter {
       case LoadInst(target, value) => value match
         case Label(label) => List(s"leaq $label(%rip), ${operandToASM(target)}")
         case _ => List(s"${instStr("mov", value)} ${operandToASM(value)}, ${operandToASM(target)}")
-      case StoreInst(value, target) => List(s"${instStr("mov", target)} ${operandToASM(value)}, ${operandToASM(target)}")
+      case StoreInst(target, value) => {
+        if(target.isInstanceOf[FrameIndex] && value.isInstanceOf[FrameIndex]) {
+          val tmpReg = numToReg4(1)
+          val movToTmp = s"${instStr("mov", value)} ${operandToASM(value)}, $tmpReg"
+          val store = s"${instStr("mov", target)} $tmpReg, ${operandToASM(target)}"
+          List(movToTmp, store)
+        } else {
+          List(s"${instStr("mov", target)} ${operandToASM(value)}, ${operandToASM(target)}")
+        }
+
+      }
       // todo: value size
-      case ReturnInst(value) => List(s"${instStr("mov", value)} ${operandToASM(value)}, %eax", "popq %rbp", "ret")
+//      case ReturnInst(value) => List(s"${instStr("mov", value)} ${operandToASM(value)}, %eax", "popq %rbp", "ret")
+      case ReturnInst(value) => List(s"${instStr("mov", value)} ${operandToASM(value)}, %eax", "leave", "ret")
       case CallInst(target, dst, args) => {
         val argList = args.zipWithIndex.map((value, i) => value match
           case Label(label) => s"leaq ${label}(%rip), ${paramReg(i, 8)}"
           case _ => s"${instStr("mov", value)} ${operandToASM(value)}, ${paramReg(i, 4)}").reverse
         val call = s"call $target"
         val dstLen = 4
-        val saveResult = s"${instStr("mov", dst)} ${getRegASM(dstLen, 0)}, ${operandToASM(dst)}}"
+        val saveResult = s"${instStr("mov", dst)} ${getRegASM(dstLen, 0)}, ${operandToASM(dst)}"
         (argList:::List(call, saveResult)).map(ASMInstr)
       }
       case InlineASM(content) => List(content)
@@ -72,10 +82,12 @@ class GNUASMEmiter extends ASMEmiter {
     def toStr(op: String): List[ASMText] = {
       val lhsSize = 4
       val eax = getRegASM(lhsSize, 0) // eax == 0
-      val lhsMov = s"${instStr("mov", lhs)} ${operandToASM(lhs)}, $eax" // eax = lhs
-      val bn = s"${instStr(op, lhs)} $eax, ${operandToASM(rhs)}" // eax *= rhs
+      val ebx = getRegASM(lhsSize, 1) // eax == 0
+      val lhsMov = s"${instStr("mov", lhs)} ${operandToASM(lhs)}, $ebx" // eax = lhs
+      val rhsMov = s"${instStr("mov", rhs)} ${operandToASM(rhs)}, $eax" // eax = lhs
+      val bn = s"${instStr(op, lhs)} $ebx, $eax" // eax *= rhs
       val mv = s"${instStr("mov", dst)} $eax, ${operandToASM(dst)}" // dst = eax
-      List(lhsMov, bn, mv)
+      List(lhsMov, rhsMov, bn, mv)
     }
 
     op match

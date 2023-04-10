@@ -16,7 +16,7 @@ case class ASMFile(sections: List[Section] = List()) {
     printer.close()
   }
 
-  private def sectionString: String = sections.map(_.toASM).mkString("\n")
+  private def sectionString: String = sections.map(_.toASM).mkString("\n") + "\n"
 }
 
 case class MFText(asm: List[ASMText], mf: MachineFunction) {
@@ -81,6 +81,4 @@ case class ASMInstr(instr: String) extends ASMText {
   override def str: String = instr
 }
 
-object ImplicitConversions {
-  implicit def strToASMInstr(instr: String): ASMInstr = ASMInstr(instr)
-}
+given Conversion[String, ASMInstr] = ASMInstr(_)

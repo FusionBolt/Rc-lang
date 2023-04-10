@@ -38,6 +38,7 @@ class CodegenIRTest extends RcTestBase {
       val load = LoadInst(dst, src)
       src.replaceFromParent(newSrc)
       assert(newSrc == load.addr)
+      assert(newSrc.instParent == load)
     }
   }
 
@@ -51,4 +52,14 @@ class CodegenIRTest extends RcTestBase {
       assert(mbb.instList == List(load1, store))
     }
   }
+
+  // todo: do this test
+//  describe("getVReg") {
+//    it("succ") {
+//      val reg = VReg(0)
+//      val load = LoadInst(reg, VReg(1))
+//      val store = StoreInst(reg, VReg(1))
+//      reg.instParent
+//    }
+//  }
 }

@@ -19,7 +19,7 @@ class PhiEliminate {
     val regs = phiInst.incomings.map((v, mbb) => {
       val target = VReg(-1)
       // insert copy
-      val store = StoreInst(v, target)
+      val store = StoreInst(target, v)
       store.origin = v.instParent.origin
       mbb.insert(store)
       target

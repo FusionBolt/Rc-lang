@@ -3,10 +3,12 @@ package codegen
 
 import mir.{Alloc, Argument}
 
-class StackItem(var len: Int = 0, var offset: Int = 0) {}
+class StackItem(var len: Int = 0, var offset: Int = 0) {
+  def toFrameIndex = FrameIndex(offset)
+}
 
 case class LocalItem(private val _len: Int, alloc: Alloc) extends StackItem(_len) {
-  override def toString: String = s"${alloc.id}"
+  override def toString: String = s"local:${alloc.id}"
 }
 
 case class ArgItem(private val _len: Int, arg: Argument) extends StackItem(_len) {
@@ -26,8 +28,12 @@ case class MachineFrameInfo() {
 
   def length = items.last.offset + items.last.len
 
+  def align(v: Int, base: Int) = (v / base + (if v % base == 0 then 0 else 1)) * base
+
+  def alignLength = align(length, 16)
+
   def addItem(item: StackItem): StackItem = {
-    item.offset = if items.isEmpty then 0 else length
+    item.offset = if items.isEmpty then 4 else length
     items = items :+ item
     item
   }
@@ -47,17 +53,11 @@ case class MachineFrameInfo() {
 
   def args = sliceItems[ArgItem](items.indexWhere(_.isInstanceOf[ArgItem]), items.lastIndexWhere(_.isInstanceOf[ArgItem]))
 
-  private def matchT[T](v: Object) = v match {
-    case _: T => true
-    case _ => false
-  }
-
-
   private def sliceItems[T](range: (Int, Int)) = {
     if(range._1 == -1) {
       List()
     } else {
-      items.slice(range._1, range._2).map(_.asInstanceOf[T])
+      items.slice(range._1, range._2 + 1).map(_.asInstanceOf[T])
     }
   }
 

@@ -16,9 +16,11 @@ class VRegisterManager {
     v
   }
 
-  def getVReg(value: Value): Option[VReg] = vregMap.get(value)
+  def getVReg(value: Value): Option[VReg] = vregMap.get(value).map(_.dup)
 
-  def getOrCreateVReg(value: Value): VReg = vregMap.getOrElse(value, createVReg(value))
+  def getOrCreateVReg(value: Value): VReg = getVReg(value) match
+    case Some(v) => v
+    case None => createVReg(value)
 
   def registerReg(value: Value, reg: VReg): Unit = {
     vregMap = vregMap.updated(value, reg)
@@ -101,6 +103,15 @@ class IRTranslator {
     value match
       case const: Constant => getConstant(const)
       case NilValue => Imm(0)
+      case Load(v) => getOperand(v)
+      case Argument(id, ty) => {
+        val index = currentFn.f.argument.indexWhere(_.name == id)
+        frameInfo.args(index).toFrameIndex
+      }
+      case v: Alloc => {
+        val index = findIndex(v)
+        frameInfo.locals(index).toFrameIndex
+      }
       case _ => getOrCreateVReg(value)
   }
 
@@ -134,8 +145,9 @@ class IRTranslator {
   }
 
   def visitLoad(load: Load) = {
-    val addr = getOperand(load.ptr)
-    builder.insertLoadInst(createVReg(load), addr)
+    LoadInst(VReg(-1), VReg(-1))
+//    val addr = getOperand(load.ptr)
+//    builder.insertLoadInst(createVReg(load), addr)
   }
 
   def visitStore(store: Store) = {
@@ -145,27 +157,35 @@ class IRTranslator {
         registerReg(store, addr)
         values.map(getOperand).foreach(v => {
           // todo: addr: 4, 8, 12, 16
-          builder.insertStoreInst(v, addr)
+          builder.insertStoreInst(addr, v)
         })
         builder.mbb.instList.last
       }
       case _ => {
         val src = getOperand(store.value)
-        val addr = getOrCreateVReg(store.ptr)
-        // other value use store, but reg of addr is not same as store
-        registerReg(store, addr)
-        builder.insertStoreInst(src, addr)
+        val addr = getOperand(store.ptr) match
+          case v: VReg => {
+            // other value use store, but reg of addr is not same as store
+            registerReg(store, v)
+            v
+          }
+          case frame: FrameIndex => frame
+          case _ => ???
+        builder.insertStoreInst(addr, src)
       }
   }
 
   def visitAlloc(alloc: Alloc) = {
-    val idx = findIndex(alloc)
-    frameInfo.addItem(LocalItem(sizeof(alloc.ty), alloc))
-    builder.insertLoadInst(createVReg(alloc), FrameIndex(idx))
+//    val idx = findIndex(alloc)
+    // todo: fix this
+    // todo: local should in the first
+    frameInfo.addItem(LocalItem(4, alloc))
+    LoadInst(VReg(-1), VReg(-1))
+//    builder.insertLoadInst(createVReg(alloc), FrameIndex(idx))
   }
 
   def visitCall(call: Call) = {
-    val params = call.args.map(getOrCreateVReg)
+    val params = call.args.map(getOperand)
     val target = call.func.name
     val dst = createVReg(call)
     builder.insertCallInst(target, dst, params)
@@ -179,7 +199,7 @@ class IRTranslator {
   }
 
   def visitCondBranch(condBr: CondBranch) = {
-    val cond = getOrCreateVReg(condBr.cond)
+    val cond = getOperand(condBr.cond)
     // compare reg
     builder.insrtCondBrInst(cond, Label(bbNameTranslate(condBr.trueBranch.name)))
     builder.insertBranchInst(Label(bbNameTranslate(condBr.falseBranch.name)))
@@ -206,7 +226,7 @@ class IRTranslator {
   }
 
   def visitGetElementPtr(inst: GetElementPtr) = {
-    val objAddr = getOrCreateVReg(inst.value)
+    val objAddr = getOperand(inst.value)
     val offset = getOperand(inst.offset)
     val expr = Binary("Add", inst.value, inst.offset)
     val fieldAddr = createVReg(expr)

@@ -13,7 +13,7 @@ trait MapOrigin[T] {
 type InMF = In[MachineFunction]
 type InMBB = In[MachineBasicBlock]
 
-class MachineFunction(var bbs: List[MachineBasicBlock], f: Function, val frameInfo: MachineFrameInfo) extends MapOrigin[Function] {
+class MachineFunction(var bbs: List[MachineBasicBlock], var f: Function, val frameInfo: MachineFrameInfo) extends MapOrigin[Function] {
   origin = f
 
   def name = f.name
@@ -50,7 +50,9 @@ trait MachineOperand {
   var instParent: MachineInstruction = null.asInstanceOf[MachineInstruction]
 
   def replaceFromParent(newOperand: MachineOperand) = {
-    instParent.operands = instParent.operands.map(op => if op == this then newOperand.asInstanceOf[Src] else op)
+    instParent.operands = instParent.operands.map(op => if op == this then newOperand else op)
+    newOperand.instParent = instParent
+    instParent = null
   }
 }
 
@@ -58,9 +60,11 @@ trait Src extends MachineOperand
 
 trait Dst extends MachineOperand
 
-case class VReg(num: Int) extends Src with Dst
+case class VReg(num: Int) extends Src with Dst {
+  def dup = VReg(num)
+}
 
-case class FrameIndex(index: Int) extends Src with Dst
+case class FrameIndex(offset: Int) extends Src with Dst
 
 case class Imm(value: Int) extends Src
 
@@ -112,15 +116,15 @@ object LoadInst {
   }
 }
 
-case class StoreInst(private val _src: Src, private val _addr: Src) extends MachineInstruction() {
+case class StoreInst(private val _addr: Dst, private val _src: Src) extends MachineInstruction() {
   operands = List(_addr, _src)
   initOperands
 
-  def addr_=(newSrc: Src) = setOperand(newSrc, 0)
+  def addr_=(newDst: Dst) = setOperand(newDst, 0)
 
   def addr: Dst = getOperand(0)
 
-  def src_=(newDst: Src) = setOperand(newDst, 1)
+  def src_=(newSrc: Src) = setOperand(newSrc, 1)
 
   def src: Src = getOperand(1)
 }
