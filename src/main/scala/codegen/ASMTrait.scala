@@ -13,9 +13,13 @@ case class ASMFile(sections: List[Section] = List()) {
     val printer = new PrintWriter(new File(path));
     println(sectionString)
     printer.write(sectionString)
+    printer.write(jmpToMain)
     printer.close()
   }
 
+  private def jmpToMain: String = {
+    s".section .text\n  .globl main\n  .type  main, @function\nmain:\n${indent}jmp _ZN6Kernel4mainE1v\n"
+  }
   private def sectionString: String = sections.map(_.toASM).mkString("\n") + "\n"
 }
 
