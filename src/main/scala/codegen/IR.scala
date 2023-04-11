@@ -21,19 +21,11 @@ class MachineFunction(var bbs: List[MachineBasicBlock], var f: Function, val fra
   def instructions = bbs.flatMap(_.instList)
 }
 
-var globalBBIndex = -1
-def bbNameTranslate(oldName: String) = {
-  globalBBIndex = globalBBIndex + 1
-  s"L$oldName$globalBBIndex"
-}
-
-class MachineBasicBlock(var instList: List[MachineInstruction], f: MachineFunction, bb: BasicBlock) extends InMF with MapOrigin[BasicBlock] with Src {
+class MachineBasicBlock(var instList: List[MachineInstruction], f: MachineFunction, bb: BasicBlock, val name: String) extends InMF with MapOrigin[BasicBlock] with Src {
   instList.foreach(inst => inst.parent = this)
   parent = f
   origin = bb
-
-  def name = bbNameTranslate(bb.name)
-
+  
   def insert(inst: MachineInstruction) = {
     instList = instList.appended(inst)
     inst.parent = this
@@ -203,7 +195,7 @@ object BinaryInst {
 }
 
 case class CondBrInst(private val _cond: Src, private val _addr: Src) extends MachineInstruction {
-  operands = List(_cond, addr)
+  operands = List(_cond, _addr)
   initOperands
 
   def cond: Src = getOperand(0)
@@ -241,7 +233,7 @@ object BranchInst {
 }
 
 case class PhiInst(private val _dst: Dst, incomings: Map[Src, MachineBasicBlock]) extends MachineInstruction {
-  operands = List(dst)
+  operands = List(_dst)
   initOperands
 
   def dst: Dst = getOperand(0)

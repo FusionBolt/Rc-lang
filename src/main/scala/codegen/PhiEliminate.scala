@@ -16,18 +16,24 @@ class PhiEliminate {
   // make copy for every income
   def eliminate(phiInst: PhiInst, basicBlock: MachineBasicBlock) = {
     println(phiInst)
+    var index = 0
     val regs = phiInst.incomings.map((v, mbb) => {
-      val target = VReg(-1)
+      val target = VReg(basicBlock.parent.instructions.length + index)
+      index += 1
       // insert copy
       val store = StoreInst(target, v)
       store.origin = v.instParent.origin
       mbb.insert(store)
-      target
+      // todo: how to avoid dup
+      target.dup
     })
     regs.foreach(reg => {
-      val load = LoadInst(VReg(-1), reg)
-      load.origin = phiInst.origin
-      basicBlock.insertAtFirst(load)
+//      val load = LoadInst(VReg(reg.num), reg)
+      val phiTarget = VReg(basicBlock.parent.instructions.length + index)
+      index += 1
+      val st = StoreInst(phiTarget, reg)
+      st.origin = phiInst.origin
+      basicBlock.insertAtFirst(st)
     })
     // remove phi
     phiInst.removeFromParent()

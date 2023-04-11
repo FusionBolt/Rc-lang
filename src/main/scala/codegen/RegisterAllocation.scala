@@ -10,6 +10,7 @@ class StackRegisterAllocation {
       case v: VReg => Some(v)
       case _ => None).filter(_.isDefined).map(_.get)
     allVReg.foreach(reg => {
+      println(reg)
       println(reg.instParent.operands)
       val item = regMap.get(reg) match {
         case Some(value) => println("yes"); value

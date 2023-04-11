@@ -27,6 +27,9 @@ class VRegisterManager {
   }
 }
 
+var globalBBIndex = -1
+var globalBBNameMap = Map[String, String]()
+
 class IRTranslator {
   var vregManager = VRegisterManager()
   var currentFn: MachineFunction = null
@@ -35,6 +38,17 @@ class IRTranslator {
   var strTable = Map[String, Label]()
   var bbMap = Map[BasicBlock, MachineBasicBlock]()
   var frameInfo = MachineFrameInfo()
+
+  def bbNameTranslate(oldName: String) = {
+    globalBBNameMap.get(oldName) match
+      case Some(value) => value
+      case None => {
+        globalBBIndex += 1
+        val name = s"L$oldName$globalBBIndex"
+        globalBBNameMap = globalBBNameMap.updated(oldName, name)
+        name
+      }
+  }
 
   private def getVReg(value: Value): Option[VReg] = vregManager.getVReg(value)
 
@@ -71,7 +85,7 @@ class IRTranslator {
   }
 
   private def visitBB(bb: BasicBlock): MachineBasicBlock = {
-    builder.mbb = MachineBasicBlock(List(), currentFn, bb)
+    builder.mbb = MachineBasicBlock(List(), currentFn, bb, bbNameTranslate(bb.name))
     bbMap = bbMap.updated(bb, builder.mbb)
     bb.stmts.foreach(visitInst)
     builder.mbb
@@ -146,8 +160,8 @@ class IRTranslator {
 
   def visitLoad(load: Load) = {
     LoadInst(VReg(-1), VReg(-1))
-//    val addr = getOperand(load.ptr)
-//    builder.insertLoadInst(createVReg(load), addr)
+    //    val addr = getOperand(load.ptr)
+    //    builder.insertLoadInst(createVReg(load), addr)
   }
 
   def visitStore(store: Store) = {
@@ -176,12 +190,12 @@ class IRTranslator {
   }
 
   def visitAlloc(alloc: Alloc) = {
-//    val idx = findIndex(alloc)
+    //    val idx = findIndex(alloc)
     // todo: fix this
     // todo: local should in the first
     frameInfo.addItem(LocalItem(4, alloc))
     LoadInst(VReg(-1), VReg(-1))
-//    builder.insertLoadInst(createVReg(alloc), FrameIndex(idx))
+    //    builder.insertLoadInst(createVReg(alloc), FrameIndex(idx))
   }
 
   def visitCall(call: Call) = {
