@@ -11,7 +11,7 @@ case class ASMFile(sections: List[Section] = List()) {
   val ident: String = Def.version
   def write(path: String): Unit = {
     val printer = new PrintWriter(new File(path));
-    println(sectionString)
+//    println(sectionString)
     printer.write(sectionString)
     printer.write(jmpToMain)
     printer.close()

@@ -1,33 +1,40 @@
 package rclang
 package codegen
 
-class StackRegisterAllocation {
-  def run(mf: MachineFunction): Unit = {
-    println(s"generate for ${mf.name}")
+import pass.{AnalysisManager, Transform}
+
+class StackRegisterAllocation extends Transform[MachineFunction] {
+  def debug(str: String): Unit = {
+    if(false) {
+      println(str)
+    }
+  }
+
+  def run(mf: MachineFunction, am: AnalysisManager[MachineFunction]) = {
+    debug(s"generate for ${mf.name}")
     val frameInfo = mf.frameInfo
     var regMap = Map[VReg, StackItem]()
     val allVReg = mf.instructions.flatMap(m => m.operands).map(_ match
       case v: VReg => Some(v)
       case _ => None).filter(_.isDefined).map(_.get)
     allVReg.foreach(reg => {
-      println(reg)
-      println(reg.instParent.operands)
+      debug(reg.toString)
+      debug(reg.instParent.operands.toString)
       val item = regMap.get(reg) match {
-        case Some(value) => println("yes"); value
+        case Some(value) => debug("yes"); value
         case None => {
           // update FrameInfo
-          println("no")
+          debug("no")
           val tmpItem = frameInfo.addItem(TmpItem(4))
           regMap = regMap.updated(reg, tmpItem)
           tmpItem
         }
       }
-      println(s"$reg -> $item")
+      debug(s"$reg -> $item")
       // replace operand
       val frameIndex = FrameIndex(item.offset)
       reg.replaceFromParent(frameIndex)
-      println(frameIndex.instParent.operands)
-      println()
+      debug(frameIndex.instParent.operands.toString)
     })
   }
 }

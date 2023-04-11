@@ -47,7 +47,7 @@ class CodegenIRTest extends RcTestBase {
       val load1 = LoadInst(VReg(0), VReg(1))
       val load2 = LoadInst(VReg(1), VReg(2))
       val store = StoreInst(VReg(1), VReg(3))
-      val mbb = MachineBasicBlock(List(load1, load2, store), null, null)
+      val mbb = MachineBasicBlock(List(load1, load2, store), null, null, "mbb")
       load2.removeFromParent()
       assert(mbb.instList == List(load1, store))
     }

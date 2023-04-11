@@ -35,7 +35,7 @@ class CSE extends Transform[Function] {
       case _ =>
     }
 
-    print(exprSet)
+//    print(exprSet)
 
     workList.foreach(_.eraseFromParent)
   }

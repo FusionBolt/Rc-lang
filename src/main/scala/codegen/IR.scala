@@ -15,6 +15,7 @@ type InMBB = In[MachineBasicBlock]
 
 class MachineFunction(var bbs: List[MachineBasicBlock], var f: Function, val frameInfo: MachineFrameInfo) extends MapOrigin[Function] {
   origin = f
+  frameInfo.mf = this
 
   def name = f.name
 

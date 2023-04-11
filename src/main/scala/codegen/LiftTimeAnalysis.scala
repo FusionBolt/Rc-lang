@@ -25,13 +25,13 @@ class LifeTimeAnalysis {
       })
     })
 
-    regMap.foreach(useByOnInst => {
-      print("|")
-      useByOnInst.foreach(isUse => {
-        print(s"$isUse|")
-      })
-      println()
-    })
+//    regMap.foreach(useByOnInst => {
+//      print("|")
+//      useByOnInst.foreach(isUse => {
+//        print(s"$isUse|")
+//      })
+//      println()
+//    })
 
     val range = detectRange(regMap)
 

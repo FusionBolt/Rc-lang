@@ -20,6 +20,8 @@ case class TmpItem(private val _len: Int) extends StackItem(_len) {
 }
 
 case class MachineFrameInfo() {
+  var mf: MachineFunction = null
+
   var items = List[StackItem]()
 
   def top = items.last
@@ -62,6 +64,7 @@ case class MachineFrameInfo() {
   }
 
   override def toString: String = {
+    s"${mf.name}\n" +
     items.map(item => {
       val offsetLine = s"${item.offset.toString.padTo(4, ' ')}| ---------- |\n"
       val itemLine = s"    | ${item.toString.padTo(10, ' ')} |\n"

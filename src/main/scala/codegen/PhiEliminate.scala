@@ -1,8 +1,10 @@
 package rclang
 package codegen
 
-class PhiEliminate {
-  def run(fn: MachineFunction) = {
+import pass.*
+
+class PhiEliminate extends Transform[MachineFunction] {
+  def run(fn: MachineFunction, am: AnalysisManager[MachineFunction]) = {
     fn.bbs.foreach(bb => {
       // 1. find all phi
       val phis = bb.instList
@@ -15,7 +17,7 @@ class PhiEliminate {
 
   // make copy for every income
   def eliminate(phiInst: PhiInst, basicBlock: MachineBasicBlock) = {
-    println(phiInst)
+//    println(phiInst)
     var index = 0
     val regs = phiInst.incomings.map((v, mbb) => {
       val target = VReg(basicBlock.parent.instructions.length + index)

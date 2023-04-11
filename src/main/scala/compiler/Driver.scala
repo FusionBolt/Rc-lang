@@ -2,24 +2,26 @@ package rclang
 package compiler
 
 import analysis.*
+import ast.ClassesRender
 import lexer.Lexer
 import mir.*
 import parser.RcParser
-import pass.{AnalysisManager, PassManager}
+import pass.{AnalysisManager, PassManager, Transform}
 import tools.*
-import ast.ClassesRender
-import ty.{Infer, TyCtxt, Type, TypeCheck, TypedTranslator}
 import tools.RcLogger.{log, logf, warning}
-import rclang.transform.CFGSimplify
+import transform.CFGSimplify
+import ty.*
+
+import java.nio.file.{Files, Paths}
 //import analysis.Analysis.`given`
-import analysis.Analysis.given_DomTreeAnalysis
-import analysis.Analysis.given_LoopAnalysis
+import analysis.Analysis.{given_DomTreeAnalysis, given_LoopAnalysis}
 import ast.{Class, Ident, Item, RcModule}
 import codegen.*
-import scala.sys.process.*
-import scala.io.Source
+
 import java.io.File
 import java.nio.file.Path
+import scala.io.Source
+import scala.sys.process.*
 
 object Driver {
   def getSrc(path: String) = {
@@ -77,15 +79,30 @@ object Driver {
     codegen(mirMod)
   }
 
+  def dumpPass(mf: MachineFunction, pass: Transform[MachineFunction]) = {
+    val path = Paths.get(DumpManager.getDumpRoot / "Pass")
+    if(!Files.exists(path)) {
+      Files.createDirectories(path)
+    }
+    logf(f"Pass/${pass.getClass.getName.split('.').last}.txt") { writer =>
+      MachineIRPrinter().printToWriter(mf, writer)
+    }
+  }
+
+  def dumpFrameInfo(mf: MachineFunction): Unit = {
+    logf("FrameInfo.txt", mf.frameInfo.toString)
+  }
+
   def codegen(mirMod: Module) = {
     val translator = IRTranslator()
     val fns = translator.visit(mirMod.fns)
-    MachineIRPrinter().print(fns)
-    fns.foreach(PhiEliminate().run)
-    MachineIRPrinter().print(fns)
-    fns.foreach(StackRegisterAllocation().run)
-    MachineIRPrinter().print(fns)
-    fns.foreach(fn => println(fn.frameInfo.toString))
+    val pm = PassManager[MachineFunction]()
+    pm.addPass(new PhiEliminate())
+    pm.addPass(new StackRegisterAllocation())
+    pm.registerAfterPass(dumpPass)
+    val am = AnalysisManager[MachineFunction]()
+    fns.foreach(pm.run(_, am))
+    fns.foreach(dumpFrameInfo)
     generateASM(fns, translator.strTable, DumpManager.getDumpRoot / "asm.s")
   }
 
