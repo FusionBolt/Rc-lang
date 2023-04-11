@@ -1,5 +1,5 @@
 def main()
-    var n = 0
+    var n = 5
     var a = Int[5] { 1, 2, n }
     print("a[2] = %d", a[2])
 end

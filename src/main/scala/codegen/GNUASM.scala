@@ -29,7 +29,7 @@ class GNUASMEmiter extends ASMEmiter {
   override def emitMBB(mbb: MachineBasicBlock): List[ASMText] = {
     List(ASMLabel(s".${mbb.name}:")) ::: mbb.instList.flatMap(emitInstr)
   }
-  
+
   override def emitInstr(instr: MachineInstruction): List[ASMText] = {
     instr match
       case BinaryInst(op, dst, lhs, rhs) => binaryInstToASM(op.toString, dst, lhs, rhs)
@@ -38,8 +38,8 @@ class GNUASMEmiter extends ASMEmiter {
         case Label(label) => List(s"leaq $label(%rip), ${operandToASM(target)}")
         case _ => List(s"${instStr("mov", value)} ${operandToASM(value)}, ${operandToASM(target)}")
       case StoreInst(target, value) => {
-        if(target.isInstanceOf[FrameIndex] && value.isInstanceOf[FrameIndex]) {
-          val tmpReg = numToReg4(1)
+        if ((target.isInstanceOf[FrameIndex] && value.isInstanceOf[FrameIndex]) || value.isInstanceOf[MemoryOperand] || target.isInstanceOf[MemoryOperand]) {
+          val tmpReg = numToReg4(0)
           val movToTmp = s"${instStr("mov", value)} ${operandToASM(value)}, $tmpReg"
           val store = s"${instStr("mov", target)} $tmpReg, ${operandToASM(target)}"
           List(movToTmp, store)
@@ -49,7 +49,7 @@ class GNUASMEmiter extends ASMEmiter {
 
       }
       // todo: value size
-//      case ReturnInst(value) => List(s"${instStr("mov", value)} ${operandToASM(value)}, %eax", "popq %rbp", "ret")
+      //      case ReturnInst(value) => List(s"${instStr("mov", value)} ${operandToASM(value)}, %eax", "popq %rbp", "ret")
       case ReturnInst(value) => List(s"${instStr("mov", value)} ${operandToASM(value)}, %eax", "leave", "ret")
       case CallInst(target, dst, args) => {
         val argList = args.zipWithIndex.map((value, i) => value match
@@ -58,7 +58,7 @@ class GNUASMEmiter extends ASMEmiter {
         val call = s"call $target"
         val dstLen = 4
         val saveResult = s"${instStr("mov", dst)} ${getRegASM(dstLen, 0)}, ${operandToASM(dst)}"
-        (argList:::List(call, saveResult)).map(ASMInstr)
+        (argList ::: List(call, saveResult)).map(ASMInstr)
       }
       case InlineASM(content) => List(content)
       case BranchInst(label) => List(s"jmp .${operandToASM(label)}")
@@ -67,14 +67,24 @@ class GNUASMEmiter extends ASMEmiter {
       case x => println(x.getClass.toString); ???
   }
 
-  def operandToASM(operand: MachineOperand): String = {
+  def operandToASM(operand: MachineOperand, immWithPrefix: Boolean = true): String = {
     operand match
-      case Imm(value) => "$" + {
-        value.toString
+      case Imm(value) => {
+        val prefix = if immWithPrefix then "$" else ""
+        prefix + value.toString
       }
       case r: VReg => regToASM(r)
       case Label(name) => name
       case FrameIndex(index) => s"${-index}(%rbp)"
+      case MemoryOperand(base, dis, index, scale) => {
+        if(index.isDefined || scale.isDefined || dis.isEmpty) {
+          ???
+        }
+        base match
+          case FrameIndex(frameIndex) => s"${-(frameIndex + dis.get.value)}(%rbp)"
+          case _ => ???
+      }
+
       case _ => ???
   }
 
@@ -111,9 +121,9 @@ class GNUASMEmiter extends ASMEmiter {
   }
 
   def getRegASM(len: Int, num: Int) = {
-    if(len == 4) {
+    if (len == 4) {
       numToReg4(num)
-    } else if(len == 8) {
+    } else if (len == 8) {
       numToReg8(num)
     } else {
       ???

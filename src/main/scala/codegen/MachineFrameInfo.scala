@@ -69,8 +69,9 @@ case class MachineFrameInfo() {
       val offsetLine = s"${item.offset.toString.padTo(4, ' ')}| ---------- |\n"
       val itemLine = s"    | ${item.toString.padTo(10, ' ')} |\n"
       val spaceLineCount: Int = item.len / 4
-      //      val lenLine = (0 until spaceLineCount).toList.map("    |            |\n").mkString
-      offsetLine + itemLine
+
+      val lenLine = (1 until spaceLineCount).map(n => s"${(item.offset + n * 4).toString.padTo(4, ' ')}|            |\n").mkString
+      offsetLine + itemLine + lenLine
     }).mkString+"    | ---------- |"
   }
 }

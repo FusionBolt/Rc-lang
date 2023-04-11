@@ -10,7 +10,7 @@ import lexer.Ident.*
 import lexer.Token
 import ast.Expr.{Block, If, Return}
 
-import rclang.ty.Infer
+import rclang.ty.{ArrayType, Infer}
 
 import scala.collection.immutable.HashMap
 import scala.collection.mutable
@@ -70,7 +70,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     ty ~ squareSround(number) ~ bracketSround(repsep(termExpr, COMMA)) ^^ {
       case ty ~ NUMBER(size) ~ values => {
         val arr = Expr.Array(size, values)
-        arr.ty = Infer.translate(ty)
+        arr.ty = ArrayType(Infer.translate(ty), size)
         arr
       }
     }

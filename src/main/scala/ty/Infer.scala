@@ -116,10 +116,10 @@ case object Infer {
       case Self => ???
       case Symbol(ident) => ???
       case Index(expr, _) => infer(expr) match
-        case ArrayType(valueT) => valueT
+        case ArrayType(valueT, _) => valueT
         case _ => ErrType("failed")
         // todo: array type
-      case Array(_, initValues) => ArrayType(common(initValues))
+      case Array(len, initValues) => ArrayType(common(initValues), len)
   }
 
   private def lookup(ident: Ident): Type = {

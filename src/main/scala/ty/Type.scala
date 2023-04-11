@@ -25,7 +25,7 @@ case class FnType(ret: Type, params: List[Type]) extends Type
 
 case object InferType extends Type
 
-case class ArrayType(valueT: Type) extends Type
+case class ArrayType(valueT: Type, size: Int) extends Type
 
 case class ErrType(msg: String) extends Type
 
@@ -77,6 +77,7 @@ def sizeof(ty: Type): Int = {
     case ErrType(msg) => -1
     case StructType(name, fields) => -1
     case PointerType(ty) => ptrLength
+    case ArrayType(ty, size) => sizeof(ty) * size
     case _ => ???
 }
 

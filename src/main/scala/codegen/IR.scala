@@ -26,7 +26,7 @@ class MachineBasicBlock(var instList: List[MachineInstruction], f: MachineFuncti
   instList.foreach(inst => inst.parent = this)
   parent = f
   origin = bb
-  
+
   def insert(inst: MachineInstruction) = {
     instList = instList.appended(inst)
     inst.parent = this
@@ -62,6 +62,8 @@ case class FrameIndex(offset: Int) extends Src with Dst
 case class Imm(value: Int) extends Src
 
 case class Label(name: String) extends Src
+
+case class MemoryOperand(base: MachineOperand, displacement: Option[Imm] = None, index: Option[MachineOperand] = None, scale: Option[Imm] = None) extends Src with Dst
 
 sealed trait MachineInstruction extends InMBB with MapOrigin[Value] {
   //  dst: List[Dst], ops: List[Src], mbb: MachineBasicBlock, private val value: Value)

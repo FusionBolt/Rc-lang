@@ -202,7 +202,7 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
         structTyProc(obj.ty) { case StructType(name, _) =>
           val structType = TypeBuilder.fromClass(name, globalTable)
           val fieldTy = nestSpace.withClass(name).lookupVar(field).ty
-          GetElementPtr(obj, Integer(structType.fieldOffset(field)), fieldTy)
+          builder.createGetElementPtr(obj, Integer(structType.fieldOffset(field)), fieldTy)
         }
       }
       case Expr.Array(len, initValues) => {
@@ -213,7 +213,7 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
         val array = procExpr(arr)
         // index is value
         // src ty, target ty
-        GetElementPtr(array, index, array.ty)
+        builder.createGetElementPtr(array, index, array.ty)
       }
       case _ => ???
       if v.ty == InferType then v.withTy(expr.ty) else v

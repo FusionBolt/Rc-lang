@@ -3,7 +3,7 @@ package codegen
 
 import mir.*
 
-import rclang.ty.sizeof
+import rclang.ty.{ArrayType, sizeof}
 
 class VRegisterManager {
   var vregMap = Map[Value, VReg]()
@@ -165,26 +165,28 @@ class IRTranslator {
   }
 
   def visitStore(store: Store) = {
+    val addr = getOperand(store.ptr) match
+      case v: VReg => {
+        // other value use store, but reg of addr is not same as store
+        registerReg(store, v)
+        v.dup
+      }
+      case frame: FrameIndex => frame
+      case _ => ???
     store.value match
       case ConstantArray(len, values) => {
-        val addr = getOrCreateVReg(store.ptr)
-        registerReg(store, addr)
-        values.map(getOperand).foreach(v => {
+        values.map(getOperand).zipWithIndex.foreach((v, i) => {
           // todo: addr: 4, 8, 12, 16
-          builder.insertStoreInst(addr, v)
+          addr match
+            case FrameIndex(offset) => {
+              builder.insertStoreInst(FrameIndex(offset + i * sizeof(values.head.ty)), v)
+            }
+            case _ => ???
         })
         builder.mbb.instList.last
       }
       case _ => {
         val src = getOperand(store.value)
-        val addr = getOperand(store.ptr) match
-          case v: VReg => {
-            // other value use store, but reg of addr is not same as store
-            registerReg(store, v)
-            v
-          }
-          case frame: FrameIndex => frame
-          case _ => ???
         builder.insertStoreInst(addr, src)
       }
   }
@@ -193,7 +195,8 @@ class IRTranslator {
     //    val idx = findIndex(alloc)
     // todo: fix this
     // todo: local should in the first
-    frameInfo.addItem(LocalItem(4, alloc))
+    val size = math.max(4, sizeof(alloc.ty))
+    frameInfo.addItem(LocalItem(size, alloc))
     LoadInst(VReg(-1), VReg(-1))
     //    builder.insertLoadInst(createVReg(alloc), FrameIndex(idx))
   }
@@ -240,12 +243,20 @@ class IRTranslator {
   }
 
   def visitGetElementPtr(inst: GetElementPtr) = {
+    // todo: support for array only
     val objAddr = getOperand(inst.value)
     val offset = getOperand(inst.offset)
-    val expr = Binary("Add", inst.value, inst.offset)
-    val fieldAddr = createVReg(expr)
-    builder.insertBinaryInst(BinaryOperator.Add, fieldAddr, objAddr, offset)
+    val ty = inst.ty match
+      case ArrayType(valueT, size) => valueT
+      case _ => ???
+    val scale = Imm(sizeof(ty))
+    val fieldAddr = offset match
+      case Imm(i) => {
+        val dis = scale.value * i
+        MemoryOperand(objAddr, Some(Imm(dis)), None, None)
+      }
+      case _ => MemoryOperand(objAddr, None, Some(offset), Some(scale))
     val target = createVReg(inst)
-    builder.insertLoadInst(target, fieldAddr)
+    builder.insertStoreInst(target, fieldAddr)
   }
 }

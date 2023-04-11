@@ -165,7 +165,7 @@ case class Integer(value: Int) extends Number(Int32Type) {
   override def isOne: Boolean = value == 1
 }
 
-case class ConstantArray(len: Int, values: List[Value]) extends Constant(ArrayType(Int32Type))
+case class ConstantArray(len: Int, values: List[Value]) extends Constant(ArrayType(Int32Type, len))
 
 object ImplicitConversions {
   implicit def toInteger(int: Int): Integer = Integer(int)
