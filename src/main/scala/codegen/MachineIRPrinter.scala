@@ -24,6 +24,6 @@ class MachineIRPrinter {
   }
 
   private def toStr(inst: MachineInstruction): String = {
-    s"${inst.getClass.getName.split('.').last} ${inst.operands} = "
+    s"${inst.getClass.getName.split('.').last} ${inst.operands} #${inst.origin.pos}"
   }
 }

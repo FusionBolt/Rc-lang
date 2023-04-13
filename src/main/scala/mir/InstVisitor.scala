@@ -69,7 +69,7 @@ class Printer{
 
   def visit(inst: Instruction): String = {
     val user = inst.asInstanceOf[User]
-    inst match {
+    val instStr = inst match {
       //      case BinaryInstBase(lhsValue, rhsValue) => ???
       //      case UnaryInst(operandValue) => ???
       case intrinsic: Intrinsic => s"${instName(inst)} ${intrinsic.name}: ${user.ty}"
@@ -87,6 +87,7 @@ class Printer{
       //      case MultiSuccessorsInst(bbs) => ???
       case _ => s"${instName(inst)}:${user.ty} ${opsToString(user)}"
     }
+    instStr + inst.pos
   }
 }
 

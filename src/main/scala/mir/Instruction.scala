@@ -2,7 +2,7 @@ package rclang
 package mir
 
 import ty.*
-import tools.In
+import tools.*
 
 trait Terminator {
   def successors: List[BasicBlock]

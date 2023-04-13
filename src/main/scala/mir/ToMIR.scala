@@ -99,6 +99,7 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
     val fnName = mangling(nestSpace.fullName)
     builder = IRBuilder()
     val fn = Function(fnName, makeType(method.decl.outType), args, builder.currentBasicBlock)
+    fn.setPos(method.pos)
     builder.currentBasicBlock.parent = fn
     parentModule.fnTable += (fnName -> fn)
     builder.currentFn = fn
@@ -216,7 +217,8 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
         builder.createGetElementPtr(array, index, array.ty)
       }
       case _ => ???
-      if v.ty == InferType then v.withTy(expr.ty) else v
+    if v.ty == InferType then v.withTy(expr.ty) else v
+    v.setPos(expr.pos)
   }
 
   def makeType(tyInfo: TyInfo): Type = {
@@ -227,15 +229,17 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
   }
 
   def procStmt(stmt: ast.Stmt): Value = {
-    stmt match
+    val value = stmt match
       case ast.Stmt.Local(name, tyInfo, value) => {
         val alloc = builder.createAlloc(name.str, stmt.ty)
-        builder.createStore(procExpr(value), alloc)
+        builder.createStore(procExpr(value), alloc).setPos(stmt.pos)
         env += (name -> alloc)
         alloc
       }
 
-      case ast.Stmt.Expr(expr) => procExpr(expr)
+      case ast.Stmt.Expr(expr) => {
+        return procExpr(expr)
+      }
       case ast.Stmt.While(cond, body) => {
         // header
         val header = builder.createBB()
@@ -293,7 +297,9 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
         builder.insertBasicBlock(afterBB)
         bodyValue
       }
-      case ast.Stmt.Assign(name, value) => builder.createStore(procExpr(value), lookup(name))
+      case ast.Stmt.Assign(name, value) => {
+        builder.createStore(procExpr(value), lookup(name))
+      }
       case ast.Stmt.Break() => {
         val br = builder.createBr(nextBasicBlock)
         builder.insertBasicBlock()
@@ -304,5 +310,6 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
         builder.insertBasicBlock()
         br
       }
+    value.setPos(stmt.pos)
   }
 }

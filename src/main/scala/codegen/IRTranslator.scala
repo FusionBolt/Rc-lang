@@ -110,7 +110,7 @@ class IRTranslator {
       case inst: MultiSuccessorsInst => ??? // invalid
       case _ => println(i); ???
     inst.origin = i
-    inst
+    inst.setPos(i.pos)
   }
 
   def getOperand(value: Value): Src = {
@@ -179,7 +179,8 @@ class IRTranslator {
           // todo: addr: 4, 8, 12, 16
           addr match
             case FrameIndex(offset) => {
-              builder.insertStoreInst(FrameIndex(offset + i * sizeof(values.head.ty)), v)
+              val inst = builder.insertStoreInst(FrameIndex(offset + i * sizeof(values.head.ty)), v)
+              inst.origin = store
             }
             case _ => ???
         })

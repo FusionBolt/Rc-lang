@@ -76,9 +76,9 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     }
   }
 
-  def string = stringLiteral ^^ { case STRING(str) => Expr.Str(str) }
-  def num = number ^^ { case NUMBER(int) => Expr.Number(int) }
-  def idExpr = id ^^ Expr.Identifier
+  def string = positioned { stringLiteral ^^ { case STRING(str) => Expr.Str(str)} }
+  def num = positioned { number ^^ { case NUMBER(int) => Expr.Number(int) } }
+  def idExpr = positioned { id ^^ Expr.Identifier }
 
 
   // term expr, ID也应该放在这里
@@ -128,7 +128,9 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
   
   def block: Parser[Block] = positioned {
-    rep(log(statement | none)("stmt")) ^^ (stmts => Block(stmts.filter(_ != Empty).map(_.asInstanceOf[Stmt])))
+    rep(log(statement | none)("stmt")) ^^ (stmts => {
+      Block(stmts.filter(_ != Empty).map(_.asInstanceOf[Stmt]))
+    })
   }
 
   def multiLineIf: Parser[If] = positioned {

@@ -6,6 +6,8 @@ import tools.In
 
 import cats.effect.kernel.Par.instance.T
 
+import scala.util.parsing.input.Positional
+
 trait MapOrigin[T] {
   var origin: T = null.asInstanceOf[T]
 }
@@ -65,10 +67,7 @@ case class Label(name: String) extends Src
 
 case class MemoryOperand(base: MachineOperand, displacement: Option[Imm] = None, index: Option[MachineOperand] = None, scale: Option[Imm] = None) extends Src with Dst
 
-sealed trait MachineInstruction extends InMBB with MapOrigin[Value] {
-  //  dst: List[Dst], ops: List[Src], mbb: MachineBasicBlock, private val value: Value)
-  //  parent = mbb
-  //  origin = value
+sealed trait MachineInstruction extends InMBB with MapOrigin[Value] with Positional {
   var operands: List[MachineOperand] = List()
 
   def setOperand(op: MachineOperand, i: Int) = {

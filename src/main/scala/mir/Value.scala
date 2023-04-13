@@ -3,7 +3,9 @@ package mir
 
 import ty.*
 
-class Value extends Typed {
+import scala.util.parsing.input.Positional
+
+class Value extends Typed with Positional {
   var users: List[Use] = List()
   var name: String = ""
   def addUser(v: User): Use = {

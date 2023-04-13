@@ -57,7 +57,7 @@ case object TypedTranslator {
       case Self => ???
       case Symbol(ident) => ???
       case Index(expr, i) => ???
-      case _ => expr).withInfer
+      case _ => expr).withInfer.setPos(expr.pos)
 
   def stmtTrans(stmt: Stmt): Stmt =
     (stmt match
@@ -72,10 +72,10 @@ case object TypedTranslator {
       case While(cond, body) => While(cond.withInfer, body.withInfer)
       case Assign(name, value) => Assign(name, value.withInfer)
       case For(init, cond, incr, body) => For(init.withInfer, cond.withInfer, incr.withInfer, body.withInfer))
-    .withInfer
+    .withInfer.setPos(stmt.pos)
 
   def methodTrans(method: Method): Method = {
-    val inputs = method.decl.inputs.params.map(p => p.name -> Infer.translate(p.ty)).toMap
+    val inputs = method.decl.inputs.params.map(p => p.name.setPos(p.pos) -> Infer.translate(p.ty)).toMap
     tyCtxt.enter(inputs, method.decl)(
       method.copy(body = exprTrans(method.body).asInstanceOf[Block]).withInfer)
   }
