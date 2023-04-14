@@ -1,0 +1,8 @@
+class TreeNode<T>
+  var v: T
+end
+
+def main()
+    val node = TreeNode<Int>.new(5)
+    print("node: %d", node.v)
+end

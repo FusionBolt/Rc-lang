@@ -1,0 +1,6 @@
+def main()
+    var f = File.new()
+    f.open("test.txt", "w+")
+    f.write("str")
+    f.close()
+end

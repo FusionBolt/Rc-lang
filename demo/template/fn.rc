@@ -1,0 +1,7 @@
+def foo<T>(): Int
+
+end
+
+def main()
+    foo<Int>(1, 2)
+end
