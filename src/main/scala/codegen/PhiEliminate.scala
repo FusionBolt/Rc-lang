@@ -23,18 +23,17 @@ class PhiEliminate extends Transform[MachineFunction] {
       val target = VReg(basicBlock.parent.instructions.length + index)
       index += 1
       // insert copy
-      val store = StoreInst(target, v)
-      store.origin = v.instParent.origin
+      val testValue = v
+      val parent = v.instParent
+      val store = StoreInst(target, v).setOrigin(parent.origin)
       mbb.insert(store)
-      // todo: how to avoid dup
       target.dup
     })
     regs.foreach(reg => {
 //      val load = LoadInst(VReg(reg.num), reg)
       val phiTarget = VReg(basicBlock.parent.instructions.length + index)
       index += 1
-      val st = StoreInst(phiTarget, reg)
-      st.origin = phiInst.origin
+      val st = StoreInst(phiTarget, reg).setOrigin(phiInst.origin)
       basicBlock.insertAtFirst(st)
     })
     // remove phi

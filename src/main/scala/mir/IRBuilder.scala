@@ -4,14 +4,16 @@ package mir
 import ast.*
 import ty.*
 
+var idCounter = 0
+
 case class IRBuilder() {
-  var idCounter = 0
   def makeId = {
+    val s = idCounter.toString
     idCounter += 1
-    idCounter.toString
+    s
   }
   var currentFn: Function = _
-  var basicBlocks: List[BasicBlock] = List(BasicBlock(idCounter.toString))
+  var basicBlocks: List[BasicBlock] = List(BasicBlock(makeId))
   var currentBasicBlock: BasicBlock = basicBlocks.last
 
   private def insert[T <: Instruction](inst: T): T = {

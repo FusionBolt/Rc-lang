@@ -10,6 +10,11 @@ import scala.util.parsing.input.Positional
 
 trait MapOrigin[T] {
   var origin: T = null.asInstanceOf[T]
+
+  def setOrigin(origin: T): this.type = {
+    this.origin = origin
+    this
+  }
 }
 
 type InMF = In[MachineFunction]
@@ -234,9 +239,13 @@ object BranchInst {
   }
 }
 
-case class PhiInst(private val _dst: Dst, incomings: Map[Src, MachineBasicBlock]) extends MachineInstruction {
+case class PhiInst(private val _dst: Dst, var incomings: Map[Src, MachineBasicBlock]) extends MachineInstruction {
   operands = List(_dst)
   initOperands
+  incomings = incomings.map((k, v) => {
+    k.instParent = this
+    (k, v)
+  })
 
   def dst: Dst = getOperand(0)
 

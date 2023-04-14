@@ -43,8 +43,7 @@ class IRTranslator {
     globalBBNameMap.get(oldName) match
       case Some(value) => value
       case None => {
-        globalBBIndex += 1
-        val name = s"L$oldName$globalBBIndex"
+        val name = s"L$oldName"
         globalBBNameMap = globalBBNameMap.updated(oldName, name)
         name
       }
@@ -165,7 +164,7 @@ class IRTranslator {
   }
 
   def visitStore(store: Store) = {
-    val addr = getOperand(store.ptr) match
+    val addr = getOperand(store.ptr) match {
       case v: VReg => {
         // other value use store, but reg of addr is not same as store
         registerReg(store, v)
@@ -173,14 +172,14 @@ class IRTranslator {
       }
       case frame: FrameIndex => frame
       case _ => ???
-    store.value match
+    }
+    store.value match {
       case ConstantArray(len, values) => {
         values.map(getOperand).zipWithIndex.foreach((v, i) => {
-          // todo: addr: 4, 8, 12, 16
           addr match
             case FrameIndex(offset) => {
               val inst = builder.insertStoreInst(FrameIndex(offset + i * sizeof(values.head.ty)), v)
-              inst.origin = store
+              inst.setOrigin(store)
             }
             case _ => ???
         })
@@ -190,16 +189,13 @@ class IRTranslator {
         val src = getOperand(store.value)
         builder.insertStoreInst(addr, src)
       }
+    }
   }
 
   def visitAlloc(alloc: Alloc) = {
-    //    val idx = findIndex(alloc)
-    // todo: fix this
-    // todo: local should in the first
     val size = math.max(4, sizeof(alloc.ty))
     frameInfo.addItem(LocalItem(size, alloc))
     LoadInst(VReg(-1), VReg(-1))
-    //    builder.insertLoadInst(createVReg(alloc), FrameIndex(idx))
   }
 
   def visitCall(call: Call) = {
@@ -219,7 +215,7 @@ class IRTranslator {
   def visitCondBranch(condBr: CondBranch) = {
     val cond = getOperand(condBr.cond)
     // compare reg
-    builder.insrtCondBrInst(cond, Label(bbNameTranslate(condBr.trueBranch.name)))
+    builder.insrtCondBrInst(cond, Label(bbNameTranslate(condBr.trueBranch.name))).setOrigin(condBr)
     builder.insertBranchInst(Label(bbNameTranslate(condBr.falseBranch.name)))
   }
 
