@@ -18,7 +18,7 @@ class GNUASMEmiter extends ASMEmiter {
     val label = ASMLabel(s"${mf.name}:")
     val saveRBP = ASMInstr("pushq %rbp")
     val setRBP = ASMInstr("movq %rsp, %rbp")
-    val allocStackFrame = ASMInstr("subq $" + s"${mf.frameInfo.alignLength}, %rsp")
+    val allocStackFrame = if !mf.frameInfo.isEmpty then ASMInstr("subq $" + s"${mf.frameInfo.alignLength}, %rsp") else ASMInstr("")
     val initArg = mf.frameInfo.args.zipWithIndex.map((item, i) => {
       ASMInstr(s"${instStr("mov", item.len)} ${paramReg(i, item.len)}, ${-item.offset}(%rbp)")
     })

@@ -91,7 +91,13 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def term: Parser[Expr] = positioned {
-    bool | num | string | selfField | call | beginWithTerm | sym ^^ Expr.Symbol | idExpr
+    bool | num | string | selfField | call | beginWithTerm | symbol | idExpr
+  }
+
+  def symbol = positioned {
+    sym ~ template.? ^^ {
+      case s ~ _ => Expr.Symbol(s)
+    }
   }
 
   def bool: Parser[Expr] = positioned {
@@ -100,8 +106,8 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def call: Parser[Expr.Call] = positioned {
-    id ~ parSround(repsep(termExpr, COMMA)) ^^ {
-      case id ~ args => Expr.Call(id, args)
+    id ~ template.? ~ parSround(repsep(termExpr, COMMA)) ^^ {
+      case id ~ _ ~ args => Expr.Call(id, args)
     }
   }
 

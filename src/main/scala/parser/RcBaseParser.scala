@@ -37,6 +37,10 @@ trait RcBaseParser extends PackratParsers {
     r
   }
 
+  protected def template: Parser[Ident] = positioned {
+    OPERATOR("<") ~> upperIdentifier <~ OPERATOR(">") ^^ { id => Ident(id.str) }
+  }
+
   private def identifier: Parser[IDENTIFIER] = positioned {
     accept("identifier", { case id@IDENTIFIER(name) => id })
   }

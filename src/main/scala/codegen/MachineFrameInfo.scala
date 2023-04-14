@@ -24,6 +24,8 @@ case class MachineFrameInfo() {
 
   var items = List[StackItem]()
 
+  def isEmpty = items.isEmpty
+
   def top = items.last
 
   def size = items.length

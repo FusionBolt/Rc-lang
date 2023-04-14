@@ -20,7 +20,7 @@ case class Method(decl: MethodDecl, body: Block) extends Item {
   override def toString: String = s"Method:${name}\n${body.toString}"
 }
 
-case class Class(name: Ident, parent: Option[Ident], vars: List[FieldDef], methods:List[Method]) extends Item {
+case class Class(name: Ident, parent: Option[Ident], vars: List[FieldDef], methods:List[Method], generic: Option[Ident] = None) extends Item {
   def fieldIndex(name: String): Int = {
     vars.indexWhere(v => v.name.str == name)
   }
@@ -29,4 +29,4 @@ case class Class(name: Ident, parent: Option[Ident], vars: List[FieldDef], metho
 case class FieldDef(name: Ident, ty: TyInfo, initValue: Option[Expr]) extends ASTNode
 case class Param(name: Ident, ty: TyInfo) extends ASTNode
 case class Params(params: List[Param]) extends ASTNode
-case class MethodDecl(name: Ident, inputs: Params, outType: TyInfo) extends ASTNode
+case class MethodDecl(name: Ident, inputs: Params, outType: TyInfo, generic: Option[Ident] = None) extends ASTNode

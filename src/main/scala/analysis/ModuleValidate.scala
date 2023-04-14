@@ -130,7 +130,7 @@ trait ModuleValidate extends Validate with MethodValidate {
 
   def checkModule(module: RcModule): Result = {
     dupNameCheck(module.items.map(item => item match
-      case Class(name, _, _, _) => name
+      case Class(name, _, _, _, _) => name
       case Method(decl, _) => decl.name
     )):::module.items.flatMap(checkItem)
   }
@@ -143,7 +143,7 @@ trait ModuleValidate extends Validate with MethodValidate {
 
   def checkClass(klass: Class): Result = {
     klass match
-      case Class(name, parent, vars, methods) => {
+      case Class(name, parent, vars, methods, _) => {
         dupNameCheck(vars.map(_.name)):::dupNameCheck(methods.map(_.decl.name))
       }
   }

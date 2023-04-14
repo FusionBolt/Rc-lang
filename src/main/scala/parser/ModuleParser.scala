@@ -20,10 +20,10 @@ trait ModuleParser extends RcBaseParser with ExprParser {
   }
 
   def method: Parser[Item] = positioned {
-    oneline(DEF ~> id ~ params ~ typeLimit.?) ~ block <~ END ^^ {
-      case id ~ params ~ ty ~ block => {
+    oneline(DEF ~> id ~ template.? ~ params ~ typeLimit.?) ~ block <~ END ^^ {
+      case id ~ temp ~ params ~ ty ~ block => {
         val tyInfo = ty.getOrElse(TyInfo.Infer)
-        Method(MethodDecl(id, params, tyInfo), block)
+        Method(MethodDecl(id, params, tyInfo, temp), block)
       }
     }
   }
@@ -50,11 +50,12 @@ trait ModuleParser extends RcBaseParser with ExprParser {
   }
 
   def classDefine: Parser[Item] = positioned {
-    oneline(CLASS ~> sym ~ (OPERATOR("<") ~> sym).?) ~ log(item | field | noneItem)("class member").* <~ log(END)("class end") ^^ {
-      case klass ~ parent ~ defines =>
+    oneline(CLASS ~> sym ~ template.? ~ (OPERATOR("<") ~> sym).?) ~ log(item | field | noneItem)("class member").* <~ log(END)("class end") ^^ {
+      case klass ~ temp ~ parent ~ defines =>
         Class(klass, parent,
           defines.filter(_.isInstanceOf[FieldDef]).map(_.asInstanceOf[FieldDef]),
-          defines.filter(_.isInstanceOf[Method]).map(_.asInstanceOf[Method])).asInstanceOf[Item]
+          defines.filter(_.isInstanceOf[Method]).map(_.asInstanceOf[Method]),
+          temp).asInstanceOf[Item]
     }
   }
 
