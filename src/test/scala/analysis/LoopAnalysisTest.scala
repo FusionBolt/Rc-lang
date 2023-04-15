@@ -25,7 +25,7 @@ class LoopAnalysisTest extends RcTestBase {
     it("simple") {
       val fn = getDemoFirstFn("control/while.rc")
       val loopInfo = getLoopInfo(fn)
-      loopInfo.loops should be (Map(fn.getBB("1") -> Loop(List("1", "2").map(fn.getBB))))
+      loopInfo.loops should be (Map(fn.getBB("2") -> Loop(List("2", "3").map(fn.getBB))))
     }
 
     it("break") {
