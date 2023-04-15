@@ -14,16 +14,15 @@ import tools./
 class RcTestBase extends AnyFunSpec with BeforeAndAfter with Matchers {
   DumpManager.setDumpRoot("RcTestDump")
 
-  def getModule(src: String) = {
-    val ast = parse(src)
+  def getModule(srcPath: String) = {
+    val ast = parse(srcPath)
     val (typedModule, table) = typeProc(ast)
     val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
     mirMod
   }
 
   def getFirstFn(srcPath: String) = {
-    val src = getSrc(srcPath)
-    val mirMod = getModule(src)
+    val mirMod = getModule(srcPath)
     mirMod.fnTable.values.head
   }
 

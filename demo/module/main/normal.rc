@@ -1,6 +1,6 @@
-import brother
-import ../parent
-import ../submodule/otherlib
+import "brother"
+import "../parent"
+import "../submodule/otherlib"
 
 def main()
     print("hello, world.")

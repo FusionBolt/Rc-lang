@@ -32,12 +32,14 @@ object Driver {
     src
   }
 
-  def parse(src: String): RcModule = {
+  def parse(path: String): RcModule = {
+    val src = getSrc(path)
     val tokens = log(Lexer(src).unwrap, "Lexer")
     logf("token.txt", tokens.mkString(" ").replace("EOL", "\n"))
-    log(RcParser(tokens).unwrap, "Parser").tap {
+    val module = log(RcParser(tokens).unwrap, "Parser").tap {
       logf("ast.txt", _)
     }
+    module.copy(name = Paths.get(path).getFileName.toString)
   }
 
   def typeProc(ast: RcModule): (RcModule, GlobalTable) = {
@@ -70,12 +72,16 @@ object Driver {
 
   def apply(option: CompileOption): Unit = {
     DumpManager.mkDumpRootDir
-    val src = getSrc(option.srcPath)
-    val ast = parse(src)
-    val (typedModule, table) = typeProc(ast)
+    val modules = option.srcPath.map(parse)
+    dependencyResolve(modules)
+    modules.foreach(compileAST)
+  }
+
+  def compileAST(module: RcModule): Unit = {
+    val (typedModule, table) = typeProc(module)
     val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
-    logf("mir.txt", mirMod)
-//    dumpDomTree(mirMod.fnTable.values.head)
+    //    logf("mir.txt", mirMod)
+    //    dumpDomTree(mirMod.fnTable.values.head)
     codegen(mirMod)
   }
 
@@ -96,6 +102,7 @@ object Driver {
   def codegen(mirMod: Module) = {
     val translator = IRTranslator()
     val fns = translator.visit(mirMod.fns)
+//    MachineIRPrinter().print(fns)
     val pm = PassManager[MachineFunction]()
     pm.addPass(new PhiEliminate())
     pm.addPass(new StackRegisterAllocation())

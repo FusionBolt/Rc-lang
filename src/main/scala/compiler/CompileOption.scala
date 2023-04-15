@@ -1,4 +1,4 @@
 package rclang
 package compiler
 
-case class CompileOption(srcPath: String)
+case class CompileOption(srcPath: String*)
