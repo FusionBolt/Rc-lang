@@ -20,7 +20,7 @@ class MachineIRBuilder() {
 
   def insertBranchInst(addr: Src) = insert(BranchInst(addr))
 
-  def insrtCondBrInst(cond: Src, addr: Src) = insert(CondBrInst(cond, addr))
+  def insrtCondBrInst(cond: Src, addr: Src, condType: CondType) = insert(CondBrInst(cond, addr, condType))
 
   def insertPhiInst(dst: Dst, incoming: Map[Src, MachineBasicBlock]) = insert(PhiInst(dst, incoming))
 

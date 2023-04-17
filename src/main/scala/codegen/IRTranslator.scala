@@ -213,9 +213,12 @@ class IRTranslator {
   }
 
   def visitCondBranch(condBr: CondBranch) = {
+    condBr.cond match
+      case Binary(op, lhs, rhs) => CondType.valueOf(op)
+      case _ => ???
     val cond = getOperand(condBr.cond)
     // compare reg
-    builder.insrtCondBrInst(cond, Label(bbNameTranslate(condBr.trueBranch.name))).setOrigin(condBr)
+    builder.insrtCondBrInst(cond, Label(bbNameTranslate(condBr.trueBranch.name)), CondType.LT).setOrigin(condBr)
     builder.insertBranchInst(Label(bbNameTranslate(condBr.falseBranch.name)))
   }
 

@@ -62,7 +62,7 @@ class GNUASMEmiter extends ASMEmiter {
       }
       case InlineASM(content) => List(content)
       case BranchInst(label) => List(s"jmp .${operandToASM(label)}")
-      case CondBrInst(cond, addr) => List(s"jne .${operandToASM(addr)}")
+      case CondBrInst(cond, addr, condType) => List(s"j${condType.toString.toLowerCase.head}e .${operandToASM(addr)}")
       case PhiInst(dst, _) => throw new Exception()
       case x => println(x.getClass.toString); ???
   }
@@ -95,11 +95,12 @@ class GNUASMEmiter extends ASMEmiter {
       val ebx = getRegASM(lhsSize, 1) // eax == 0
       val lhsMov = s"${instStr("mov", lhs)} ${operandToASM(lhs)}, $ebx" // eax = lhs
       val rhsMov = s"${instStr("mov", rhs)} ${operandToASM(rhs)}, $eax" // eax = lhs
-      val bn = s"${instStr(op, lhs)} $ebx, $eax" // eax *= rhs
-      val mv = s"${instStr("mov", dst)} $eax, ${operandToASM(dst)}" // dst = eax
+      val bn = s"${instStr(op, lhs)} $eax, $ebx" // eax *= rhs
+      val mv = s"${instStr("mov", dst)} $ebx, ${operandToASM(dst)}" // dst = eax
       List(lhsMov, rhsMov, bn, mv)
     }
 
+    // cmp $3, %eax == 3 < eax
     op match
       case "Add" => toStr("add")
       case "Sub" => toStr("sub")

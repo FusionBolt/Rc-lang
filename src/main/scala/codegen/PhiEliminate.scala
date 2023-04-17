@@ -17,25 +17,15 @@ class PhiEliminate extends Transform[MachineFunction] {
 
   // make copy for every income
   def eliminate(phiInst: PhiInst, basicBlock: MachineBasicBlock) = {
-//    println(phiInst)
-    var index = 0
-    val regs = phiInst.incomings.map((v, mbb) => {
-      val target = VReg(basicBlock.parent.instructions.length + index)
-      index += 1
-      // insert copy
-      val testValue = v
+    val target = VReg(basicBlock.parent.instructions.length)
+    phiInst.incomings.foreach((v, mbb) => {
       val parent = v.instParent
-      val store = StoreInst(target, v).setOrigin(parent.origin)
-      mbb.insert(store)
-      target.dup
+      val store = StoreInst(target.dup, v).setOrigin(parent.origin)
+      mbb.insertAt(store, mbb.instList.length - 1)
+      println(mbb.instList)
     })
-    regs.foreach(reg => {
-//      val load = LoadInst(VReg(reg.num), reg)
-      val phiTarget = VReg(basicBlock.parent.instructions.length + index)
-      index += 1
-      val st = StoreInst(phiTarget, reg).setOrigin(phiInst.origin)
-      basicBlock.insertAtFirst(st)
-    })
+    val st = StoreInst(phiInst.dst, target.dup).setOrigin(phiInst.origin)
+    basicBlock.insertAtFirst(st)
     // remove phi
     phiInst.removeFromParent()
   }

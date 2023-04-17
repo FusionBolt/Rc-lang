@@ -44,6 +44,10 @@ class MachineBasicBlock(var instList: List[MachineInstruction], f: MachineFuncti
     instList = inst :: instList
     inst.parent = this
   }
+
+  def insertAt(inst: MachineInstruction, pos: Int) = {
+    instList = instList.take(pos) ++ List(inst) ++ instList.drop(pos)
+  }
 }
 
 trait MachineOperand {
@@ -201,7 +205,12 @@ object BinaryInst {
   }
 }
 
-case class CondBrInst(private val _cond: Src, private val _addr: Src) extends MachineInstruction {
+enum CondType:
+  case LT
+  case GT
+  case EQ
+
+case class CondBrInst(private val _cond: Src, private val _addr: Src, condType: CondType) extends MachineInstruction {
   operands = List(_cond, _addr)
   initOperands
 
@@ -215,9 +224,9 @@ case class CondBrInst(private val _cond: Src, private val _addr: Src) extends Ma
 }
 
 object CondBrInst {
-  def unapply(inst: MachineInstruction): Option[(Src, Src)] = {
+  def unapply(inst: MachineInstruction): Option[(Src, Src, CondType)] = {
     inst match
-      case c: CondBrInst => Some(c.cond, c.addr)
+      case c: CondBrInst => Some(c.cond, c.addr, c.condType)
       case _ => None
   }
 }

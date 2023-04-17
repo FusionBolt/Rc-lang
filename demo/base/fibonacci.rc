@@ -7,5 +7,6 @@ def f(x: Int): Int
 end
 
 def main()
-  print("fibonacci(8) result is:%d", f(1))
+  print("fibonacci(2) result is:%d\n", f(2))
+  print("fibonacci(6) result is:%d\n", f(4))
 end
