@@ -38,6 +38,7 @@ case object TypedTranslator {
   }
 
   def exprTrans(expr: Expr): Expr =
+//    println(expr)
     (expr match
       case Binary(op, lhs, rhs) => Binary(op, lhs.withInfer, rhs.withInfer)
       case If(cond, true_branch, false_branch) => {

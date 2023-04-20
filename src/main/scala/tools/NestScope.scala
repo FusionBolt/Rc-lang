@@ -8,7 +8,7 @@ import ast.ImplicitConversions.*
 
 import rclang.ty.Infer
 
-case class FullName(var fn: MethodDecl = MethodDecl("", Params(List()), TyInfo.Nil), var klass: String = "", var module: String = Def.DefaultModule) {
+case class FullName(var fn: MethodDecl = MethodDecl("", Params(List()), TyInfo.Nil), var klass: String = Def.DefaultModule, var module: String = Def.DefaultModule) {
   def names = List(module, klass, fn.name.str).filter(_.nonEmpty)
 }
 
@@ -18,7 +18,9 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
   }
 
   def localTable = {
-    gt.classTable(fullName.klass).methods(fullName.fn.name)
+    gt.classTable(fullName.klass).methods.get(fullName.fn.name) match
+      case Some(value) => value
+      case None => ???
   }
 
   def klassTable = gt.classTable(fullName.klass)
@@ -55,6 +57,10 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
   }
 
   def lookupVar(id: Ident): Expr = {
+    if(id.str == "this") {
+      val self = Expr.Self.withTy(Infer.translate(klass.name))
+      return self
+    }
     // 1. local
     localTable.locals.get(id) match
       case Some(value) => Identifier(value.name).withTy(value.ty)

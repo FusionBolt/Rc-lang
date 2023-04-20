@@ -15,12 +15,13 @@ class Point < RcObject
   var y:Int
 
   def move_x(offset: Int): Int
+    print("x: %d\n", x)
     x = x + offset
-    print("a.x: %d", x)
   end
 end
 
 def main()
-    var a = Point.new()
-    a.move_x(5)
+    var p = Point.new()
+    p.move_x(5)
+    print("a.x:%d\n", p.x)
 end

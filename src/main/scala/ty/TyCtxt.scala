@@ -37,7 +37,11 @@ case class TyCtxt() {
 
   def lookup(ident: Ident): Option[Type] = {
     if (ident.str == "malloc" || ident.str == "this") {
-      return Some(PointerType(getClassTy(Ident(fullName.klass)).get))
+      val ty = getClassTy(Ident(fullName.klass))
+      ty match
+        case Some(value) => value
+        case None => println(s"${fullName.klass} not found")
+      return Some(PointerType(ty.get))
     }
     if (ident.str == "print") {
       return Some(NilType)

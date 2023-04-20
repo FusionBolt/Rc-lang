@@ -6,11 +6,37 @@ import ast.Stmt
 import ast.ImplicitConversions.*
 import ast.*
 
+import rclang.ty.{Infer, Type}
+
 import scala.collection.mutable
 import scala.collection.mutable.Map
 
+object GlobalTablePrinter {
+  def print(globalTable: GlobalTable): Unit = {
+    println("GlobalTable")
+    globalTable.classTable.foreach( (klassName, klass) => {
+      println(klassName)
+      print(klass)
+    })
+    println("GlobalTable End")
+  }
+
+  def print(classEntry: ClassEntry): Unit = {
+    classEntry.methods.foreach((_, method) => {
+      println(method.fnName)
+      println(method.locals)
+    })
+  }
+
+  def print(localTable: LocalTable): Unit = {
+    println(localTable.locals)
+  }
+}
 // because of id should carry position info, key' type should be String
 class GlobalTable(var classTable: Map[String, ClassEntry], var module: RcModule) {
+  classTable.values.foreach(klass => {
+    klass.gt = this
+  })
   def classes = classTable.keys
 
   def kernel = classTable(Def.Kernel)
@@ -31,8 +57,31 @@ case class LocalEntry(id: Int, astNode: Stmt.Local) {
 }
 
 class ClassEntry(val astNode: Class) {
+  var gt: GlobalTable = null
   var methods = Map.empty[String, LocalTable]
 //  var fields = Map.empty[String, FieldDef]
+
+  def lookupMethods(name: String, gt: GlobalTable): Method = {
+    methods.get(name) match
+      case Some(value) => value.astNode
+      case None => {
+        val parentName = astNode.parent match
+          case Some(value) => value
+          case None => ???
+        gt.classTable(parentName).lookupMethods(name, gt)
+      }
+  }
+
+  def lookupFieldTy(field: Ident): Type = {
+    allInstanceVars(gt).find(_.name == field) match
+      case Some(value) => {
+        value.ty match
+          case TyInfo.Spec(ty) => Infer.translate(ty)
+          case TyInfo.Infer => value.initValue.get.infer
+          case TyInfo.Nil => ???
+      }
+      case None => ???
+  }
 
   def fields = astNode.vars.map(v => (v.name -> v)).toMap
 //  def addField(fieldDef: FieldDef): Unit = {

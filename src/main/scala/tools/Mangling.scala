@@ -4,13 +4,15 @@ package tools
 import rclang.ast.MethodDecl
 import rclang.ty.*
 
-// https://github.com/gchatelet/gcc_cpp_mangling_documentationotes
+// https://github.com/gchatelet/gcc_cpp_mangling_documentation
 
 def manglingTypeMap(ty: Type): String = {
   ty match
     case Int32Type => "i"
     case NilType => "v"
     case PointerType(ty) => s"P${manglingTypeMap(ty)}"
+    case StructType(name, fields) => IdentName(name).toString
+    case _ => Debugger.unImpl(ty)
 
 }
 

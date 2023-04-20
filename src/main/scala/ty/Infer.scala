@@ -7,7 +7,7 @@ import ty.TyCtxt
 
 import scala.collection.immutable.ListMap
 import rclang.mir.intrinsics
-import rclang.tools.{FullName, NestSpace}
+import rclang.tools.{FullName, GlobalTablePrinter, NestSpace}
 
 case object Infer {
   var tyCtxt: TyCtxt = TyCtxt()
@@ -91,22 +91,31 @@ case object Infer {
       case Lambda(args, block) => ???
       case MethodCall(obj, target, args) => {
         val makeCallTy = (klass: String) => {
+          if(target.str == "new") {
+            return PointerType(TypeBuilder.fromClass(klass, tyCtxt.globalTable))
+          }
+//          GlobalTablePrinter.print(tyCtxt.globalTable)
           NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = klass)).lookupFn(target).ty match
             case FnType(ret, params) => ret
             case _ => ???
         }
         // obj is a constant or obj is a expr
-        obj match
+        val ty = obj match {
           case Symbol(sym) => {
             makeCallTy(sym.str)
           }
           // todo: new的返回类型
           case _ => {
+            val id = obj match
+              case Identifier(id) => id
+              case _ => Ident("")
             structTyProc(obj.withInfer)(s => {
               makeCallTy(s.name)
-//              NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = s.name)).lookupFn(target).ty
+              //              NestSpace(tyCtxt.globalTable, tyCtxt.fullName.copy(klass = s.name)).lookupFn(target).ty
             })
           }
+        }
+        ty
       }
       case Field(expr, ident) => {
         structTyProc(expr.withInfer)(s => {

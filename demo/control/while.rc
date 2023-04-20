@@ -2,7 +2,8 @@ def main()
     val a = 1
     while(a < 5)
         a = a + 1
-        continue
+        print("int while:%d\n", a)
     end
     val b = 2
+    print("b=%d", b)
 end

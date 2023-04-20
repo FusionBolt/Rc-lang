@@ -8,6 +8,13 @@ import ty.*
 
 import tools.*
 
+def methodPreprocess(klass: Class, method: Method): Method = {
+  // 1. rename
+  // 2. add this ptr to args
+  val decl = method.decl.copy(inputs = Params(List(Param(Def.self, TyInfo.Spec(klass.name))) ::: method.decl.inputs.params))
+  method.copy(decl = decl)
+}
+
 case class ToMIR(globalTable: GlobalTable) {
   var module = Module()
   def proc(rcModule: RcModule): Module = {
@@ -22,15 +29,9 @@ case class ToMIR(globalTable: GlobalTable) {
   var klass = Def.Kernel
   def procClass(klass: Class) = {
     this.klass = klass.name.str;
+    klass.methods.map(methodPreprocess(klass, _))
     var fns = klass.methods.map(methodPreprocess(klass, _)).map(getFn(_, klass.name.str))
     this.klass = Def.Kernel
-  }
-
-  def methodPreprocess(klass: Class, method: Method): Method = {
-    // 1. rename
-    // 2. add this ptr to args
-    val decl = method.decl.copy(inputs = Params(List(Param(Def.self, TyInfo.Spec(klass.name))):::method.decl.inputs.params))
-    method.copy(decl = decl)
   }
 
   def getFn(fn: Method, prefix: String = ""): Function = FnToMIR(globalTable, module, klass).procMethod(fn, prefix)
@@ -48,18 +49,20 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
   }
 
   def getFun(id: Ident, nestSpace: NestSpace = this.nestSpace): Function = {
-    val decl = globalTable.classTable(nestSpace.klass.name).methods(id).astNode.decl
+    val decl = globalTable.classTable(nestSpace.klass.name).lookupMethods(id, globalTable).decl
     // when call a member method, nestSpace.fullName.fn != id
     val klass = getFunOuterClass(id, nestSpace, globalTable).name
-    parentModule.fnTable.getOrElse(mangling(nestSpace.fullName.copy(klass = klass, fn = decl)), {
+    val name = mangling(nestSpace.fullName.copy(klass = klass, fn = decl))
+    val fn = parentModule.fnTable.getOrElse(name, {
       val fn = nestSpace.lookupFn(id)
-      val newFn = FnToMIR(globalTable, parentModule, klass).procMethod(fn)
+      val newFn = FnToMIR(globalTable, parentModule, klass).procMethod(methodPreprocess(nestSpace.klass, fn))
       if(parentModule.fnTable.contains(id.str)) {
         throw new RuntimeException()
       }
-      parentModule.fnTable += (id.str -> newFn)
+      parentModule.fnTable += (name -> newFn)
       newFn
     })
+    fn
   }
 
   def lookup(id: Ident): Value = {
@@ -202,7 +205,7 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
         val obj = procExpr(expr)
         structTyProc(obj.ty) { case StructType(name, _) =>
           val structType = TypeBuilder.fromClass(name, globalTable)
-          val fieldTy = nestSpace.withClass(name).lookupVar(field).ty
+          val fieldTy = globalTable.classTable(name).lookupFieldTy(field)
           builder.createGetElementPtr(obj, Integer(structType.fieldOffset(field)), fieldTy)
         }
       }
@@ -216,7 +219,12 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
         // src ty, target ty
         builder.createGetElementPtr(array, index, array.ty)
       }
-      case _ => ???
+      case Expr.Self => {
+        // todo: fix this, in this
+        // todo: 有的参数没改变
+        builder.createLoad(args(0))
+      }
+      case _ => Debugger.unImpl(expr)
     if v.ty == InferType then v.withTy(expr.ty) else v
     v.setPos(expr.pos)
   }
