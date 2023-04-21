@@ -46,8 +46,15 @@ case class TyCtxt() {
     if (ident.str == "print") {
       return Some(NilType)
     }
+    // 1. local
     val ty = local.get(ident) orElse outer.find(_.contains(ident)).map(_(ident)) orElse global.get(ident)
-    ty orElse getClassTy(ident)
+    ty orElse {
+      // 1. var
+      // 2. function
+      globalTable.classTable(fullName.klass).lookupFieldTy(ident) orElse {
+        Some(NestSpace(globalTable, fullName).lookupFn(ident).infer)
+      }
+    }
   }
 
   /**

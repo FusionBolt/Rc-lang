@@ -5,7 +5,7 @@ import mir.*
 
 import io.odin.Level.Debug
 import rclang.tools.Debugger
-import rclang.ty.{ArrayType, StructType, sizeof}
+import rclang.ty.{ArrayType, PointerType, StructType, sizeof}
 
 class VRegisterManager {
   var vregMap = Map[Value, VReg]()
@@ -248,11 +248,12 @@ class IRTranslator {
     // todo: support for array only
     val objAddr = getOperand(inst.value)
     val offset = getOperand(inst.offset)
-    val scale = inst.ty match
+    val scale = inst.value.ty match
       case ArrayType(valueT, size) => Imm(sizeof(valueT))
       // offset compute by createElementPtr in now
       case StructType(name, fields) => Imm(1)
-      case _ => Debugger.unImpl(inst.ty)
+      case PointerType(ty) => Imm(1)
+      case _ => Debugger.unImpl(inst.value.ty)
     val fieldAddr = offset match
       case Imm(i) => {
         val dis = scale.value * i

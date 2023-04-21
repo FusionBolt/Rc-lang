@@ -63,6 +63,7 @@ case object Infer {
       case Stmt.Expr(expr) => infer(expr)
       case Stmt.While(cond, body) => infer(body)
       case Stmt.For(_, _, _, body) => infer(body)
+      // todo: check value, check other member in for and while
       case Stmt.Assign(name, value) => lookup(name)
       case Stmt.Break() => NilType
       case Stmt.Continue() => NilType
@@ -132,16 +133,9 @@ case object Infer {
   }
 
   private def lookup(ident: Ident): Type = {
+    // todo: lookup failed should to class
     tyCtxt.lookup(ident).getOrElse(ErrType(s"$ident not found"))
   }
-
-//  private def infer(f: Method): Type = {
-//    tyCtxt.fullName.fn = f.name.str
-//    val ret = translate(f.decl.outType)
-//    val params = f.decl.inputs.params.map(_.ty).map(translate)
-//    tyCtxt.fullName.fn = ""
-//    FnType(ret, params)
-//  }
 
   private def infer(f: Method): Type = {
     tyCtxt.global.getOrElse(f.name, {
@@ -172,7 +166,9 @@ case object Infer {
       case "Float" => FloatType
       case "Nil" => NilType
       case "Handle" => PointerType(Int64Type)
-      case _ => lookup(ident)
+      case _ => {
+        PointerType(TypeBuilder.fromClass(ident.str, tyCtxt.globalTable))
+      }
   }
 
   private def common(exprList: List[Expr]): Type = {

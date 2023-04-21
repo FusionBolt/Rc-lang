@@ -45,13 +45,13 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
     } else {
       // 2. class
       val klassMethod = klassTable.allMethodsList(gt).find(_.name == id)
-      val method = klassMethod.getOrElse(
+      val method = klassMethod.getOrElse({
         // 3. module
         module.items.find(_ match
           case m: Method => m.name == id
           case _ => false) match
             case Some(value) => value.asInstanceOf[Method]
-            case None => throw new RuntimeException(s"$fullName can't find $id"))
+            case None => throw new RuntimeException(s"$fullName can't find $id")})
       method.withInfer
     }
   }

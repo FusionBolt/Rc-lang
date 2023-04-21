@@ -72,15 +72,15 @@ class ClassEntry(val astNode: Class) {
       }
   }
 
-  def lookupFieldTy(field: Ident): Type = {
+  def lookupFieldTy(field: Ident): Option[Type] = {
     allInstanceVars(gt).find(_.name == field) match
       case Some(value) => {
         value.ty match
-          case TyInfo.Spec(ty) => Infer.translate(ty)
-          case TyInfo.Infer => value.initValue.get.infer
-          case TyInfo.Nil => ???
+          case TyInfo.Spec(ty) => Some(Infer.translate(ty))
+          case TyInfo.Infer => Some(value.initValue.get.infer)
+          case TyInfo.Nil => None
       }
-      case None => ???
+      case None => None
   }
 
   def fields = astNode.vars.map(v => (v.name -> v)).toMap

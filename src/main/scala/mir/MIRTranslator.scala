@@ -27,7 +27,6 @@ private def mangling(fullName: FullName): String = {
 class MIRTranslator(globalTable: GlobalTable) {
   def proc(rcModule: RcModule): Module = {
     val mapper = collectFunction(rcModule)
-    println(mapper)
     mapper.data.foreach((klass, method, fn) => {
       MethodTranslator(globalTable, mapper).translate(method, rcModule.name, klass, fn)
     })
@@ -187,7 +186,7 @@ private class MethodTranslator(globalTable: GlobalTable, methodMapper: MethodMap
         val array = procExpr(arr)
         // index is value
         // src ty, target ty
-        builder.createGetElementPtr(array, index, array.ty)
+        builder.createGetElementPtr(array, index, array.ty.asInstanceOf[ArrayType].valueT)
       }
       case Expr.Self => {
         // todo: fix this, in this
@@ -345,6 +344,6 @@ private class MethodTranslator(globalTable: GlobalTable, methodMapper: MethodMap
   def lookupFieldTy(klass: String, field: String) = {
     // 1. klass
     // 2. klass.parent
-    globalTable.classTable(klass).lookupFieldTy(field)
+    globalTable.classTable(klass).lookupFieldTy(field).get
   }
 }
