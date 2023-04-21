@@ -3,76 +3,65 @@ package mir
 import ast.*
 import mir.IRBuilder
 
-import rclang.ast.ImplicitConversions.*
+import ast.ImplicitConversions.*
 import ty.*
 
 import tools.*
 
-def methodPreprocess(klass: Class, method: Method): Method = {
-  // 1. rename
-  // 2. add this ptr to args
-  val decl = method.decl.copy(inputs = Params(List(Param(Def.self, TyInfo.Spec(klass.name))) ::: method.decl.inputs.params))
-  method.copy(decl = decl)
-}
-
-case class ToMIR(globalTable: GlobalTable) {
-  var module = Module()
-  def proc(rcModule: RcModule): Module = {
-    module.name = rcModule.name
-    rcModule.items.foreach(_ match
-      case m: Method => getFn(m)
-      case c: Class => procClass(c)
-      case _ => throw new Exception("not support"))
-    module
+class MethodMapper(val data: List[(Class, Method, Function)]) {
+  def find(manglingName: String): Function = {
+    data.find((_, _, fn) => manglingName == fn.name) match
+      case Some(value) => value._3
+      case None => ???
   }
 
-  var klass = Def.Kernel
-  def procClass(klass: Class) = {
-    this.klass = klass.name.str;
-    klass.methods.map(methodPreprocess(klass, _))
-    var fns = klass.methods.map(methodPreprocess(klass, _)).map(getFn(_, klass.name.str))
-    this.klass = Def.Kernel
-  }
+  def toMap: Map[String, Function] = data.map((_, _, fn) => fn.name -> fn).toMap
 
-  def getFn(fn: Method, prefix: String = ""): Function = FnToMIR(globalTable, module, klass).procMethod(fn, prefix)
+  override def toString: String = data.mkString
 }
 
-def mangling(fullName: FullName): String = {
+private def mangling(fullName: FullName): String = {
   tools.mangling(fullName.fn, List(fullName.module, fullName.klass))
 }
 
-case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass: String = "") {
-  var nestSpace: NestSpace = NestSpace(globalTable, FullName(MethodDecl("", Params(List()), TyInfo.Nil), klass, parentModule.name))
-
-  def getFunOuterClass(id: Ident, nestSpace: NestSpace, gt: GlobalTable): Class = {
-    nestSpace.findMethodInWhichClass(id, gt)
-  }
-
-  def getFun(id: Ident, nestSpace: NestSpace = this.nestSpace): Function = {
-    val decl = globalTable.classTable(nestSpace.klass.name).lookupMethods(id, globalTable).decl
-    // when call a member method, nestSpace.fullName.fn != id
-    val klass = getFunOuterClass(id, nestSpace, globalTable).name
-    val name = mangling(nestSpace.fullName.copy(klass = klass, fn = decl))
-    val fn = parentModule.fnTable.getOrElse(name, {
-      val fn = nestSpace.lookupFn(id)
-      val newFn = FnToMIR(globalTable, parentModule, klass).procMethod(methodPreprocess(nestSpace.klass, fn))
-      if(parentModule.fnTable.contains(id.str)) {
-        throw new RuntimeException()
-      }
-      parentModule.fnTable += (name -> newFn)
-      newFn
+class MIRTranslator(globalTable: GlobalTable) {
+  def proc(rcModule: RcModule): Module = {
+    val mapper = collectFunction(rcModule)
+    println(mapper)
+    mapper.data.foreach((klass, method, fn) => {
+      MethodTranslator(globalTable, mapper).translate(method, rcModule.name, klass, fn)
     })
-    fn
+    Module(rcModule.name, mapper.toMap)
   }
 
-  def lookup(id: Ident): Value = {
-    // local var
-    env.getOrElse(id, args.find(_.name == id.str).getOrElse({
-      procExpr(nestSpace.lookupVar(id))
-//      throw new RuntimeException()
-    }))
+  def methodPreprocess(klass: Class, method: Method, moduleName: String): Method = {
+    // 1. rename
+    // 2. add this ptr to args
+    val inputs = Params(List(Param(Def.self, TyInfo.Spec(klass.name))) ::: method.decl.inputs.params)
+    val decl = method.decl.copy(inputs = inputs)
+    method.copy(decl = decl)
   }
 
+  def collectFunction(module: RcModule): MethodMapper = {
+    // collect and mangling name, be used to lookup and ref for Call
+    val moduleName = module.name
+    val methods = module.items.flatMap(_ match
+      case m: Method => {
+        val fnName = mangling(FullName(m.decl, Def.Kernel, moduleName))
+        List((globalTable.kernel.astNode, m, Function.Empty(fnName)))
+      }
+      case klass: Class => {
+        klass.methods.map(method => {
+          val fnName = mangling(FullName(method.decl, klass.name.str, moduleName))
+          (klass, methodPreprocess(klass, method, module.name), Function.Empty(fnName))
+        })
+      }
+      case _ => throw new Exception("not support"))
+    MethodMapper(methods)
+  }
+}
+
+private class MethodTranslator(globalTable: GlobalTable, methodMapper: MethodMapper) {
   var builder = IRBuilder()
 
   var env = Map[Ident, Value]()
@@ -81,60 +70,42 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
 
   var strTable = List[Str]()
 
+  var nestSpace: NestSpace = null
+
   // used for continue
   var curHeader: BasicBlock = null
   // used for break
   var nextBasicBlock: BasicBlock = null
 
-  def procArgument(params: Params): List[Argument] = {
-    params.params.map(param => {
-      val ty = param.ty
-      val name = param.name
-      Argument(name.str, makeType(ty))
-    })
-  }
 
-  def procMethod(method: Method, prefix: String = ""): Function = {
-    nestSpace = NestSpace(globalTable, FullName(method.decl, klass, parentModule.name))
-    // ir builder manages the function
-    args = procArgument(method.decl.inputs)
+  def translate(method: Method, moduleName: String, klass: Class, fn: Function): Unit = {
+    // todo: klass pass class for nestspace
+    nestSpace = NestSpace(globalTable, FullName(method.decl, klass.name, moduleName))
+    args = translateParams(method.decl.inputs)
     env = args.map(arg => Ident(arg.name) -> arg).toMap
-    val fnName = mangling(nestSpace.fullName)
     builder = IRBuilder()
-    val fn = Function(fnName, makeType(method.decl.outType), args, builder.currentBasicBlock)
+    // modify fn
+    fn.argument = args
+    fn.retType = makeType(method.decl.outType)
     fn.setPos(method.pos)
+    // init
     builder.currentBasicBlock.parent = fn
-    parentModule.fnTable += (fnName -> fn)
     builder.currentFn = fn
     fn.entry = builder.currentBasicBlock
     procBlock(method.body)
-    if(builder.currentBasicBlock.stmts.isEmpty) {
-      if(builder.basicBlocks.size < 2) { // only current
-        builder.createReturn(NilValue)
-      } else { // prev bb last value
-        builder.createReturn(builder.basicBlocks(builder.basicBlocks.size - 2).stmts.last)
-      }
-    }
-    else if(!builder.currentBasicBlock.stmts.last.isInstanceOf[Return]) {
-      builder.createReturn(builder.currentBasicBlock.stmts.last)
-    }
+    // auto create return
+    insertReturn()
     fn.bbs = builder.basicBlocks.filter(_.stmts.nonEmpty)
     fn.entry = builder.basicBlocks.head
     fn.strTable = strTable
-    args = List()
-    fn
   }
 
   def procBlock(block: Expr.Block): Value = {
-    if(block.stmts.isEmpty) {
+    if (block.stmts.isEmpty) {
       NilValue
     } else {
       block.stmts.map(procStmt).last
     }
-  }
-
-  def currClass: Class = {
-    globalTable.classTable(klass).astNode
   }
 
   def procExpr(expr: Expr): Value = {
@@ -174,21 +145,20 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
       }
       //      case Expr.Lambda(args, block) => ???
       case Expr.Call(target, args) => {
-        if(intrinsics.contains(target.str)) {
+        if (intrinsics.contains(target.str)) {
           builder.createIntrinsic(target.str, args.map(procExpr))
         } else {
-          builder.createCall(getFun(target), args.map(procExpr))
+          builder.createCall(lookupFn(target), args.map(procExpr))
         }
       }
       case Expr.MethodCall(obj, target, args) => {
         val makeCall = (klass: Ident, fname: Ident, thisPtr: Value) => {
-          val f = getFun(fname, nestSpace.withClass(klass.str))
+          val f = lookupFn(fname, nestSpace.withClass(klass.str))
           builder.createCall(f, thisPtr +: args.map(procExpr))
         }
         obj match
           // class method
           case Expr.Symbol(klassSym) => {
-//            val klass = globalTable.classTable(klassSym)
             makeCall(klassSym, target, NilValue)
           }
           // instance method
@@ -205,7 +175,7 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
         val obj = procExpr(expr)
         structTyProc(obj.ty) { case StructType(name, _) =>
           val structType = TypeBuilder.fromClass(name, globalTable)
-          val fieldTy = globalTable.classTable(name).lookupFieldTy(field)
+          val fieldTy = lookupFieldTy(name, field.str)
           builder.createGetElementPtr(obj, Integer(structType.fieldOffset(field)), fieldTy)
         }
       }
@@ -227,13 +197,6 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
       case _ => Debugger.unImpl(expr)
     if v.ty == InferType then v.withTy(expr.ty) else v
     v.setPos(expr.pos)
-  }
-
-  def makeType(tyInfo: TyInfo): Type = {
-    tyInfo match
-      case TyInfo.Spec(ty) => Infer.translate(ty)
-      case TyInfo.Nil => NilType
-      case _ => InferType
   }
 
   def procStmt(stmt: ast.Stmt): Value = {
@@ -319,5 +282,69 @@ case class FnToMIR(globalTable: GlobalTable, var parentModule: Module, var klass
         br
       }
     value.setPos(stmt.pos)
+  }
+
+
+  private def makeType(tyInfo: TyInfo): Type = {
+    tyInfo match
+      case TyInfo.Spec(ty) => Infer.translate(ty)
+      case TyInfo.Nil => NilType
+      case _ => InferType
+  }
+
+  private def insertReturn(): Unit = {
+    if (builder.currentBasicBlock.stmts.isEmpty) {
+      if (builder.basicBlocks.size < 2) { // only current
+        builder.createReturn(NilValue)
+      } else { // prev bb last value
+        builder.createReturn(builder.basicBlocks(builder.basicBlocks.size - 2).stmts.last)
+      }
+    }
+    else if (!builder.currentBasicBlock.stmts.last.isInstanceOf[Return]) {
+      builder.createReturn(builder.currentBasicBlock.stmts.last)
+    }
+  }
+
+  private def translateParams(params: Params): List[Argument] = {
+    params.params.map(param => {
+      val ty = param.ty
+      val name = param.name
+      Argument(name.str, makeType(ty))
+    })
+  }
+
+  def lookupFn(name: Ident, nestSpace: NestSpace = this.nestSpace): Function = {
+    // 1. current class
+    // 2. parent class
+    val firstLookup = globalTable.classTable(nestSpace.klass.name).lookupMethods(name.str, globalTable)
+    val (klass, method) = firstLookup match
+      case Some(value) => value
+      case None => {
+        // 3. Kernel class
+        globalTable.kernel.lookupMethods(name, globalTable) match
+          case Some(value) => value
+          // not found, throw error
+          case None => ???
+      }
+    val manglingName = mangling(FullName(method.decl, klass.name.str, nestSpace.fullName.module))
+    // find by mangling name
+    methodMapper.find(manglingName)
+  }
+
+  def lookup(id: Ident): Value = {
+    // local var
+    // 1. local
+    // 2. outer and outer
+    env.getOrElse(id, args.find(_.name == id.str).getOrElse({
+      procExpr(nestSpace.lookupVar(id))
+    }))
+    // 3. field
+    // 4. Kernel
+  }
+
+  def lookupFieldTy(klass: String, field: String) = {
+    // 1. klass
+    // 2. klass.parent
+    globalTable.classTable(klass).lookupFieldTy(field)
   }
 }

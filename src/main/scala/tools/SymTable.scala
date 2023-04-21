@@ -61,13 +61,13 @@ class ClassEntry(val astNode: Class) {
   var methods = Map.empty[String, LocalTable]
 //  var fields = Map.empty[String, FieldDef]
 
-  def lookupMethods(name: String, gt: GlobalTable): Method = {
+  def lookupMethods(name: String, gt: GlobalTable): Option[(Class, Method)] = {
     methods.get(name) match
-      case Some(value) => value.astNode
+      case Some(value) => Some((astNode, value.astNode))
       case None => {
         val parentName = astNode.parent match
           case Some(value) => value
-          case None => ???
+          case None => return None
         gt.classTable(parentName).lookupMethods(name, gt)
       }
   }

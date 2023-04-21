@@ -8,7 +8,7 @@ import java.io.File
 import tools.{DumpManager, RcLogger}
 import tools.RcLogger.{log, logf}
 import compiler.Driver.*
-import rclang.mir.ToMIR
+import mir.MIRTranslator
 import tools./
 
 class RcTestBase extends AnyFunSpec with BeforeAndAfter with Matchers {
@@ -17,7 +17,7 @@ class RcTestBase extends AnyFunSpec with BeforeAndAfter with Matchers {
   def getModule(srcPath: String) = {
     val ast = parse(srcPath)
     val (typedModule, table) = typeProc(ast)
-    val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
+    val mirMod = log(MIRTranslator(table).proc(typedModule), "ToMIR")
     mirMod
   }
 

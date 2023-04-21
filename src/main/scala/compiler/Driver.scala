@@ -79,8 +79,8 @@ object Driver {
 
   def compileAST(module: RcModule): Unit = {
     val (typedModule, table) = typeProc(module)
-    val mirMod = log(ToMIR(table).proc(typedModule), "ToMIR")
-    //    logf("mir.txt", mirMod)
+    val mirMod = log(MIRTranslator(table).proc(typedModule), "ToMIR")
+    logf("mir.txt", mirMod)
     //    dumpDomTree(mirMod.fnTable.values.head)
     codegen(mirMod)
   }
@@ -90,7 +90,7 @@ object Driver {
     if(!Files.exists(path)) {
       Files.createDirectories(path)
     }
-    logf(f"Pass/${pass.getClass.getName.split('.').last}.txt") { writer =>
+    logf(f"Pass/${pass.getClass.getName.split('.').last}_${mf.name}.txt") { writer =>
       MachineIRPrinter().printToWriter(mf, writer)
     }
   }

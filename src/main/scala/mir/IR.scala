@@ -1,6 +1,6 @@
 package rclang
 package mir
-import ty.{FnType, Type}
+import ty.{FnType, NilType, Type}
 
 class BasicBlock(nameStr: String, var stmts: List[Instruction] = List()) extends Value with InFunction {
   name = nameStr
@@ -18,6 +18,10 @@ class BasicBlock(nameStr: String, var stmts: List[Instruction] = List()) extends
 
 def bbToStr(bb: BasicBlock): String = {
   s"--- BasicBlock:${bb.name} ---\n${traverseInst(bb.stmts).mkString("\n")}"
+}
+
+case object Function {
+  def Empty(name: String) = Function(name, NilType, List(), null, List())
 }
 
 case class Function(private val fnName: String,
