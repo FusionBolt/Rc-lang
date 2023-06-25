@@ -8,7 +8,7 @@ import ast.ImplicitConversions.*
 
 import rclang.ty.Infer
 
-case class FullName(var fn: MethodDecl = MethodDecl("", Params(List()), TyInfo.Nil), var klass: String = Def.DefaultModule, var module: String = Def.DefaultModule) {
+case class FullName(var fn: MethodDecl = MethodDecl("", Params(List()), TyInfo.Nil), var klass: String = Def.DefaultModule, var module: String = "") {
   def names = List(module, klass, fn.name.str).filter(_.nonEmpty)
 }
 
@@ -34,7 +34,8 @@ case class NestSpace(val gt: GlobalTable, val fullName: FullName) {
   }
 
   def module: RcModule = {
-    RcModule(List())
+    assert(gt.module.name == fullName.module)
+    gt.module
   }
 
   // fn in SymbolTable is not be preprocessed

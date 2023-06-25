@@ -19,6 +19,7 @@ case object TypedTranslator {
 
   // fn type
   def RcModuleTrans(module: RcModule): RcModule = {
+    tyCtxt.fullName.module = module.name
     val items = module.items.map(itemTrans)
     RcModule(items)
   }
