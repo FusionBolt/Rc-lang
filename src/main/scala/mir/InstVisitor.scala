@@ -70,22 +70,23 @@ class Printer{
   def visit(inst: Instruction): String = {
     val user = inst.asInstanceOf[User]
     val instStr = inst match {
-      //      case BinaryInstBase(lhsValue, rhsValue) => ???
-      //      case UnaryInst(operandValue) => ???
-      case intrinsic: Intrinsic => s"${instName(inst)} ${intrinsic.name}: ${user.ty}"
-      //      case CondBranch(condValue, tBranch, fBranch) => ???
-      //      case Branch(destBasicBlock) => ???
-      //      case Return(value) => ???
-      case bn @ Binary(op, lhs, rhs) => s"${instName(inst)}: ${user.ty} $op(${lhs}, ${rhs})"
-      //      case Alloc(id, typ) => ???
-      //      case Load(ptr) => ???
-//      case st @ Store(value, ptr) => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
-      case st: Store => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
-      //      case GetElementPtr(value, offset) => ???
-      case PhiNode(incomings) => s"PhiNode: ${incomings.map((v, bb) => (v, bb.toString))}${user.ty}"
+//      //      case BinaryInstBase(lhsValue, rhsValue) => ???
+//      //      case UnaryInst(operandValue) => ???
+//      case intrinsic: Intrinsic => s"${instName(inst)} ${intrinsic.name}: ${user.ty}"
+//      //      case CondBranch(condValue, tBranch, fBranch) => ???
+//      //      case Branch(destBasicBlock) => ???
+//      //      case Return(value) => ???
+//      case bn @ Binary(op, lhs, rhs) => s"${instName(inst)}: ${user.ty} $op(${lhs}, ${rhs})"
+//      //      case Alloc(id, typ) => ???
+//      //      case Load(ptr) => ???
+////      case st @ Store(value, ptr) => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
+//      case st: Store => s"${instName(inst)}: ${user.ty} ${st.value} -> ${st.ptr}"
+//      //      case GetElementPtr(value, offset) => ???
+//      case PhiNode(incomings) => s"PhiNode: ${incomings.map((v, bb) => (v, bb.toString))}${user.ty}"
       //      case SwitchInst() => ???
       //      case MultiSuccessorsInst(bbs) => ???
-      case _ => s"${instName(inst)}:${user.ty} ${opsToString(user)}"
+      case _ => s"${instName(inst)}:${user.ty} "
+        // s"${opsToString(user)}"
     }
     instStr + inst.pos
   }

@@ -67,7 +67,7 @@ class IRTranslator {
     fns.map(visit)
   }
 
-  private def visit(fn: Function): MachineFunction = {
+  def visit(fn: Function): MachineFunction = {
     frameInfo = MachineFrameInfo()
     val mf = MachineFunction(List(), fn, frameInfo)
     fn.argument.foreach(arg => {
@@ -85,7 +85,7 @@ class IRTranslator {
     mf
   }
 
-  private def visitBB(bb: BasicBlock): MachineBasicBlock = {
+  def visitBB(bb: BasicBlock): MachineBasicBlock = {
     builder.mbb = MachineBasicBlock(List(), currentFn, bb, bbNameTranslate(bb.name))
     bbMap = bbMap.updated(bb, builder.mbb)
     bb.stmts.foreach(visitInst)

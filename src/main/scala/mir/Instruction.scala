@@ -51,7 +51,7 @@ class Intrinsic(private val intrName: String, private val args_value: List[Value
   setOperands(args_value)
   def args = getOperands
   def getArg(i: Int): Value = getOperand(i)
-
+  def symbol = s"$intrName@PLT"
   override def toString: String = s"$intrName: ${args_value.map(_.toString).mkString(" ")}"
 }
 
