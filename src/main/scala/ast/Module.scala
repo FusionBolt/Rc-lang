@@ -17,7 +17,7 @@ sealed class Item extends ASTNode with Typed
 
 case class Method(decl: MethodDecl, body: Block) extends Item {
   def name = decl.name
-  override def toString: String = s"Method:${name}\n${body.toString}"
+  override def toString: String = s"Method:${name}${decl.generic.map(s => s"<${s.str}>").getOrElse("")}\n${body.toString}"
 }
 
 case class Class(name: Ident, parent: Option[Ident], vars: List[FieldDef], methods:List[Method], generic: Option[Ident] = None) extends Item {

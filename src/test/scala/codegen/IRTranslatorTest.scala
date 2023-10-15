@@ -42,7 +42,7 @@ class IRTranslatorTest extends RcTestBase {
         Branch(exitBB)
       ))
       val entry = BasicBlock("b0", List(
-        CondBranch(true, thenBB, elseBB)
+        CondBranch(Bool(true), thenBB, elseBB)
       ))
       val tt = IRTranslator()
       tt.visitBB(entry)

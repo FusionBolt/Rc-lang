@@ -156,4 +156,25 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
       }
     }
   }
+  
+  describe("templateFn") {
+    it("define") {
+      // todo: with method
+      val foo = mkEmptyTokenMethod("foo", generic = Some("T"))
+      val fooAST = makeASTMethod("foo", generic = Some("T"))
+      expectSuccess(foo, fooAST)
+    }
+  }
+
+  describe("templateClass") {
+    it("define") {
+      val treeNode = mkTokenClass("TreeNode", generic = Some("T"))
+      val treeNodeAST = Class("TreeNode", None, List(), List(), Some("T"))
+      expectSuccess(treeNode, treeNodeAST)
+    }
+
+    it("create") {
+
+    }
+  }
 }

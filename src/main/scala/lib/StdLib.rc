@@ -1,0 +1,71 @@
+class File
+    def init
+
+    end
+
+    def open(val path: String, val mode: String)
+       handle = fopen(path, mode)
+    end
+
+    def read()
+        fgets(, n, handle)
+    end
+
+    def write(val content: String)
+        fputs(content, handle)
+    end
+
+    def close()
+        fclose(handle)
+    end
+
+    var handle: Handle
+end
+
+class String
+    def split(val c: Char)
+
+    end
+
+    def concat(val str: String)
+
+    end
+
+    def length()
+
+    end
+
+    def indexAt(val i: Int)
+
+    end
+end
+
+class List
+    def add(val v: Int)
+
+    end
+end
+
+class FileSystem
+    def get_current_dir()
+
+    end
+
+    def create_dir(val path: String)
+
+    end
+
+    def exist(val path: String)
+        
+    end
+end
+
+class Time
+
+ene
+
+class System
+    def cmd(val str: String)
+        system(str)
+    end
+end

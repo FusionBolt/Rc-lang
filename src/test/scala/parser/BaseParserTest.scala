@@ -16,6 +16,10 @@ import ast.Expr.{Block, If}
 import scala.util.parsing.input.Positional
 
 trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers with ASTBuilder {
+  def withParentThese(tokens: List[Token]) = List(LEFT_PARENT_THESES) ::: tokens ::: List(RIGHT_PARENT_THESES)
+  def mkASTCall(target: String, generic: String, args: List[Expr]) = Expr.Call(target, args)
+  def wrapWithAngleBrackets(s: Token) = List(OPERATOR("<"), s, OPERATOR(">"))
+  def wrapWithAngleBrackets(s: List[Token]) = List(OPERATOR("<")):::s:::List(OPERATOR(">"))
   def parSround(tokens: List[Token]): List[Token] = LEFT_PARENT_THESES::tokens:::RIGHT_PARENT_THESES::List()
   def makeWhile(cond: Token, body: List[Token]): List[Token] = WHILE::parSround(List(cond)):::EOL::body:::EOL::END::EOL::List()
   def mkTkMemField(name: String, field: String) = List(IDENTIFIER(name), DOT, IDENTIFIER(field))
@@ -53,8 +57,13 @@ trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers with AST
   def makeTokenMethod(name: String, stmts: List[Token] = List()): List[Token] = {
     List(DEF, IDENTIFIER(name), LEFT_PARENT_THESES, RIGHT_PARENT_THESES, EOL):::(stmts).appended(END).appended(EOL)
   }
-  def mkEmptyTokenMethod(name: String, params: List[Token] = List()): List[Token] = {
-    List(DEF, IDENTIFIER(name), LEFT_PARENT_THESES):::params:::List(RIGHT_PARENT_THESES, EOL, END, EOL)
+
+  def mkGenericToken(generic: Option[String]) = {
+    generic.map(s => wrapWithAngleBrackets(UPPER_IDENTIFIER(s))).getOrElse(List())
+  }
+
+  def mkEmptyTokenMethod(name: String, params: List[Token] = List(), generic: Option[String] = None): List[Token] = {
+    List(DEF, IDENTIFIER(name)):::mkGenericToken(generic):::List(LEFT_PARENT_THESES):::params:::List(RIGHT_PARENT_THESES):::List(EOL, END, EOL)
   }
 
   def sepWithComma(tokens: List[Token]): List[Token] = {
@@ -70,7 +79,7 @@ trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers with AST
   }
 
   def mkTokenField(name: String, ty: String) = List(VAR, IDENTIFIER(name), COLON, UPPER_IDENTIFIER(ty), EOL)
-  def mkTokenClass(name: String, tokens: List[Token] = List()) = List(CLASS, UPPER_IDENTIFIER(name), EOL):::tokens:::END::EOL::Nil
+  def mkTokenClass(name: String, tokens: List[Token] = List(), generic: Option[String] = None) = List(CLASS, UPPER_IDENTIFIER(name)):::mkGenericToken(generic):::List(EOL):::tokens:::END::EOL::Nil
   def mkTokenClass(name: String, parent: String) = List(CLASS, UPPER_IDENTIFIER(name), OPERATOR("<"), UPPER_IDENTIFIER(parent), EOL):::END::EOL::Nil
 
 }

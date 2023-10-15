@@ -24,8 +24,9 @@ trait ASTBuilder {
   def makeASTMethod(name: String,
                     params: List[Param] = List(),
                     retType:TyInfo = TyInfo.Infer,
-                    block: List[Stmt] = List()): Method = {
-    Method(MethodDecl(name, Params(params), retType), Block(block))
+                    block: List[Stmt] = List(),
+                    generic: Option[String] = None): Method = {
+    Method(MethodDecl(name, Params(params), retType, generic.map(Ident)), Block(block))
   }
   
   def mkFnInMod(name: String,
