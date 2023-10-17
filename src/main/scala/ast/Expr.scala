@@ -52,14 +52,14 @@ enum Expr extends ASTNode with Typed :
   // false -> elsif | else
   case If(cond: Expr, true_branch: Block, false_branch: Option[Expr])
   case Lambda(args: Params, block: Block)
-  case Call(target: Ident, args: List[Expr])
+  case Call(target: Ident, args: List[Expr], generic: Option[Ident] = None)
   case MethodCall(obj: Expr, target: Ident, args: List[Expr])
   case Block(stmts: List[Stmt])
   case Return(expr: ast.Expr)
   case Field(expr: Expr, ident: Ident)
   case Self
   // symbol
-  case Symbol(ident: Ident)
+  case Symbol(ident: Ident, generic: Option[Ident] = None)
   case Index(expr: Expr, i: Expr)
   case Array(len: Int, initValues: List[Expr])
 

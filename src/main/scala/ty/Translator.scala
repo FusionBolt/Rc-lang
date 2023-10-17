@@ -50,14 +50,14 @@ case object TypedTranslator {
           true_branch.withInfer.asInstanceOf[Block],
           false_br)
       }
-      case Call(target, args) => Call(target, args.map(_.withInfer))
+      case Call(target, args, generic) => Call(target, args.map(_.withInfer), generic)
       case Return(expr) => Return(expr.withInfer)
       case Lambda(args, block) => ???
       case MethodCall(obj, target, args) => ???
       case Block(stmts) => tyCtxt.enter(Block(stmts.map(stmtTrans)))
       case Field(expr, ident) => ???
       case Self => ???
-      case Symbol(ident) => ???
+      case Symbol(ident, _) => ???
       case Index(expr, i) => ???
       case _ => expr).withInfer.setPos(expr.pos)
 

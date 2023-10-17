@@ -56,6 +56,7 @@ trait BinaryTranslator {
 trait ExprParser extends RcBaseParser with BinaryTranslator {
   def typeLimit = COLON ~> ty
 
+  // todo: template的二义性如何解决
   def termExpr: Parser[Expr] = positioned {
     term ~ (operator ~ term).* ^^ {
       case term ~ terms => termsToBinary(term, terms.map(a => List(a._1, a._2)))
@@ -83,20 +84,23 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
 
   // term expr, ID也应该放在这里
 
-  // memField: term.x
+  // memCall: term<T>.x(
   // memCall: term.x(
+  // memField: term.x
   // arrayIndex: term[
   lazy val beginWithTerm: PackratParser[Expr] = positioned {
     memCall | memField | array | arrayIndex
   }
 
+  // call: term<T>()
+  // memCall: term<T>.x()
   def term: Parser[Expr] = positioned {
     bool | num | string | selfField | call | beginWithTerm | symbol | idExpr
   }
 
   def symbol = positioned {
     sym ~ template.? ^^ {
-      case s ~ _ => Expr.Symbol(s)
+      case s ~ temp => Expr.Symbol(s, temp)
     }
   }
 
@@ -107,7 +111,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
 
   def call: Parser[Expr.Call] = positioned {
     id ~ template.? ~ parSround(repsep(termExpr, COMMA)) ^^ {
-      case id ~ _ ~ args => Expr.Call(id, args)
+      case id ~ temp ~ args => Expr.Call(id, args, temp)
     }
   }
 

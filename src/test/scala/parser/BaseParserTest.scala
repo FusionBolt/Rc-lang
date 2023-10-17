@@ -9,7 +9,7 @@ import lexer.Punctuation.*
 import lexer.Literal.*
 import lexer.Delimiter.*
 import lexer.Ident.*
-import ast.{ASTBuilder, Expr, FieldDef, Item, MethodDecl, Param, Params, Stmt, TyInfo}
+import ast.{ASTBuilder, Expr, FieldDef, Ident, Item, MethodDecl, Param, Params, Stmt, TyInfo}
 import ast.ImplicitConversions.*
 import ast.Expr.{Block, If}
 
@@ -17,11 +17,13 @@ import scala.util.parsing.input.Positional
 
 trait BaseParserTest extends AnyFunSpec with RcBaseParser with Matchers with ASTBuilder {
   def withParentThese(tokens: List[Token]) = List(LEFT_PARENT_THESES) ::: tokens ::: List(RIGHT_PARENT_THESES)
-  def mkASTCall(target: String, generic: String, args: List[Expr]) = Expr.Call(target, args)
+  def mkASTCall(target: String, generic: String, args: List[Expr]) = Expr.Call(target, args, Some(Ident(generic)))
   def wrapWithAngleBrackets(s: Token) = List(OPERATOR("<"), s, OPERATOR(">"))
   def wrapWithAngleBrackets(s: List[Token]) = List(OPERATOR("<")):::s:::List(OPERATOR(">"))
   def parSround(tokens: List[Token]): List[Token] = LEFT_PARENT_THESES::tokens:::RIGHT_PARENT_THESES::List()
   def makeWhile(cond: Token, body: List[Token]): List[Token] = WHILE::parSround(List(cond)):::EOL::body:::EOL::END::EOL::List()
+  def mkTKArgs(argsTokens: List[Token]): List[Token] = parSround(sepWithComma(argsTokens))
+  def mkTKArgsList(argsTokens: List[List[Token]]): List[Token] = parSround(sepListWithComma(argsTokens))
   def mkTkMemField(name: String, field: String) = List(IDENTIFIER(name), DOT, IDENTIFIER(field))
 
   def mkAssStmt(name: String, expr: Token): List[Token] = List(IDENTIFIER(name), EQL, expr, EOL)

@@ -146,6 +146,20 @@ class ExprParserTest extends ExprParser with BaseParserTest {
         makeIf(trueExpr, Number(1), makeIf(falseExpr, Number(2), None)))
     }
   }
+
+  describe("template") {
+    it("callFn") {
+      val foo = List(IDENTIFIER("foo")) ::: wrapWithAngleBrackets(UPPER_IDENTIFIER("Int")) ::: mkTKArgs(List(NUMBER(1), NUMBER(2)))
+      val fooAST = mkASTCall("foo", "Int", List(Number(1), Number(2)))
+      expectSuccess(foo, fooAST)
+    }
+
+    it("callClass") {
+      val treeNode = List(UPPER_IDENTIFIER("TreeNode")) ::: wrapWithAngleBrackets(UPPER_IDENTIFIER("Int")) ::: List(DOT, IDENTIFIER("new")) ::: mkTKArgs(List(NUMBER(5)))
+      val treeNodeAST = MethodCall(Symbol("TreeNode", Some(Ident("Int"))), Ident("new"), List(Number(5)))
+      expectSuccess(treeNode, treeNodeAST)
+    }
+  }
 }
 
 class BinaryTranslatorTest extends BaseParserTest with BinaryTranslator {

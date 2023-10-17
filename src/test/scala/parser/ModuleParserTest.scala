@@ -156,7 +156,7 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
       }
     }
   }
-  
+
   describe("templateFn") {
     it("define") {
       // todo: with method
@@ -171,10 +171,6 @@ class ModuleParserTest extends BaseParserTest with ModuleParser {
       val treeNode = mkTokenClass("TreeNode", generic = Some("T"))
       val treeNodeAST = Class("TreeNode", None, List(), List(), Some("T"))
       expectSuccess(treeNode, treeNodeAST)
-    }
-
-    it("create") {
-
     }
   }
 }
