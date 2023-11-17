@@ -136,6 +136,7 @@ private class MethodTranslator(globalTable: GlobalTable, methodMapper: MethodMap
         builder.createBr(mergeBB)
         builder.insertBasicBlock(mergeBB)
         val phi = builder.createPHINode()
+        // todo: fix phi
         phi.addIncoming(t, trueBB)
         f match
           case Some(value) => phi.addIncoming(f.get, falseBB)
@@ -143,7 +144,7 @@ private class MethodTranslator(globalTable: GlobalTable, methodMapper: MethodMap
         phi
       }
       //      case Expr.Lambda(args, block) => ???
-      case Expr.Call(target, args) => {
+      case Expr.Call(target, args, _) => {
         if (intrinsics.contains(target.str)) {
           builder.createIntrinsic(target.str, args.map(procExpr))
         } else {
@@ -157,7 +158,7 @@ private class MethodTranslator(globalTable: GlobalTable, methodMapper: MethodMap
         }
         obj match
           // class method
-          case Expr.Symbol(klassSym) => {
+          case Expr.Symbol(klassSym, _) => {
             makeCall(klassSym, target, NilValue)
           }
           // instance method

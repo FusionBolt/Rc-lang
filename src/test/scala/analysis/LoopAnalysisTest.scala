@@ -8,6 +8,7 @@ import pass.{Analysis, AnalysisManager, getAnalysisResult}
 import compiler.Driver.{getSrc, parse, simplify, typeProc}
 import analysis.Analysis.given_LoopAnalysis
 
+import rclang.ty.NilType
 
 import java.io.File
 
@@ -23,13 +24,29 @@ def mkLoop(header: String)(bbs: String*) = {
 class LoopAnalysisTest extends RcTestBase {
   describe("normal loop") {
     it("simple") {
-      val fn = getDemoFirstFn("control/while.rc")
+      val bbs = mkBBs(
+        "entry" -> "header",
+        "header" -> "body",
+        "body" -> "exit",
+        "body" -> "header")
+
+      val bbList = bbs.values.toList
+      val fn = new Function("name", NilType, List(), bbs("entry"), bbList)
       val loopInfo = getLoopInfo(fn)
-      loopInfo.loops should be (Map(fn.getBB("2") -> Loop(List("2", "3").map(fn.getBB))))
+      loopInfo.loops should be (Map(fn.getBB("header") -> Loop(List("header", "body").map(fn.getBB))))
     }
 
-    it("break") {
-
+    it("withLatch") {
+      val bbs = mkBBs(
+        "entry" -> "header",
+        "header" -> "body",
+        "body" -> "latch",
+        "latch" -> "header",
+        "latch" -> "exit")
+      val bbList = bbs.values.toList
+      val fn = new Function("name", NilType, List(), bbs("entry"), bbList)
+      val loopInfo = getLoopInfo(fn)
+      loopInfo.loops should be(Map(fn.getBB("header") -> Loop(List("header", "body", "latch").map(fn.getBB))))
     }
 
     it("continue") {

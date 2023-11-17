@@ -61,3 +61,24 @@ def dfsBasicBlocks(b: BasicBlock): List[BasicBlock] = {
   }
   result
 }
+
+def loopBasicBlocks(begin: BasicBlock, end: BasicBlock): List[BasicBlock] = {
+  var result = List[BasicBlock]()
+  var visited = Set[BasicBlock]()
+  dfsImpl(begin)
+  def dfsImpl(b: BasicBlock): Unit = {
+    if (visited(b)) {
+      return
+    }
+    if(b.name == "header") {
+      println(visited)
+    }
+    result = result :+ b
+    visited = visited + b
+    if(b == end) {
+      return
+    }
+    b.successors.foreach(dfsImpl)
+  }
+  result
+}
