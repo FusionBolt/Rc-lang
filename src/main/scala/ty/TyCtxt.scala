@@ -51,6 +51,9 @@ case class TyCtxt() {
     ty orElse {
       // 1. var
       // 2. function
+      if (!globalTable.classTable.contains(fullName.klass)) {
+        return None
+      }
       globalTable.classTable(fullName.klass).lookupFieldTy(ident) orElse {
         Some(NestSpace(globalTable, fullName).lookupFn(ident).infer)
       }

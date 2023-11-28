@@ -67,13 +67,13 @@ case class Evaluator(var fenv:Map[Ident, Method] = Map()) {
         case Bool(false) => ???
       }
       case Lambda(args, block) => ???
-      case Call(target, args) => run_call(target, args)
+      case Call(target, args, _) => run_call(target, args)
       case MethodCall(obj, target, args) => ???
       case Block(stmts) => stmts.map(run_stmt).last
       case Return(expr) => run_expr(expr)
       case Field(expr, ident) => ???
       case Self => ???
-      case Symbol(ident) => ???
+      case Symbol(ident, _) => ???
       case Index(expr, i) => ???
   }
 

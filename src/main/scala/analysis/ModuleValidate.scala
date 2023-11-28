@@ -112,7 +112,7 @@ trait MethodValidate extends Validate {
           case None => List()
       }
       case Expr.Lambda(args, block) => checkBlock(block, args)
-      case Expr.Call(target, args) => args.flatMap(checkExpr)
+      case Expr.Call(target, args, _) => args.flatMap(checkExpr)
       case Expr.MethodCall(obj, target, args) => (obj::args).flatMap(checkExpr)
       case block: Block => checkExpr(block)
       case Expr.Return(expr) => checkExpr(expr)

@@ -88,7 +88,7 @@ case object Infer {
           tyCtxt.enter(stmts.map(infer).last)
         }
       }
-      case Call(target, args) => lookup(target)
+      case Call(target, args, _) => lookup(target)
       case Lambda(args, block) => ???
       case MethodCall(obj, target, args) => {
         val makeCallTy = (klass: String) => {
@@ -102,7 +102,7 @@ case object Infer {
         }
         // obj is a constant or obj is a expr
         val ty = obj match {
-          case Symbol(sym) => {
+          case Symbol(sym, _) => {
             makeCallTy(sym.str)
           }
           // todo: new的返回类型
@@ -124,7 +124,7 @@ case object Infer {
         })
       }
       case Self => ???
-      case Symbol(ident) => ???
+      case Symbol(ident, _) => ???
       case Index(expr, _) => infer(expr) match
         case ArrayType(valueT, _) => valueT
         case _ => ErrType("failed")

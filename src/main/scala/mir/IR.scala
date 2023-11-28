@@ -32,7 +32,11 @@ case class Function(private val fnName: String,
                     var entry: BasicBlock,
                     var bbs: List[BasicBlock] = List()) extends GlobalValue {
   name = fnName
-  entry.parent = this
+  // todo: bad design
+  if(entry != null) {
+    entry.parent = this
+  }
+
   var strTable = List[Str]()
   def instructions = bbs.flatMap(_.stmts)
 

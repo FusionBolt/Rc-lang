@@ -11,13 +11,11 @@ def listFiles(dir: File): List[File] = {
   files.flatMap {
     case file if file.isDirectory => listFiles(file)
     case file => List(file)
-  }
+  }.filter(f => f.getName.split('.')(1) == "rc")
 }
 
 class DemoCompileTest extends RcTestBase {
-
-  val root = "/home/homura/Code/Rc-lang/demo"
-  val dir = new File(root)
+  val dir = new File(new File("").getAbsolutePath, "demo")
   val files = listFiles(dir).filter(f => !(f.getPath.contains("template") || f.getPath.contains("lib")))
   describe("run all") {
     it("ok") {
