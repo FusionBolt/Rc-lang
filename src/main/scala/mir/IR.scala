@@ -4,8 +4,10 @@ import ty.{FnType, NilType, Type}
 
 class BasicBlock(nameStr: String, var stmts: List[Instruction] = List()) extends Value with InFunction {
   name = nameStr
+  stmts.foreach(inst => inst.parent = this)
   def terminator: Terminator = stmts.last.asInstanceOf[Terminator]
 
+  // todo: this is append
   def insert[T <: Instruction](i: T): T = {
     stmts = stmts :+ i
     i
@@ -59,7 +61,11 @@ case class RcContext() {
 }
 
 case class Loop(var bbs: List[BasicBlock], var parentLoop: Loop = null, var subLoop: List[Loop] = List()) {
+  // header is compare
   def header = bbs.head
+//  def body: BasicBlock
+//  def latch: BasicBlock
+//  def exit: BasicBlock
 }
 
 case class LoopInfo(var loops: Map[BasicBlock, Loop] = Map())
