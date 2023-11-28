@@ -54,13 +54,13 @@ trait ASTVisitor {
       case Str(s) =>
       case If(cond, true_branch, false_branch) =>
       case Lambda(args, stmts) =>
-      case Call(target, args) =>
+      case Call(target, args, _) =>
       case MethodCall(obj, target, args) =>
       case block: Block => visitRecursive(block)
       case Return(expr) =>
       case Field(obj, id) =>
       case Self =>
-      case Symbol(id) =>
+      case Symbol(id, _) =>
       case Index(expr, i) =>
     }
   }

@@ -22,13 +22,13 @@ case object TypeCheck {
       case Str(str) => true
       case If(cond, true_branch, false_branch) => cond == Boolean
       case Lambda(args, block) => ???
-      case Call(target, args) => ???
+      case Call(target, args, _) => ???
       case MethodCall(obj, target, args) => ???
       case Block(stmts) => stmts.forall(stmt => check(stmt))
       case Return(expr) => ???
       case Field(expr, ident) => ???
       case Self => true
-      case Symbol(ident) => ???
+      case Symbol(ident, _) => ???
       case Index(expr, i) => ???
   }
 
