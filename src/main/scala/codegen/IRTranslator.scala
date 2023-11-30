@@ -12,7 +12,7 @@ class VRegisterManager {
   var count = 0
 
   def createVReg(value: Value): VReg = {
-    val v = VReg(count)
+    val v = VReg(count, sizeof(value.ty))
     vregMap = vregMap.updated(value, v)
     count += 1
     v
@@ -160,9 +160,10 @@ class IRTranslator {
   }
 
   def visitLoad(load: Load) = {
-    LoadInst(VReg(-1), VReg(-1))
-    //    val addr = getOperand(load.ptr)
-    //    builder.insertLoadInst(createVReg(load), addr)
+    val size = sizeof(load.ptr.ty)
+    LoadInst(VReg(-1, size), VReg(-1, size))
+//    val addr = getOperand(load.ptr)
+//    builder.insertLoadInst(createVReg(load), addr)
   }
 
   def visitStore(store: Store) = {
@@ -179,8 +180,8 @@ class IRTranslator {
       case ConstantArray(len, values) => {
         values.map(getOperand).zipWithIndex.foreach((v, i) => {
           addr match
-            case FrameIndex(offset) => {
-              val inst = builder.insertStoreInst(FrameIndex(offset + i * sizeof(values.head.ty)), v)
+            case FrameIndex(offset, size) => {
+              val inst = builder.insertStoreInst(FrameIndex(offset + i * sizeof(values.head.ty), size), v)
               inst.setOrigin(store)
             }
             case _ => ???
@@ -189,7 +190,8 @@ class IRTranslator {
       }
       case _ => {
         val src = getOperand(store.value)
-        builder.insertStoreInst(addr, src)
+        val st = builder.insertStoreInst(addr, src)
+        st
       }
     }
   }
@@ -197,7 +199,7 @@ class IRTranslator {
   def visitAlloc(alloc: Alloc) = {
     val size = math.max(4, sizeof(alloc.ty))
     frameInfo.addItem(LocalItem(size, alloc))
-    LoadInst(VReg(-1), VReg(-1))
+    LoadInst(VReg(-1, size), VReg(-1, size))
   }
 
   def visitCall(call: Call) = {

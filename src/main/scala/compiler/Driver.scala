@@ -96,7 +96,11 @@ object Driver {
   }
 
   def dumpFrameInfo(mf: MachineFunction): Unit = {
-    logf("FrameInfo.txt", mf.frameInfo.toString)
+    val path = Paths.get(DumpManager.getDumpRoot / "FrameInfo")
+    if (!Files.exists(path)) {
+      Files.createDirectories(path)
+    }
+    logf(f"FrameInfo/${mf.name}.txt", mf.frameInfo.toString)
   }
 
   def codegen(mirMod: Module) = {
@@ -111,6 +115,7 @@ object Driver {
     fns.foreach(pm.run(_, am))
     fns.foreach(dumpFrameInfo)
     generateASM(fns, translator.strTable, DumpManager.getDumpRoot / "asm.s")
+//    genELF(true)
   }
 
   def genELF(hasMain: Boolean) = {

@@ -25,14 +25,14 @@ class StackRegisterAllocation extends Transform[MachineFunction] {
         case None => {
           // update FrameInfo
           debug("no")
-          val tmpItem = frameInfo.addItem(TmpItem(4))
+          val tmpItem = frameInfo.addItem(TmpItem(reg.size))
           regMap = regMap.updated(reg, tmpItem)
           tmpItem
         }
       }
       debug(s"$reg -> $item")
       // replace operand
-      val frameIndex = FrameIndex(item.offset)
+      val frameIndex = FrameIndex(item.offset, reg.size)
       reg.replaceFromParent(frameIndex)
       debug(frameIndex.instParent.operands.toString)
     })

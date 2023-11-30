@@ -144,28 +144,41 @@ private class MethodTranslator(globalTable: GlobalTable, methodMapper: MethodMap
         phi
       }
       //      case Expr.Lambda(args, block) => ???
+      // todo: member method
       case Expr.Call(target, args, _) => {
+        // todo: pass self??
         if (intrinsics.contains(target.str)) {
-          builder.createIntrinsic(target.str, args.map(procExpr))
+          if(target.str == "malloc") {
+            builder.createIntrinsic(target.str, Integer(structSizeof(nestSpace.klass)) +: args.map(procExpr))
+          } else {
+            builder.createIntrinsic(target.str, args.map(procExpr))
+          }
         } else {
           builder.createCall(lookupFn(target), args.map(procExpr))
         }
       }
       case Expr.MethodCall(obj, target, args) => {
-        val makeCall = (klass: Ident, fname: Ident, thisPtr: Value) => {
+        if (target.str == "init") {
+          print("")
+        }
+        val makeCall = (klass: Ident, fname: Ident, thisPtr: Option[Value]) => {
           val f = lookupFn(fname, nestSpace.withClass(klass.str))
-          builder.createCall(f, thisPtr +: args.map(procExpr))
+          if(thisPtr.isDefined) {
+            builder.createCall(f, thisPtr.get +: args.map(procExpr))
+          } else {
+            builder.createCall(f, args.map(procExpr))
+          }
         }
         obj match
           // class method
           case Expr.Symbol(klassSym, _) => {
-            makeCall(klassSym, target, NilValue)
+            makeCall(klassSym, target, None)
           }
           // instance method
           case _ => {
             val objPtr = builder.createLoad(procExpr(obj))
             structTyProc(objPtr.ty) { case StructType(name, fields) =>
-              makeCall(name, target, objPtr)
+              makeCall(name, target, Some(objPtr))
             }
           }
       }
@@ -197,6 +210,11 @@ private class MethodTranslator(globalTable: GlobalTable, methodMapper: MethodMap
       case _ => Debugger.unImpl(expr)
     if v.ty == InferType then v.withTy(expr.ty) else v
     v.setPos(expr.pos)
+  }
+
+  def structSizeof(klass: Class): Int = {
+    // todo: compute a size
+    4 + klass.vars.map(v => 4).sum
   }
 
   def procStmt(stmt: ast.Stmt): Value = {
@@ -295,6 +313,7 @@ private class MethodTranslator(globalTable: GlobalTable, methodMapper: MethodMap
   private def insertReturn(): Unit = {
     if (builder.currentBasicBlock.stmts.isEmpty) {
       if (builder.basicBlocks.size < 2) { // only current
+        // todo: fix pos
         builder.createReturn(NilValue)
       } else { // prev bb last value
         builder.createReturn(builder.basicBlocks(builder.basicBlocks.size - 2).stmts.last)

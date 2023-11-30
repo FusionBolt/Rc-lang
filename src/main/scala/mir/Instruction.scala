@@ -126,6 +126,7 @@ case class PhiNode(var incomings: Map[Value, BasicBlock] = Map()) extends Instru
 
   override def toString: String = "Phi"
   def addIncoming(value: Value, block: BasicBlock): Unit = {
+    ty = value.ty
     incomings = incomings.updated(value, block)
   }
 }

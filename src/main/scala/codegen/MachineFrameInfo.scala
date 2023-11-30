@@ -4,7 +4,9 @@ package codegen
 import mir.{Alloc, Argument}
 
 class StackItem(var len: Int = 0, var offset: Int = 0) {
-  def toFrameIndex = FrameIndex(offset)
+  def toFrameIndex = {
+    FrameIndex(offset, len)
+  }
 }
 
 case class LocalItem(private val _len: Int, alloc: Alloc) extends StackItem(_len) {

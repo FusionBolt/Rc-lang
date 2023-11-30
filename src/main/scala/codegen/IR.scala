@@ -64,11 +64,11 @@ trait Src extends MachineOperand
 
 trait Dst extends MachineOperand
 
-case class VReg(num: Int) extends Src with Dst {
-  def dup = VReg(num)
+case class VReg(num: Int, size: Int = 4) extends Src with Dst {
+  def dup = VReg(num, size)
 }
 
-case class FrameIndex(offset: Int) extends Src with Dst
+case class FrameIndex(offset: Int, size: Int = 4) extends Src with Dst
 
 case class Imm(value: Int) extends Src
 
