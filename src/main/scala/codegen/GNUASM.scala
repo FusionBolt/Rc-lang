@@ -38,16 +38,15 @@ class GNUASMEmiter extends ASMEmiter {
         case Label(label) => List(s"leaq $label(%rip), ${operandToASM(target)}")
         case _ => List(s"${instStr("mov", value)} ${operandToASM(value)}, ${operandToASM(target)}")
       case StoreInst(target, value) => {
+        val valueLen = ValueLen(value)
         if ((target.isInstanceOf[FrameIndex] && value.isInstanceOf[FrameIndex]) || value.isInstanceOf[MemoryOperand] || target.isInstanceOf[MemoryOperand]) {
-          val valueLen = ValueLen(value)
           val tmpReg = numToReg(0, valueLen)
           val movToTmp = s"${instStr("mov", valueLen)} ${operandToASM(value)}, $tmpReg"
           val store = s"${instStr("mov", valueLen)} $tmpReg, ${operandToASM(target)}"
           List(movToTmp, store)
         } else {
-          List(s"${instStr("mov", target)} ${operandToASM(value)}, ${operandToASM(target)}")
+          List(s"${instStr("mov", valueLen)} ${operandToASM(value)}, ${operandToASM(target)}")
         }
-
       }
       // todo: value size
       //      case ReturnInst(value) => List(s"${instStr("mov", value)} ${operandToASM(value)}, %eax", "popq %rbp", "ret")
@@ -108,8 +107,8 @@ class GNUASMEmiter extends ASMEmiter {
           ???
         }
         base match
-          case FrameIndex(frameIndex, size) => s"${-(frameIndex + dis.get.value)}(%rbp)"
-          case _ => ???
+//          case FrameIndex(frameIndex, size) => s"${-(frameIndex + dis.get.value)}(%rbp)"
+          case VReg(num, size) => s"${dis.get.value}(${numToReg(num, size)})"
       }
 
       case _ => ???

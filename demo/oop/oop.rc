@@ -5,7 +5,7 @@ class RcObject
 
     def new()
         var a = malloc()
-        init()
+        this.init()
         a
     end
 end
@@ -16,6 +16,7 @@ class Point < RcObject
 
   def move_x(offset: Int): Int
     print("x: %d\n", x)
+    print("offset: %d\n", offset)
     x = x + offset
   end
 end

@@ -213,8 +213,8 @@ private class MethodTranslator(globalTable: GlobalTable, methodMapper: MethodMap
   }
 
   def structSizeof(klass: Class): Int = {
-    // todo: compute a size
-    4 + klass.vars.map(v => 4).sum
+    // todo: 考虑继承的问题
+    8 + klass.vars.map(v => 4).sum
   }
 
   def procStmt(stmt: ast.Stmt): Value = {

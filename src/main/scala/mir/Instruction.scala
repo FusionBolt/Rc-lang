@@ -48,6 +48,12 @@ case class Call(func: Function, private val args_value: List[Value]) extends Cal
 
 class Intrinsic(private val intrName: String, private val args_value: List[Value]) extends Instruction(varOps) {
   name = intrName
+  // todo: fix this
+  if(intrName == "print") {
+    ty = NilType
+  } else if(intrName == "malloc") {
+    ty = PointerType(NilType)
+  }
   setOperands(args_value)
   def args = getOperands
   def getArg(i: Int): Value = getOperand(i)
@@ -110,6 +116,7 @@ class Store(valueV: Value, ptrV: Value) extends Instruction(2) {
   def ptr = getOperand(1)
 }
 
+// value: this object
 case class GetElementPtr(value: Value, offset: Value, targetTy: Type) extends Instruction(2) {
   setOperand(0, value)
   setOperand(1, offset)

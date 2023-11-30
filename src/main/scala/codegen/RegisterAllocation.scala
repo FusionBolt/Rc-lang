@@ -16,7 +16,7 @@ class StackRegisterAllocation extends Transform[MachineFunction] {
     var regMap = Map[VReg, StackItem]()
     val allVReg = mf.instructions.flatMap(m => m.operands).map(_ match
       case v: VReg => Some(v)
-      case _ => None).filter(_.isDefined).map(_.get)
+      case _ => None).filter(v => v.isDefined && !v.get.force).map(_.get)
     allVReg.foreach(reg => {
       debug(reg.toString)
       debug(reg.instParent.operands.toString)

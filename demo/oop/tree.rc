@@ -1,0 +1,36 @@
+class RcObject
+    def init()
+
+    end
+
+    def new()
+        var a = malloc()
+        this.init()
+        a
+    end
+end
+
+class TreeNode
+    var lhs: TreeNode
+    var rhs: TreeNode
+    var value: Int
+end
+
+def flip(node: TreeNode)
+    if(node == nil)
+        return nil
+    end
+    var newLhs = filp(node.lhs)
+    var newRhs = filp(node.rhs)
+    TreeNdoe.new(node.value, lhs, rhs)
+end
+
+def main
+    var lhs = TreeNode.new(3, nil, nil)
+    var rhs = TreeNode.new(4, nil, nil)
+    var root = TreeNode.new(5, lhs, rhs)
+    var new_root = file(root)
+    printf("new root = %d", new_root.value)
+    printf("new lhs = %d", new_root.lhs.value)
+    printf("new rhs = %d", new_root.rhs.value)
+end

@@ -127,6 +127,17 @@ class IRTranslator {
         val index = findIndex(v)
         frameInfo.locals(index).toFrameIndex
       }
+      case inst: GetElementPtr => {
+        var objAddr = getOperand(inst.value)
+        val offset = getOperand(inst.offset)
+
+        if (objAddr.isInstanceOf[FrameIndex]) {
+          objAddr = frameIntoReg(inst, objAddr)
+        }
+
+        val fieldAddr = getFieldAddrWithBID(objAddr, offset, inst)
+        fieldAddr
+      }
       case _ => getOrCreateVReg(value)
   }
 
@@ -174,6 +185,7 @@ class IRTranslator {
         v.dup
       }
       case frame: FrameIndex => frame
+      case m: MemoryOperand => m
       case _ => ???
     }
     store.value match {
@@ -246,10 +258,17 @@ class IRTranslator {
     builder.insertCallInst(f, createVReg(inst), params)
   }
 
-  def visitGetElementPtr(inst: GetElementPtr) = {
-    // todo: support for array only
-    val objAddr = getOperand(inst.value)
-    val offset = getOperand(inst.offset)
+  def frameIntoReg(inst: GetElementPtr, objAddr: Src): VReg = {
+    // Frame上的内容放到寄存器里
+      val objAddrReg = createVReg(inst.value)
+      objAddrReg.force = true
+      val store = builder.insertStoreInst(objAddrReg, objAddr)
+      store.origin = inst
+      objAddrReg
+  }
+
+  def getFieldAddrWithBID(objAddr: MachineOperand, offset: MachineOperand, inst: GetElementPtr): Src = {
+    //    based indexed addressing
     val scale = inst.value.ty match
       case ArrayType(valueT, size) => Imm(sizeof(valueT))
       // offset compute by createElementPtr in now
@@ -259,9 +278,22 @@ class IRTranslator {
     val fieldAddr = offset match
       case Imm(i) => {
         val dis = scale.value * i
-        MemoryOperand(objAddr, Some(Imm(dis)), None, None)
+        MemoryOperand(objAddr.asInstanceOf[VReg], Some(Imm(dis)), None, None)
       }
-      case _ => MemoryOperand(objAddr, None, Some(offset), Some(scale))
+      case _ => MemoryOperand(objAddr.asInstanceOf[VReg], None, Some(offset), Some(scale))
+    fieldAddr
+  }
+
+  def visitGetElementPtr(inst: GetElementPtr) = {
+    // todo: support for array only
+    var objAddr = getOperand(inst.value)
+    val offset = getOperand(inst.offset)
+
+    if (objAddr.isInstanceOf[FrameIndex]) {
+      objAddr = frameIntoReg(inst, objAddr)
+    }
+
+    val fieldAddr = getFieldAddrWithBID(objAddr, offset, inst)
     val target = createVReg(inst)
     builder.insertStoreInst(target, fieldAddr)
   }

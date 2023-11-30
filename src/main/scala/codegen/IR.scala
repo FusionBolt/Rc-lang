@@ -65,6 +65,7 @@ trait Src extends MachineOperand
 trait Dst extends MachineOperand
 
 case class VReg(num: Int, size: Int = 4) extends Src with Dst {
+  var force: Boolean = false
   def dup = VReg(num, size)
 }
 
@@ -74,7 +75,7 @@ case class Imm(value: Int) extends Src
 
 case class Label(name: String) extends Src
 
-case class MemoryOperand(base: MachineOperand, displacement: Option[Imm] = None, index: Option[MachineOperand] = None, scale: Option[Imm] = None) extends Src with Dst
+case class MemoryOperand(base: VReg, displacement: Option[Imm] = None, index: Option[MachineOperand] = None, scale: Option[Imm] = None) extends Src with Dst
 
 sealed trait MachineInstruction extends InMBB with MapOrigin[Value] with Positional {
   var operands: List[MachineOperand] = List()
