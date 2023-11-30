@@ -32,14 +32,21 @@ case class MachineFrameInfo() {
 
   def size = items.length
 
-  def length = items.last.offset + items.last.len
+  // 最后一个的位置，在其之上是数据，因此不需要添加len
+  def length = items.last.offset
 
   def align(v: Int, base: Int) = (v / base + (if v % base == 0 then 0 else 1)) * base
 
   def alignLength = align(length, 16)
 
+  // invalid
+  //  -- 0 <- c  <== rsp
+  //  -- 4 <- b
+  //  -- 8 <- a  <== 低位
+  // rsp - 8 = "abc"
   def addItem(item: StackItem): StackItem = {
-    item.offset = if items.isEmpty then 4 else length
+    // todo: fix for 0 size
+    item.offset = (if items.isEmpty then 0 else length) + (if item.len == 0 then 8 else item.len)
     items = items :+ item
     item
   }
@@ -68,14 +75,15 @@ case class MachineFrameInfo() {
   }
 
   override def toString: String = {
-    s"${mf.name}\n" +
+    val line = "| ---------- |"
+    s"${mf.name}\n0   $line rsp\n" +
     items.map(item => {
-      val offsetLine = s"${item.offset.toString.padTo(4, ' ')}| ---------- |\n"
+      val offsetLine = s"${item.offset.toString.padTo(4, ' ')}$line\n"
       val itemLine = s"    | ${item.toString.padTo(10, ' ')} |\n"
       val spaceLineCount: Int = item.len / 4
 
       val lenLine = (1 until spaceLineCount).map(n => s"${(item.offset + n * 4).toString.padTo(4, ' ')}|            |\n").mkString
-      offsetLine + itemLine + lenLine
-    }).mkString+"    | ---------- |"
+      itemLine + offsetLine
+    }).mkString
   }
 }
