@@ -35,7 +35,7 @@ enum Punctuation extends Token:
   case COMMENT
   case EOL
   case COMMA
-  case EQL
+  case EQL // =
   case SPACE
   case DOT
   case COLON

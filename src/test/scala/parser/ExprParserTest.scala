@@ -30,7 +30,12 @@ class ExprParserTest extends ExprParser with BaseParserTest {
   def expectSuccess(tokens: Seq[Token], expect: Expr): Unit = {
     apply(tokens) match {
       case Left(value) => assert(false, value.msg)
-      case Right((ast, reader)) => assert(ast == expect);assert(reader.atEnd, reader)
+      case Right((ast, reader)) => {
+        println(ast)
+        println(expect)
+        assert(ast == expect)
+        assert(reader.atEnd, reader)
+      }
     }
   }
 
@@ -73,6 +78,12 @@ class ExprParserTest extends ExprParser with BaseParserTest {
     it("multi args") {
       expectSuccess(makeCall("foo", List(NUMBER(1), NUMBER(2))), Call("foo", List(Number(1), Number(2))))
     }
+
+    it("withMemField") {
+      expectSuccess(
+        List(IDENTIFIER("foo"), LEFT_PARENT_THESES, NUMBER(1), COMMA, IDENTIFIER("node"), DOT, IDENTIFIER("value"), RIGHT_PARENT_THESES),
+        Call("foo", List(Number(1), Field(Identifier("node"), Ident("value")))))
+    }
   }
 
   describe("memField") {
@@ -94,6 +105,21 @@ class ExprParserTest extends ExprParser with BaseParserTest {
       expectSuccess(
         List(UPPER_IDENTIFIER("Foo"), DOT, IDENTIFIER("new"), LEFT_PARENT_THESES, RIGHT_PARENT_THESES),
         MethodCall(Symbol("Foo"), "new", List()))
+    }
+
+    it("multi param") {
+      expectSuccess(
+        List(UPPER_IDENTIFIER("TreeNode"), DOT, IDENTIFIER("new"), LEFT_PARENT_THESES, IDENTIFIER("node"), COMMA, IDENTIFIER("lhs"), COMMA, IDENTIFIER("rhs"), RIGHT_PARENT_THESES),
+        MethodCall(Symbol("TreeNode"), "new", List(Identifier("node"), Identifier("lhs"), Identifier("rhs")))
+      )
+    }
+
+    // todo: fix this error
+    it("complex") {
+      expectSuccess(
+        List(UPPER_IDENTIFIER("TreeNode"), DOT, IDENTIFIER("new"), LEFT_PARENT_THESES, IDENTIFIER("node"), DOT, IDENTIFIER("value"), COMMA, IDENTIFIER("lhs"), COMMA, IDENTIFIER("rhs"), RIGHT_PARENT_THESES),
+        MethodCall(Symbol("TreeNode"), "new", List(Field(Identifier("node"), Ident("value")), Identifier("lhs"), Identifier("rhs")))
+      )
     }
   }
 

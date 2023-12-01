@@ -18,7 +18,7 @@ import scala.language.postfixOps
 import scala.util.parsing.input.Positional
 
 trait BinaryTranslator {
-  val opDefaultInfix = HashMap("+"->10, "-"->10, "*"->10, "/"->10, ">"->5, "<"->5)
+  val opDefaultInfix = HashMap("+"->10, "-"->10, "*"->10, "/"->10, ">"->5, "<"->5, "==" ->4)
 
   def findMaxInfixIndex(terms: List[Positional]): Int =
     terms
@@ -64,7 +64,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def expr: Parser[Expr] = positioned {
-    multiLineIf | termExpr | ret
+    multiLineIf | log(ret)("ret") | termExpr
   }
 
   def array: Parser[Expr] = positioned {
@@ -89,13 +89,13 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   // memField: term.x
   // arrayIndex: term[
   lazy val beginWithTerm: PackratParser[Expr] = positioned {
-    memCall | memField | array | arrayIndex
+    log(memCall)("memCallStart") | log(memField)("memFieldStart") | array | arrayIndex
   }
 
   // call: term<T>()
   // memCall: term<T>.x()
   def term: Parser[Expr] = positioned {
-    bool | num | string | selfField | call | beginWithTerm | symbol | idExpr
+    bool | num | string | selfField | call | log(beginWithTerm)("beginWithTerm") | symbol | log(idExpr)("idExpr")
   }
 
   def symbol = positioned {
@@ -119,14 +119,15 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
     (AT ~> id) ^^ (id => Expr.Field(Expr.Self, id))
   }
 
+  // todo: 如果memField是callable怎么办
   def memField: Parser[Expr.Field] = positioned {
-    log(termExpr <~ DOT)("MemberLog") ~ log(id)("FieldLog") ^^ {
+    log(log(termExpr)("fieldTerm") <~ DOT)("MemberLog") ~ log(id)("FieldLog") <~ not(guard(LEFT_PARENT_THESES)) ^^ {
       case obj ~ name => Expr.Field(obj, name)
     }
   }
 
   def memCall: Parser[Expr.MethodCall] = positioned {
-    (termExpr <~ DOT) ~ id ~ parSround(repsep(termExpr, COMMA)) ^^ {
+    (termExpr <~ DOT) ~ id ~ parSround(repsep(log(termExpr)("memCallArgs"), COMMA)) ^^ {
       case obj ~ id ~ args => Expr.MethodCall(obj, id, args)
     }
   }
@@ -144,7 +145,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
   }
 
   def multiLineIf: Parser[If] = positioned {
-    oneline(IF ~> expr) ~ block ~ log(elsif.*)("elsif") ~ (oneline(ELSE) ~> log(block)("else block")).? <~ log(END)("end") ^^ {
+    log(oneline(IF ~> log(expr)("if_cond")))("if") ~ block ~ log(elsif.*)("elsif") ~ (oneline(ELSE) ~> log(block)("else block")).? <~ log(END)("end") ^^ {
       case cond ~ if_branch ~ elsif ~ else_branch
       => If(cond, if_branch, elsif.foldRight(else_branch.asInstanceOf[Option[Expr]])(
         (next, acc) => Some(If(next.cond, next.true_branch, acc))))
@@ -164,7 +165,7 @@ trait ExprParser extends RcBaseParser with BinaryTranslator {
       | log(local)("local")
       | BREAK ^^^ Stmt.Break()
       | CONTINUE ^^^ Stmt.Continue()
-      | expr ^^ Stmt.Expr)
+      | log(expr)("exprStmt") ^^ Stmt.Expr)
   }
 
   def none: Parser[ASTNode] = positioned {

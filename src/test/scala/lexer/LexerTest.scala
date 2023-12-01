@@ -134,6 +134,14 @@ class LexerTest extends AnyFunSpec {
     }
   }
 
+  describe("NoValueToken") {
+    it("ValAndValue") {
+      expectSuccess("value", IDENTIFIER("value"))
+      expectSuccess("val ", VAL)
+      expectSuccess("val", IDENTIFIER("val"))
+    }
+  }
+
   describe ("eol") {
     it("basic succeed") {
       expectSuccess("id \n id", List(IDENTIFIER("id"), EOL, IDENTIFIER("id")))

@@ -17,7 +17,7 @@ class TreeNode
 end
 
 def flip(node: TreeNode)
-    if(node == nil)
+    if node == nil
         return nil
     end
     var newLhs = filp(node.lhs)

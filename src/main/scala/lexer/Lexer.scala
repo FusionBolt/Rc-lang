@@ -38,13 +38,13 @@ object Lexer extends RegexParsers {
 
   def keyword: Parser[Token] = stringLiteral | trueLiteral | falseLiteral |
     defStr | endStr | ifStr | thenStr | elsifStr | elseStr | whileStr | breakStr |
-    continueStr | classStr | superStr | selfStr | varStr | valStr | importStr | forStr
+    continueStr | classStr | superStr | selfStr | varStr | valStr | importStr | forStr | returnStr
   def symbol: Parser[Token] = comment | comma | eol | dot | at | colon | semicolon |
     leftParentTheses | rightParentTheses | leftSquare | rightSquare | leftBracket | rightBracket
 
   def value: Parser[Token] = number | upperIdentifier | identifier
 
-  def ops = "[+\\-*/%^~!><]".r
+  def ops = "[+\\-*/%^~!><]|(==)".r
   def operator: Parser[Token] = positioned {
     ops ^^ OPERATOR
   }
@@ -78,7 +78,7 @@ object Lexer extends RegexParsers {
 
   def notSpacer: Parser[Token] = keyword | value | eol
 
-  def spacer: Parser[Token] = symbol | operator | eql | space
+  def spacer: Parser[Token] = symbol | eql | operator | space
 
   def upperIdentifier: Parser[UPPER_IDENTIFIER] = positioned {
     "[A-Z_][a-zA-Z0-9_]*".r ^^ { str => UPPER_IDENTIFIER(str) }
@@ -99,49 +99,57 @@ object Lexer extends RegexParsers {
     """(0|[1-9]\d*)""".r ^^ { i => NUMBER(i.toInt) }
   }
 
-  def NoValueToken(str: String, token: Token): Parser[Token] = positioned {
+  def NoValueTokenKeyWord(str: String, token: Token): Parser[Token] = positioned {
+    str ~ guard(spacer) ^^^ token
+  }
+
+  def NoValueTokenWithGuard(str: String, token: Token, guardStr: String): Parser[Token] = positioned {
+    str ~ not(guard(guardStr)) ^^^ token
+  }
+
+  def NoValueTokenSymbol(str: String, token: Token): Parser[Token] = positioned {
     str ^^^ token
   }
 
-  def comment = NoValueToken("#", COMMENT)
-  def eol = NoValueToken("\n", EOL)
-  def eql = NoValueToken("=", EQL)
-  def comma = NoValueToken(",", COMMA)
-  def dot = NoValueToken(".", DOT)
-  def colon = NoValueToken(":", COLON)
-  def semicolon = NoValueToken(";", SEMICOLON)
-  def at = NoValueToken("@", AT)
+  def comment = NoValueTokenSymbol("#", COMMENT)
+  def eol = NoValueTokenSymbol("\n", EOL)
+  def eql = NoValueTokenWithGuard("=", EQL, "=")
+  def comma = NoValueTokenSymbol(",", COMMA)
+  def dot = NoValueTokenSymbol(".", DOT)
+  def colon = NoValueTokenSymbol(":", COLON)
+  def semicolon = NoValueTokenSymbol(";", SEMICOLON)
+  def at = NoValueTokenSymbol("@", AT)
 
-  def trueLiteral = NoValueToken("true", TRUE)
-  def falseLiteral = NoValueToken("false", FALSE)
+  def trueLiteral = NoValueTokenKeyWord("true", TRUE)
+  def falseLiteral = NoValueTokenKeyWord("false", FALSE)
 
-  def varStr = NoValueToken("var", VAR)
-  def valStr = NoValueToken("val", VAL)
-  def defStr = NoValueToken("def", DEF)
-  def returnStr = NoValueToken("return", RETURN)
-  def endStr = NoValueToken("end", END)
+  def varStr = NoValueTokenKeyWord("var", VAR)
+  def valStr = NoValueTokenKeyWord("val", VAL)
+  def defStr = NoValueTokenKeyWord("def", DEF)
+  def returnStr = NoValueTokenKeyWord("return", RETURN)
+  def endStr = NoValueTokenKeyWord("end", END)
 
-  def ifStr = NoValueToken("if", IF)
-  def thenStr = NoValueToken("then", THEN)
-  def elsifStr = NoValueToken("elsif", ELSIF)
-  def elseStr = NoValueToken("else", ELSE)
-  def whileStr = NoValueToken("while", WHILE)
-  def forStr = NoValueToken("for", FOR)
-  def breakStr = NoValueToken("break", BREAK)
-  def continueStr = NoValueToken("continue", CONTINUE)
+  def ifStr = NoValueTokenKeyWord("if", IF)
+  def thenStr = NoValueTokenKeyWord("then", THEN)
+  def elsifStr = NoValueTokenKeyWord("elsif", ELSIF)
+  def elseStr = NoValueTokenKeyWord("else", ELSE)
+  def whileStr = NoValueTokenKeyWord("while", WHILE)
+  def forStr = NoValueTokenKeyWord("for", FOR)
+  def breakStr = NoValueTokenKeyWord("break", BREAK)
+  def continueStr = NoValueTokenKeyWord("continue", CONTINUE)
 
-  def classStr = NoValueToken("class", CLASS)
-  def superStr = NoValueToken("super", SUPER)
-  def selfStr = NoValueToken("self", SELF)
-  def varsStr = NoValueToken("vars", VARS)
-  def methods = NoValueToken("methods", METHODS)
+  def classStr = NoValueTokenKeyWord("class", CLASS)
+  def superStr = NoValueTokenKeyWord("super", SUPER)
+  def selfStr = NoValueTokenKeyWord("self", SELF)
+  def varsStr = NoValueTokenKeyWord("vars", VARS)
+  def methods = NoValueTokenKeyWord("methods", METHODS)
 
-  def importStr = NoValueToken("import", IMPORT)
+  def importStr = NoValueTokenKeyWord("import", IMPORT)
 
-  def leftParentTheses = NoValueToken("(", LEFT_PARENT_THESES)
-  def rightParentTheses = NoValueToken(")", RIGHT_PARENT_THESES)
-  def leftSquare = NoValueToken("[", LEFT_SQUARE)
-  def rightSquare = NoValueToken("]", RIGHT_SQUARE)
-  def leftBracket = NoValueToken("{", LEFT_BRACKET)
-  def rightBracket = NoValueToken("}", RIGHT_BRACKET)
+  def leftParentTheses = NoValueTokenSymbol("(", LEFT_PARENT_THESES)
+  def rightParentTheses = NoValueTokenSymbol(")", RIGHT_PARENT_THESES)
+  def leftSquare = NoValueTokenSymbol("[", LEFT_SQUARE)
+  def rightSquare = NoValueTokenSymbol("]", RIGHT_SQUARE)
+  def leftBracket = NoValueTokenSymbol("{", LEFT_BRACKET)
+  def rightBracket = NoValueTokenSymbol("}", RIGHT_BRACKET)
 }

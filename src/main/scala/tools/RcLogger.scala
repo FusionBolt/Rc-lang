@@ -44,5 +44,5 @@ object RcLogger {
     f
     log(s"------------$prefix end------------")
   }
-  var level = 1
+  var level = 2
 }
