@@ -12,7 +12,7 @@ object Analysis:
     type ResultT = LoopInfo
   }
   
-  given DomFrontier with {
+  given DomFrontierAnalysis with {
     type ResultT = Map[DomTreeNode, Set[DomTreeNode]]
   }
 

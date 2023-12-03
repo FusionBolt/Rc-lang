@@ -5,7 +5,7 @@ import mir.{DomTreeNode, Function}
 import pass.{Analysis, AnalysisManager}
 import rclang.analysis.Analysis.given_DomTreeAnalysis
 
-case class DomFrontier() extends Analysis[Function] {
+case class DomFrontierAnalysis() extends Analysis[Function] {
   override type ResultT = Map[DomTreeNode, Set[DomTreeNode]]
   override def run(irUnit: Function, AM: AnalysisManager[Function]): ResultT = {
     val domTree = AM.getResult[DomTreeAnalysis](irUnit)
