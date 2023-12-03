@@ -19,6 +19,8 @@ class DomTreeNode(var parentTree: DomTree, var basicBlock: BasicBlock, var child
     children = childs ::: children
   }
 
+  def preds = basicBlock.preds
+
   override def toString: String = s"bb:${basicBlock.name} -> ${children.map(_.basicBlock.toString).mkString(" ")}"
 }
 

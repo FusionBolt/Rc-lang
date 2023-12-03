@@ -14,6 +14,8 @@ class BasicBlock(nameStr: String, var stmts: List[Instruction] = List()) extends
   }
 
   def successors = terminator.successors
+  
+  def preds: List[BasicBlock] = ???
 
   override def toString: String = s"BasicBlock:$name"
 }
